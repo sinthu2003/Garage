@@ -9,7 +9,8 @@ import {
   Instagram,
   Youtube,
   ChevronRight,
-  ArrowUp
+  ArrowUp,
+  Car
 } from 'lucide-react';
 
 const footerLinks = {
@@ -31,7 +32,7 @@ const footerLinks = {
   support: [
     { name: 'Help Center', href: '#' },
     { name: 'Contact Us', href: '#' },
-    { name: 'FAQs', href: '#' },
+    { name: 'FAQs', href: '#faq' },
     { name: 'Warranty Policy', href: '#' },
     { name: 'Privacy Policy', href: '#' },
     { name: 'Terms of Service', href: '#' },
@@ -83,15 +84,18 @@ export const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
-            <a href="#" className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                G
+            <a href="#" className="flex items-center gap-2.5 mb-6">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                <Car className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <span className="text-xl sm:text-2xl font-bold">GoMechanic</span>
+              <div className="flex flex-col">
+                <span className="text-xl sm:text-2xl font-bold leading-none">AutoCare</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-orange-500 tracking-widest uppercase">PRO</span>
+              </div>
             </a>
             
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-              India's leading car service network offering quality repairs at transparent prices.
+              India's leading car service network offering quality repairs at transparent prices with doorstep convenience.
             </p>
 
             {/* Contact Info */}
@@ -100,9 +104,9 @@ export const Footer = () => {
                 <Phone className="w-4 h-4 text-orange-500" />
                 +91 98765 43210
               </a>
-              <a href="mailto:support@gomechanic.in" className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors text-sm">
+              <a href="mailto:support@autocarepro.in" className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors text-sm">
                 <Mail className="w-4 h-4 text-orange-500" />
-                support@gomechanic.in
+                support@autocarepro.in
               </a>
               <div className="flex items-center gap-3 text-gray-400 text-sm">
                 <Clock className="w-4 h-4 text-orange-500" />
@@ -171,6 +175,7 @@ export const Footer = () => {
                 <li key={link.name}>
                   <a
                     href={link.href}
+                    onClick={(e) => scrollToSection(e, link.href)}
                     className="text-gray-400 hover:text-orange-500 transition-colors text-xs sm:text-sm flex items-center gap-1 group"
                   >
                     <ChevronRight className="w-3 h-3 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
@@ -208,7 +213,7 @@ export const Footer = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-5 sm:py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
-              © {new Date().getFullYear()} GoMechanic. All rights reserved.
+              © {new Date().getFullYear()} AutoCare Pro. All rights reserved.
             </p>
             
             <div className="flex items-center gap-4 sm:gap-6">

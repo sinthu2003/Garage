@@ -2,8 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { useLayoutEffect } from 'react';
 import { AppLayout } from '../components/layout/AppLayout';
 import { HomePage } from '../pages/HomePage';
-import { LocatorPage } from '../pages/LocatorPage';
-import { NotFoundPage } from '../pages/NotFoundPage';
+
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -20,8 +19,7 @@ export const AppRouter = () => {
       <AppLayout>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/locator" element={<LocatorPage />} />
-          <Route path="*" element={<NotFoundPage />} />
+         
         </Routes>
       </AppLayout>
     </>

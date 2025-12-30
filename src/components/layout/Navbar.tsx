@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Phone, ChevronDown } from 'lucide-react';
+import { Menu, X, Phone, ChevronDown, Car } from 'lucide-react';
 
 const navLinks = [
   { label: 'Services', href: '#services' },
@@ -45,7 +45,7 @@ export const Navbar = () => {
     const element = document.getElementById(targetId);
     
     if (element) {
-      const offsetTop = element.offsetTop - 80; // Account for navbar height
+      const offsetTop = element.offsetTop - 80;
       window.scrollTo({
         top: offsetTop,
         behavior: 'smooth'
@@ -83,15 +83,15 @@ export const Navbar = () => {
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="flex items-center gap-3"
+              className="flex items-center gap-2.5"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                <span className="text-white font-bold text-lg">G</span>
-              </div>
+              {/* <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                <Car className="w-5 h-5 text-white" />
+              </div> */}
               <span className={`text-xl font-bold tracking-tight transition-colors ${
                 isScrolled ? 'text-gray-900' : 'text-white'
               }`}>
-                GoMechanic
+                AutoCare<span className="text-orange-500 pl-0.5">PRO</span>
               </span>
             </a>
 
@@ -189,7 +189,14 @@ export const Navbar = () => {
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
-                  <span className="text-xl font-bold text-gray-900">Menu</span>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                      <Car className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="text-xl font-bold text-gray-900">
+                      AutoCare<span className="text-orange-500">PRO</span>
+                    </span>
+                  </div>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600"
