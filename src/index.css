@@ -1,0 +1,267 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Premium Color System - Apple/Nothing Inspired */
+  --primary: #FF5733;
+  --primary-light: #FF7A5C;
+  --primary-dark: #E64A2E;
+  
+  /* Neutral Scale */
+  --white: #FFFFFF;
+  --gray-50: #FAFAFA;
+  --gray-100: #F5F5F7;
+  --gray-200: #E8E8ED;
+  --gray-300: #D2D2D7;
+  --gray-400: #86868B;
+  --gray-500: #6E6E73;
+  --gray-600: #424245;
+  --gray-700: #2C2C2E;
+  --gray-800: #1D1D1F;
+  --gray-900: #0A0A0B;
+  --black: #000000;
+  
+  /* Semantic */
+  --success: #30D158;
+  --warning: #FFD60A;
+  --error: #FF453A;
+  
+  /* Effects */
+  --shadow-soft: 0 2px 40px rgba(0, 0, 0, 0.04);
+  --shadow-medium: 0 4px 60px rgba(0, 0, 0, 0.08);
+  --shadow-strong: 0 8px 80px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 60px rgba(255, 87, 51, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--white);
+  color: var(--gray-800);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--white);
+}
+
+/* Premium Typography Scale */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+}
+
+/* Utility Classes */
+@layer components {
+  /* Glass Morphism - Apple Style */
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  /* Premium Card */
+  .card-premium {
+    background: var(--white);
+    border-radius: 24px;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-soft);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .card-premium:hover {
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-4px);
+    border-color: var(--gray-300);
+  }
+  
+  /* Floating Animation */
+  .float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+  
+  /* Gradient Text */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Premium Button */
+  .btn-premium {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 32px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  }
+  
+  .btn-primary {
+    background: var(--gray-900);
+    color: var(--white);
+  }
+  
+  .btn-primary:hover {
+    background: var(--black);
+    transform: scale(1.02);
+    box-shadow: var(--shadow-strong);
+  }
+  
+  .btn-accent {
+    background: var(--primary);
+    color: var(--white);
+  }
+  
+  .btn-accent:hover {
+    background: var(--primary-dark);
+    transform: scale(1.02);
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .btn-outline {
+    background: transparent;
+    color: var(--gray-800);
+    border: 1.5px solid var(--gray-300);
+  }
+  
+  .btn-outline:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+  }
+  
+  /* Section Spacing */
+  .section {
+    padding: 120px 0;
+  }
+  
+  .section-compact {
+    padding: 80px 0;
+  }
+  
+  /* Container */
+  .container-wide {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 48px;
+  }
+  
+  @media (max-width: 768px) {
+    .container-wide {
+      padding: 0 24px;
+    }
+    .section {
+      padding: 80px 0;
+    }
+  }
+  
+  /* Tag/Badge */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-radius: 100px;
+    background: var(--gray-100);
+    color: var(--gray-600);
+  }
+  
+  .tag-accent {
+    background: rgba(255, 87, 51, 0.1);
+    color: var(--primary);
+  }
+  
+  /* Divider */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--gray-200) 50%, transparent 100%);
+  }
+}
+
+/* Custom Scrollbar - Minimal */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+/* Nothing-style dot pattern */
+.dot-pattern {
+  background-image: radial-gradient(var(--gray-200) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Noise texture overlay */
+.noise {
+  position: relative;
+}
+
+.noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 1;
+}
