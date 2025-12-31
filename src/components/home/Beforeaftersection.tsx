@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { ArrowRight, Sparkles, CheckCircle, Star } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Before/After transformations with realistic car service images
 const transformations = [
@@ -118,6 +119,22 @@ export const BeforeAfterSection = () => {
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-50px" });
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
+  // Handle Book Now click
+  const handleBookNow = () => {
+    if (isHomePage) {
+      const bookingWidget = document.getElementById('booking-widget');
+      if (bookingWidget) {
+        bookingWidget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    } else {
+      navigate('/', { state: { scrollToBooking: true } });
+    }
+  };
 
   return (
     <section ref={sectionRef} className="py-16 sm:py-20 lg:py-28 bg-white relative overflow-hidden">
@@ -325,6 +342,7 @@ export const BeforeAfterSection = () => {
 
             {/* CTA */}
             <motion.button 
+              onClick={handleBookNow}
               className="w-full mt-6 flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-black transition-all group"
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}

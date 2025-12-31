@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Check, ArrowRight, TrendingDown, BadgePercent } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const pricingData = [
   { 
@@ -35,6 +36,22 @@ const pricingData = [
 ];
 
 export const PricingTable = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
+  // Handle Book Now click
+  const handleBookNow = () => {
+    if (isHomePage) {
+      const bookingWidget = document.getElementById('booking-widget');
+      if (bookingWidget) {
+        bookingWidget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    } else {
+      navigate('/', { state: { scrollToBooking: true } });
+    }
+  };
+
   const calculateSaving = (market: number, ours: number) => {
     return Math.round(((market - ours) / market) * 100);
   };
@@ -121,8 +138,11 @@ export const PricingTable = () => {
               ))}
             </div>
             
-            <button className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-foreground text-background font-semibold rounded-full hover:opacity-90 transition-all duration-300 hover:shadow-lg text-sm sm:text-base group">
-              View Full Rate Card
+            <button 
+              onClick={handleBookNow}
+              className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-foreground text-background font-semibold rounded-full hover:opacity-90 transition-all duration-300 hover:shadow-lg text-sm sm:text-base group"
+            >
+              Book Now
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </motion.div>
@@ -143,6 +163,7 @@ export const PricingTable = () => {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.08 }}
                 whileHover={{ x: 8 }}
+                onClick={handleBookNow}
                 className="group flex items-center justify-between p-3 sm:p-4 lg:p-5 bg-secondary rounded-xl sm:rounded-2xl border border-border hover:border-primary/20 hover:bg-primary/5 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3 sm:gap-4">

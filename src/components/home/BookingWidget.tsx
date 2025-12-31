@@ -349,6 +349,7 @@ export const BookingWidget = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       className="w-full max-w-md relative"
+      id="booking-widget"
     >
       <div className="bg-card rounded-3xl shadow-2xl shadow-primary/20 overflow-hidden">
         {/* Top Accent Bar - Themeable */}

@@ -117,10 +117,10 @@ export const PartnersSection = () => {
                 className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-20 bg-card rounded-xl flex items-center justify-center p-4 border border-border hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer"
                 whileHover={{ scale: 1.1, y: -5 }}
               >
-                <img 
-                  src={partner.logo} 
+                <img
+                  src={partner.logo}
                   alt={partner.name}
-                  className="max-w-full max-h-full object-contain filter grayscale hover:grayscale-0 transition-all"
+                  className="max-w-full max-h-full object-contain transition-all duration-300 hover:scale-110"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -149,10 +149,10 @@ export const PartnersSection = () => {
                 className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-20 bg-card rounded-xl flex items-center justify-center p-4 border border-border hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer"
                 whileHover={{ scale: 1.1, y: -5 }}
               >
-                <img 
-                  src={partner.logo} 
+                <img
+                  src={partner.logo}
                   alt={partner.name}
-                  className="max-w-full max-h-full object-contain filter grayscale hover:grayscale-0 transition-all"
+                  className="max-w-full max-h-full object-contain transition-all duration-300 hover:scale-110"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';

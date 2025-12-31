@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { MapPin, Calendar, Wrench, CheckCircle, ArrowRight } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const steps = [
   {
@@ -37,6 +38,22 @@ const steps = [
 ];
 
 export const HowItWorks = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
+  // Handle Book Now click
+  const handleBookNow = () => {
+    if (isHomePage) {
+      const bookingWidget = document.getElementById('booking-widget');
+      if (bookingWidget) {
+        bookingWidget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    } else {
+      navigate('/', { state: { scrollToBooking: true } });
+    }
+  };
+
   return (
     <section id="how-it-works" className="py-12 sm:py-16 lg:py-24 bg-white relative overflow-hidden">
       {/* Background */}
@@ -196,7 +213,10 @@ export const HowItWorks = () => {
           viewport={{ once: true }}
           transition={{ delay: 0.6 }}
         >
-          <button className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-black transition-all text-sm sm:text-base hover:shadow-xl group">
+          <button 
+            onClick={handleBookNow}
+            className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-black transition-all text-sm sm:text-base hover:shadow-xl group"
+          >
             Book Your Service Now
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
           </button>

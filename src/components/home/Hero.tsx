@@ -1,5 +1,6 @@
 import { motion, animate } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { BookingWidget } from './BookingWidget';
 import { ShieldCheck, Zap, Award, Play, Wrench, Car } from 'lucide-react';
 
@@ -20,6 +21,29 @@ const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: nu
 };
 
 export const Hero = () => {
+  const location = useLocation();
+
+  // Handle scroll to booking when coming from another page
+  useEffect(() => {
+    const state = location.state as { scrollToBooking?: boolean } | null;
+    if (state?.scrollToBooking) {
+      setTimeout(() => {
+        const bookingWidget = document.getElementById('booking-widget');
+        if (bookingWidget) {
+          bookingWidget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+    }
+  }, [location.state]);
+
+  // Scroll to booking widget
+  const scrollToBooking = () => {
+    const bookingWidget = document.getElementById('booking-widget');
+    if (bookingWidget) {
+      bookingWidget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -149,6 +173,7 @@ export const Hero = () => {
             {/* CTA Buttons */}
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-2 justify-center lg:justify-start">
               <motion.button 
+                onClick={scrollToBooking}
                 className="group flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-primary text-primary-foreground font-semibold rounded-full transition-all duration-300 text-sm sm:text-base"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
