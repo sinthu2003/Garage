@@ -8,13 +8,12 @@ import { PartnersSection } from '../components/home/PartnersSection';
 import { FAQSection } from '../components/home/FAQSection';
 import { GallerySection } from '../components/home/Gallerysection';
 import { BeforeAfterSection } from '../components/home/Beforeaftersection';
-import { Navbar } from '../components/layout/Navbar';
+
 
 export const HomePage = () => {
   return (
     <>
-      {/* Navigation */}
-      <Navbar />
+
 
       {/* 1. Hero - First impression with booking widget */}
       <Hero />

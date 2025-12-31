@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { ArrowUpRight, Check, Wrench } from 'lucide-react';
+import { ArrowUpRight, Check, Clock, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { Service } from '../../types';
 
 interface ServiceCardProps {
@@ -23,61 +24,62 @@ const serviceImages: Record<string, string> = {
 export const ServiceCard = ({ service, index }: ServiceCardProps) => {
   const cardRef = useRef(null);
   const isInView = useInView(cardRef, { once: true, margin: "-80px" });
+  const navigate = useNavigate();
 
   const imageUrl = serviceImages[service.title] || serviceImages['default'];
 
-  const directions = [
-    { x: -40, y: 20 },
-    { x: 0, y: 40 },
-    { x: 40, y: 20 },
-    { x: 0, y: 40 },
-  ];
-  const dir = directions[index % 4];
+  // Create URL-friendly slug from service title
+  const serviceSlug = service.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+
+  const handleCardClick = () => {
+    navigate(`/services/${serviceSlug}`, { state: { service } });
+  };
+
+  const handleBookNow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Scroll to booking widget or open booking modal
+    const bookingWidget = document.getElementById('booking-widget');
+    if (bookingWidget) {
+      bookingWidget.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <motion.div
       ref={cardRef}
-      initial={{ opacity: 0, x: dir.x, y: dir.y }}
-      animate={isInView ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, x: dir.x, y: dir.y }}
-      transition={{ 
-        duration: 0.5, 
-        delay: index * 0.08,
-        ease: [0.25, 0.46, 0.45, 0.94]
-      }}
-      whileHover={{ 
-        y: -12,
-        transition: { duration: 0.3 }
-      }}
-      className="group relative bg-card rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl transition-shadow duration-300 border border-border"
+      initial={{ opacity: 0, y: 30 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{ duration: 0.5, delay: index * 0.08 }}
+      whileHover={{ y: -8 }}
+      onClick={handleCardClick}
+      className="group relative bg-card rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 border border-border"
     >
       {/* Image Section */}
-      <div className="relative h-36 sm:h-44 overflow-hidden">
+      <div className="relative h-40 sm:h-48 overflow-hidden">
         <motion.img 
           src={imageUrl}
           alt={service.title}
           className="w-full h-full object-cover"
-          whileHover={{ scale: 1.08 }}
+          whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.4 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         
-        {/* Wrench Icon */}
-        <motion.div
-          className="absolute top-3 left-3 w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center"
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
-          transition={{ delay: index * 0.08 + 0.2, duration: 0.3 }}
-        >
-          <Wrench className="w-4 h-4 text-white" />
-        </motion.div>
+        {/* Quick Info Badges */}
+        <div className="absolute top-3 left-3 flex gap-2">
+          <span className="px-2 py-1 bg-white/20 backdrop-blur-sm text-white text-[10px] sm:text-xs rounded-full flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            2-4 hrs
+          </span>
+        </div>
         
-        {/* Discount Badge - Uses theme success color */}
+        {/* Discount Badge */}
         {service.originalPrice && service.price && (
           <motion.div 
             className="absolute top-3 right-3"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
-            transition={{ delay: index * 0.08 + 0.25, duration: 0.3 }}
+            transition={{ delay: index * 0.08 + 0.2 }}
           >
             <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
               {Math.round(((service.originalPrice - service.price) / service.originalPrice) * 100)}% OFF
@@ -86,16 +88,15 @@ export const ServiceCard = ({ service, index }: ServiceCardProps) => {
         )}
         
         {/* Service Title */}
-        <motion.div 
-          className="absolute bottom-3 left-3 right-3"
-          initial={{ opacity: 0, y: 10 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-          transition={{ delay: index * 0.08 + 0.15, duration: 0.3 }}
-        >
+        <div className="absolute bottom-3 left-3 right-3">
           <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
             {service.title}
           </h3>
-        </motion.div>
+          <p className="text-white/70 text-xs mt-0.5 flex items-center gap-1">
+            <Shield className="w-3 h-3" />
+            6 months warranty
+          </p>
+        </div>
       </div>
       
       {/* Content */}
@@ -105,20 +106,17 @@ export const ServiceCard = ({ service, index }: ServiceCardProps) => {
         </p>
 
         {/* Features */}
-        <ul className="space-y-2 mb-4">
+        <ul className="space-y-1.5 mb-4">
           {service.features.slice(0, 3).map((feature, i) => (
-            <motion.li 
+            <li 
               key={i} 
               className="flex items-center gap-2 text-xs sm:text-sm text-foreground"
-              initial={{ opacity: 0, x: -10 }}
-              animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
-              transition={{ delay: index * 0.08 + 0.3 + i * 0.05, duration: 0.3 }}
             >
               <div className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
                 <Check size={10} className="text-green-600 dark:text-green-400" strokeWidth={3} />
               </div>
               <span className="line-clamp-1">{feature}</span>
-            </motion.li>
+            </li>
           ))}
         </ul>
 
@@ -138,19 +136,27 @@ export const ServiceCard = ({ service, index }: ServiceCardProps) => {
             </div>
           </div>
           
-          {/* Arrow Button - Uses theme primary */}
+          {/* Book Now Button */}
           <motion.button 
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-secondary flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
-            whileHover={{ scale: 1.1 }}
+            onClick={handleBookNow}
+            className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold flex items-center gap-1.5 hover:opacity-90 transition-all"
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <ArrowUpRight size={18} />
+            Book Now
+            <ArrowUpRight size={14} />
           </motion.button>
         </div>
       </div>
 
-      {/* Hover Border Glow - Uses theme primary */}
-      <div className="absolute inset-0 rounded-2xl sm:rounded-3xl border-2 border-transparent group-hover:border-primary/30 transition-colors duration-300 pointer-events-none" />
+      {/* View Details Hint */}
+      <div className="absolute inset-0 flex items-center justify-center bg-primary/0 group-hover:bg-primary/5 transition-colors pointer-events-none">
+        <motion.span 
+          className="px-4 py-2 bg-foreground text-background rounded-full text-sm font-semibold opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300"
+        >
+          View Details →
+        </motion.span>
+      </div>
     </motion.div>
   );
 };
