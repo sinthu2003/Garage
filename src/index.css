@@ -4,50 +4,37 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Premium Color System - Apple/Nothing Inspired */
-  --primary: #FF5733;
-  --primary-light: #FF7A5C;
-  --primary-dark: #E64A2E;
-  
-  /* Neutral Scale */
-  --white: #FFFFFF;
-  --gray-50: #FAFAFA;
-  --gray-100: #F5F5F7;
-  --gray-200: #E8E8ED;
-  --gray-300: #D2D2D7;
-  --gray-400: #86868B;
-  --gray-500: #6E6E73;
-  --gray-600: #424245;
-  --gray-700: #2C2C2E;
-  --gray-800: #1D1D1F;
-  --gray-900: #0A0A0B;
-  --black: #000000;
-  
-  /* Semantic */
-  --success: #30D158;
-  --warning: #FFD60A;
-  --error: #FF453A;
-  
-  /* Effects */
-  --shadow-soft: 0 2px 40px rgba(0, 0, 0, 0.04);
-  --shadow-medium: 0 4px 60px rgba(0, 0, 0, 0.08);
-  --shadow-strong: 0 8px 80px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 0 60px rgba(255, 87, 51, 0.15);
-}
+/* ============================================
+   🎨 THEME CONFIGURATION
+   Change the @apply rule below to switch themes.
+   
+   Available Options:
+   @apply theme-addax;    (Addax Automotive - Red & Black) ⭐
+   @apply theme-blue;     (Royal Blue & Pure Black OLED)
+   @apply theme-ocean;    (Deep Ocean Blue & Teal)
+   @apply theme-sunset;   (Warm Orange & Coral)
+   @apply theme-forest;   (Deep Green & Earth)
+   @apply theme-violet;   (Midnight Purple & Magenta)
+   @apply theme-desert;   (Sandy Beige & Terracotta)
+   @apply theme-arctic;   (Ice Blue & Cool Gray)
+   @apply theme-emerald;  (Rich Emerald & Gold)
+   @apply theme-sapphire; (Deep Sapphire & Cyan)
+   @apply theme-ruby;     (Deep Ruby & Rose Gold)
+   @apply theme-jade;     (Rich Jade & Pearl)
+   @apply theme-obsidian; (Obsidian Black & Silver)
+   @apply theme-coral;    (Coral Reef & Aquamarine)
+   @apply theme-amber;    (Golden Amber & Burgundy)
+   @apply theme-cherry;   (Pure White & Cherry Red)
+============================================ */
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+@layer base {
+  :root {
+    /* ▼ ACTIVE THEME: Addax Automotive (Red & Black) ▼ */
+    @apply theme-addax;
+  }
 
-html {
-  scroll-behavior: smooth;
-  font-size: 16px;
-}
-
-body {
+  body {
+    @apply bg-background text-foreground transition-colors duration-300;
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--white);
   color: var(--gray-800);
@@ -56,212 +43,896 @@ body {
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
   line-height: 1.5;
-}
 
-::selection {
-  background: var(--primary);
-  color: var(--white);
-}
+  }
 
-/* Premium Typography Scale */
-@layer base {
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
+  /* Premium Focus States */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Smooth Scrolling */
+  * {
+    @apply scroll-smooth;
+  }
+   /* Remove ALL rings from inputs completely */
+  input,
+  input:focus,
+  input:focus-visible,
+  input:focus-within,
+  textarea,
+  textarea:focus,
+  textarea:focus-visible,
+  select,
+  select:focus,
+  select:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+    --tw-ring-shadow: none !important;
+    --tw-ring-color: transparent !important;
+  }
+
+  /* ============================================
+     🚫 AUTOFILL FIX (Forces Theme Colors)
+  ============================================ */
+  /* Light Mode Autofill */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px hsl(var(--background)) inset !important;
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  /* Dark Mode Autofill */
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px hsl(var(--background)) inset !important;
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+    caret-color: hsl(var(--foreground));
   }
 }
 
-/* Utility Classes */
+/* ============================================
+   🛠️ THEME DEFINITIONS
+============================================ */
 @layer components {
-  /* Glass Morphism - Apple Style */
-  .glass {
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-  }
-  
-  .glass-dark {
-    background: rgba(0, 0, 0, 0.72);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  
-  /* Premium Card */
-  .card-premium {
-    background: var(--white);
-    border-radius: 24px;
-    border: 1px solid var(--gray-200);
-    box-shadow: var(--shadow-soft);
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  
-  .card-premium:hover {
-    box-shadow: var(--shadow-medium);
-    transform: translateY(-4px);
-    border-color: var(--gray-300);
-  }
-  
-  /* Floating Animation */
-  .float {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
-  }
-  
-  /* Gradient Text */
-  .text-gradient {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  /* Premium Button */
-  .btn-premium {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px 32px;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 600;
-    font-size: 15px;
-    letter-spacing: 0.01em;
-    border-radius: 100px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    overflow: hidden;
-  }
-  
-  .btn-primary {
-    background: var(--gray-900);
-    color: var(--white);
-  }
-  
-  .btn-primary:hover {
-    background: var(--black);
-    transform: scale(1.02);
-    box-shadow: var(--shadow-strong);
-  }
-  
-  .btn-accent {
-    background: var(--primary);
-    color: var(--white);
-  }
-  
-  .btn-accent:hover {
-    background: var(--primary-dark);
-    transform: scale(1.02);
-    box-shadow: var(--shadow-glow);
-  }
-  
-  .btn-outline {
-    background: transparent;
-    color: var(--gray-800);
-    border: 1.5px solid var(--gray-300);
-  }
-  
-  .btn-outline:hover {
-    background: var(--gray-50);
-    border-color: var(--gray-400);
-  }
-  
-  /* Section Spacing */
-  .section {
-    padding: 120px 0;
-  }
-  
-  .section-compact {
-    padding: 80px 0;
-  }
-  
-  /* Container */
-  .container-wide {
-    max-width: 1440px;
-    margin: 0 auto;
-    padding: 0 48px;
-  }
-  
-  @media (max-width: 768px) {
-    .container-wide {
-      padding: 0 24px;
-    }
-    .section {
-      padding: 80px 0;
-    }
-  }
-  
-  /* Tag/Badge */
-  .tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    border-radius: 100px;
-    background: var(--gray-100);
-    color: var(--gray-600);
-  }
-  
-  .tag-accent {
-    background: rgba(255, 87, 51, 0.1);
-    color: var(--primary);
-  }
-  
-  /* Divider */
-  .divider {
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent 0%, var(--gray-200) 50%, transparent 100%);
-  }
-}
 
-/* Custom Scrollbar - Minimal */
-::-webkit-scrollbar {
-  width: 6px;
-}
+  /* ===== THEME: ADDAX AUTOMOTIVE (Red & Black) ===== */
+  .theme-addax {
+    /* Light Mode: Clean White & Bold Red */
+    --background: 0 0% 99%;
+    --foreground: 0 0% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --primary: 0 85% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 10% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 10% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 85% 95%;
+    --accent-foreground: 0 85% 35%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 10% 90%;
+    --input: 0 10% 90%;
+    --ring: 0 85% 50%;
+    --radius: 0.5rem;
+  }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+  .theme-addax.dark,
+  .dark .theme-addax {
+    /* Dark Mode: Pure Black OLED & Vibrant Red */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 0 90% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 90% 55%;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: var(--gray-300);
-  border-radius: 3px;
-}
+  /* ===== THEME: ROYAL BLUE & PURE BLACK (OLED) ===== */
+  .theme-blue {
+    /* Light Mode: Platinum & Royal Blue */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
+    --radius: 0.5rem;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-400);
-}
+  .theme-blue.dark,
+  .dark .theme-blue {
+    /* Dark Mode: Pure Black & Neon Blue */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 217 100% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 217 100% 60%;
+  }
 
-/* Nothing-style dot pattern */
-.dot-pattern {
-  background-image: radial-gradient(var(--gray-200) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
+  /* ===== THEME 1: OCEAN DEPTHS (Deep Blue & Teal) ===== */
+  .theme-ocean {
+    /* Light Mode: Soft Aqua & Deep Teal */
+    --background: 195 50% 98%;
+    --foreground: 200 80% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 80% 10%;
+    --primary: 185 70% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 195 40% 94%;
+    --secondary-foreground: 200 80% 10%;
+    --muted: 195 40% 94%;
+    --muted-foreground: 195 20% 40%;
+    --accent: 185 70% 92%;
+    --accent-foreground: 185 70% 25%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 195 30% 88%;
+    --input: 195 30% 88%;
+    --ring: 185 70% 42%;
+    --radius: 0.625rem;
+  }
 
-/* Noise texture overlay */
-.noise {
-  position: relative;
-}
+  .theme-ocean.dark,
+  .dark .theme-ocean {
+    /* Dark Mode: Pitch Black & Bright Teal */
+    --background: 0 0% 0%;
+    --foreground: 175 80% 90%;
+    --card: 0 0% 0%;
+    --card-foreground: 175 80% 90%;
+    --primary: 175 80% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 175 80% 90%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 195 30% 60%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 175 80% 90%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 175 80% 50%;
+  }
 
-.noise::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.03;
-  pointer-events: none;
-  z-index: 1;
+  /* ===== THEME 2: SUNSET BLAZE (Warm Orange & Coral) ===== */
+  .theme-sunset {
+    /* Light Mode: Warm Cream & Vibrant Orange */
+    --background: 35 60% 98%;
+    --foreground: 20 60% 12%;
+    --card: 40 50% 100%;
+    --card-foreground: 20 60% 12%;
+    --primary: 25 95% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 35 50% 93%;
+    --secondary-foreground: 20 60% 12%;
+    --muted: 35 50% 93%;
+    --muted-foreground: 25 30% 42%;
+    --accent: 25 90% 93%;
+    --accent-foreground: 25 95% 30%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 35 40% 87%;
+    --input: 35 40% 87%;
+    --ring: 25 95% 55%;
+    --radius: 0.75rem;
+  }
+
+  .theme-sunset.dark,
+  .dark .theme-sunset {
+    /* Dark Mode: Pitch Black & Fiery Orange */
+    --background: 0 0% 0%;
+    --foreground: 35 80% 90%;
+    --card: 0 0% 0%;
+    --card-foreground: 35 80% 90%;
+    --primary: 25 100% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 35 80% 90%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 30 25% 58%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 35 80% 90%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 25 100% 58%;
+  }
+
+  /* ===== THEME 3: FOREST MOSS (Deep Green & Earth) ===== */
+  .theme-forest {
+    /* Light Mode: Sage Green & Natural Tones */
+    --background: 90 20% 97%;
+    --foreground: 120 30% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 120 30% 12%;
+    --primary: 142 55% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 90 18% 92%;
+    --secondary-foreground: 120 30% 12%;
+    --muted: 90 18% 92%;
+    --muted-foreground: 100 15% 42%;
+    --accent: 142 45% 92%;
+    --accent-foreground: 142 55% 22%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 90 15% 86%;
+    --input: 90 15% 86%;
+    --ring: 142 55% 38%;
+    --radius: 0.5rem;
+  }
+
+  .theme-forest.dark,
+  .dark .theme-forest {
+    /* Dark Mode: Pitch Black & Bright Moss */
+    --background: 0 0% 0%;
+    --foreground: 100 40% 90%;
+    --card: 0 0% 0%;
+    --card-foreground: 100 40% 90%;
+    --primary: 142 65% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 100 40% 90%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 110 20% 55%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 100 40% 90%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 142 65% 48%;
+  }
+
+  /* ===== THEME 4: MIDNIGHT VIOLET (Purple & Magenta) ===== */
+  .theme-violet {
+    /* Light Mode: Lavender & Rich Purple */
+    --background: 280 40% 98%;
+    --foreground: 285 50% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 285 50% 12%;
+    --primary: 280 75% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 280 35% 94%;
+    --secondary-foreground: 285 50% 12%;
+    --muted: 280 35% 94%;
+    --muted-foreground: 280 20% 44%;
+    --accent: 280 70% 94%;
+    --accent-foreground: 280 75% 30%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 280 28% 88%;
+    --input: 280 28% 88%;
+    --ring: 280 75% 55%;
+    --radius: 0.875rem;
+  }
+
+  .theme-violet.dark,
+  .dark .theme-violet {
+    /* Dark Mode: Pitch Black & Electric Purple */
+    --background: 0 0% 0%;
+    --foreground: 280 60% 90%;
+    --card: 0 0% 0%;
+    --card-foreground: 280 60% 90%;
+    --primary: 285 90% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 280 60% 90%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 280 25% 58%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 280 60% 90%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 285 90% 62%;
+  }
+
+  /* ===== THEME 5: DESERT SAND (Sandy Beige & Terracotta) ===== */
+  .theme-desert {
+    /* Light Mode: Warm Sand & Terracotta */
+    --background: 40 35% 97%;
+    --foreground: 30 40% 15%;
+    --card: 45 30% 100%;
+    --card-foreground: 30 40% 15%;
+    --primary: 18 75% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 30% 92%;
+    --secondary-foreground: 30 40% 15%;
+    --muted: 40 30% 92%;
+    --muted-foreground: 35 20% 45%;
+    --accent: 18 65% 93%;
+    --accent-foreground: 18 75% 28%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 25% 86%;
+    --input: 40 25% 86%;
+    --ring: 18 75% 52%;
+    --radius: 0.5rem;
+  }
+
+  .theme-desert.dark,
+  .dark .theme-desert {
+    /* Dark Mode: Pitch Black & Warm Terracotta */
+    --background: 0 0% 0%;
+    --foreground: 40 50% 90%;
+    --card: 0 0% 0%;
+    --card-foreground: 40 50% 90%;
+    --primary: 18 85% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 40 50% 90%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 38 18% 55%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 40 50% 90%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 18 85% 58%;
+  }
+
+  /* ===== THEME 6: ARCTIC FROST (Ice Blue & Cool Gray) ===== */
+  .theme-arctic {
+    /* Light Mode: Icy White & Cool Blue */
+    --background: 210 50% 99%;
+    --foreground: 215 30% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 30% 15%;
+    --primary: 200 90% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 95%;
+    --secondary-foreground: 215 30% 15%;
+    --muted: 210 40% 95%;
+    --muted-foreground: 210 20% 48%;
+    --accent: 200 80% 94%;
+    --accent-foreground: 200 90% 28%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 35% 90%;
+    --input: 210 35% 90%;
+    --ring: 200 90% 48%;
+    --radius: 0.625rem;
+  }
+
+  .theme-arctic.dark,
+  .dark .theme-arctic {
+    /* Dark Mode: Pitch Black & Neon Ice */
+    --background: 0 0% 0%;
+    --foreground: 200 60% 90%;
+    --card: 0 0% 0%;
+    --card-foreground: 200 60% 90%;
+    --primary: 195 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 200 60% 90%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 210 18% 58%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 200 60% 90%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 195 100% 55%;
+  }
+
+  /* ===== THEME 7: EMERALD & GOLD (Rich Emerald & Gold) ===== */
+  .theme-emerald {
+    /* Light Mode: Soft Mint & Deep Emerald */
+    --background: 145 40% 98%;
+    --foreground: 155 45% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 155 45% 12%;
+    --primary: 160 60% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 145 35% 92%;
+    --secondary-foreground: 155 45% 12%;
+    --muted: 145 35% 92%;
+    --muted-foreground: 150 20% 42%;
+    --accent: 48 90% 65%;
+    --accent-foreground: 155 45% 12%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 145 30% 87%;
+    --input: 145 30% 87%;
+    --ring: 160 60% 45%;
+    --radius: 0.625rem;
+  }
+
+  .theme-emerald.dark,
+  .dark .theme-emerald {
+    /* Dark Mode: Pitch Black & Emerald-Gold */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 160 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 48 95% 65%;
+    --accent-foreground: 155 45% 12%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 160 70% 50%;
+  }
+
+  /* ===== THEME 8: SAPPHIRE & CYAN (Deep Sapphire & Cyan) ===== */
+  .theme-sapphire {
+    /* Light Mode: Soft Periwinkle & Rich Sapphire */
+    --background: 220 45% 98%;
+    --foreground: 225 60% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 225 60% 14%;
+    --primary: 220 85% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 40% 93%;
+    --secondary-foreground: 225 60% 14%;
+    --muted: 220 40% 93%;
+    --muted-foreground: 220 25% 44%;
+    --accent: 180 95% 60%;
+    --accent-foreground: 225 60% 14%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 35% 88%;
+    --input: 220 35% 88%;
+    --ring: 220 85% 48%;
+    --radius: 0.625rem;
+  }
+
+  .theme-sapphire.dark,
+  .dark .theme-sapphire {
+    /* Dark Mode: Pitch Black & Sapphire-Cyan */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 220 95% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 180 100% 60%;
+    --accent-foreground: 225 60% 14%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 220 95% 55%;
+  }
+
+  /* ===== THEME 9: RUBY & ROSE GOLD (Deep Ruby & Rose Gold) ===== */
+  .theme-ruby {
+    /* Light Mode: Soft Rose & Deep Ruby */
+    --background: 350 45% 98%;
+    --foreground: 345 55% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 345 55% 16%;
+    --primary: 345 75% 52%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 350 40% 93%;
+    --secondary-foreground: 345 55% 16%;
+    --muted: 350 40% 93%;
+    --muted-foreground: 345 25% 45%;
+    --accent: 15 95% 70%;
+    --accent-foreground: 345 55% 16%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 350 35% 88%;
+    --input: 350 35% 88%;
+    --ring: 345 75% 52%;
+    --radius: 0.75rem;
+  }
+
+  .theme-ruby.dark,
+  .dark .theme-ruby {
+    /* Dark Mode: Pitch Black & Ruby-Rose */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 345 85% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 15 100% 70%;
+    --accent-foreground: 345 55% 16%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 345 85% 58%;
+  }
+
+  /* ===== THEME 10: JADE & PEARL (Rich Jade & Pearl) ===== */
+  .theme-jade {
+    /* Light Mode: Soft Celadon & Rich Jade */
+    --background: 165 35% 98%;
+    --foreground: 170 50% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 170 50% 14%;
+    --primary: 175 65% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 165 30% 92%;
+    --secondary-foreground: 170 50% 14%;
+    --muted: 165 30% 92%;
+    --muted-foreground: 170 22% 43%;
+    --accent: 60 70% 72%;
+    --accent-foreground: 170 50% 14%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 165 25% 86%;
+    --input: 165 25% 86%;
+    --ring: 175 65% 44%;
+    --radius: 0.875rem;
+  }
+
+  .theme-jade.dark,
+  .dark .theme-jade {
+    /* Dark Mode: Pitch Black & Jade-Pearl */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 175 75% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 60 75% 70%;
+    --accent-foreground: 170 50% 14%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 175 75% 50%;
+  }
+
+  /* ===== THEME 11: OBSIDIAN & SILVER (Obsidian Black & Silver) ===== */
+  .theme-obsidian {
+    /* Light Mode: Soft Gray & Deep Charcoal */
+    --background: 210 25% 98%;
+    --foreground: 215 20% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 20% 13%;
+    --primary: 210 30% 32%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 92%;
+    --secondary-foreground: 215 20% 13%;
+    --muted: 210 20% 92%;
+    --muted-foreground: 210 15% 44%;
+    --accent: 0 0% 85%;
+    --accent-foreground: 215 20% 13%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 18% 86%;
+    --input: 210 18% 86%;
+    --ring: 210 30% 32%;
+    --radius: 0.5rem;
+  }
+
+  .theme-obsidian.dark,
+  .dark .theme-obsidian {
+    /* Dark Mode: Pitch Black & Silver Accents */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 210 40% 70%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 90%;
+    --accent-foreground: 215 20% 13%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 210 40% 70%;
+  }
+
+  /* ===== THEME 12: CORAL REEF (Coral Reef & Aquamarine) ===== */
+  .theme-coral {
+    /* Light Mode: Soft Coral & Aquamarine */
+    --background: 15 50% 98%;
+    --foreground: 20 50% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 50% 14%;
+    --primary: 10 85% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 15 45% 93%;
+    --secondary-foreground: 20 50% 14%;
+    --muted: 15 45% 93%;
+    --muted-foreground: 15 30% 44%;
+    --accent: 185 90% 60%;
+    --accent-foreground: 20 50% 14%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 15 40% 87%;
+    --input: 15 40% 87%;
+    --ring: 10 85% 58%;
+    --radius: 0.75rem;
+  }
+
+  .theme-coral.dark,
+  .dark .theme-coral {
+    /* Dark Mode: Pitch Black & Coral-Aquamarine */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 10 95% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 185 100% 60%;
+    --accent-foreground: 20 50% 14%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 10 95% 62%;
+  }
+
+  /* ===== THEME 13: GOLDEN AMBER (Golden Amber & Burgundy) ===== */
+  .theme-amber {
+    /* Light Mode: Soft Gold & Deep Amber */
+    --background: 45 60% 98%;
+    --foreground: 30 50% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 30 50% 16%;
+    --primary: 38 80% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 50% 93%;
+    --secondary-foreground: 30 50% 16%;
+    --muted: 45 50% 93%;
+    --muted-foreground: 38 30% 44%;
+    --accent: 350 75% 60%;
+    --accent-foreground: 30 50% 16%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 45 40% 87%;
+    --input: 45 40% 87%;
+    --ring: 38 80% 55%;
+    --radius: 0.625rem;
+  }
+
+  .theme-amber.dark,
+  .dark .theme-amber {
+    /* Dark Mode: Pitch Black & Amber-Burgundy */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 38 90% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 350 80% 62%;
+    --accent-foreground: 30 50% 16%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 38 90% 58%;
+  }
+
+  /* ===== THEME 14: CHERRY (Pure White & Cherry Red) ===== */
+  .theme-cherry {
+    /* Light Mode: Pure White & Cherry Red */
+    --background: 0 0% 100%;
+    --foreground: 350 30% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 350 30% 15%;
+    --primary: 350 85% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 350 30% 96%;
+    --secondary-foreground: 350 30% 15%;
+    --muted: 350 20% 95%;
+    --muted-foreground: 350 15% 45%;
+    --accent: 350 80% 94%;
+    --accent-foreground: 350 85% 35%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 350 20% 90%;
+    --input: 350 20% 90%;
+    --ring: 350 85% 50%;
+    --radius: 0.5rem;
+  }
+
+  .theme-cherry.dark,
+  .dark .theme-cherry {
+    /* Dark Mode: Pitch Black & Bright Cherry */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --primary: 350 95% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 350 90% 25%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 350 95% 55%;
+  }
+
+  /* ============================================
+     🎯 UTILITY CLASSES
+  ============================================ */
+
+  /* Glass Effect */
+  .glass-effect {
+    @apply bg-background/80 backdrop-blur-md border border-border;
+  }
+
+  /* Premium Shadow */
+  .premium-shadow {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  .dark .premium-shadow {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Gradient Backgrounds */
+  .gradient-addax {
+    background: linear-gradient(135deg, hsl(0 85% 50%) 0%, hsl(0 0% 10%) 100%);
+  }
+
+  .gradient-blue {
+    background: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(217 100% 60%) 100%);
+  }
+
+  .gradient-ocean {
+    background: linear-gradient(135deg, hsl(185 70% 42%) 0%, hsl(200 80% 35%) 100%);
+  }
+
+  .gradient-sunset {
+    background: linear-gradient(135deg, hsl(25 95% 55%) 0%, hsl(350 80% 55%) 100%);
+  }
+
+  .gradient-forest {
+    background: linear-gradient(135deg, hsl(142 55% 38%) 0%, hsl(100 45% 35%) 100%);
+  }
+
+  .gradient-violet {
+    background: linear-gradient(135deg, hsl(280 75% 55%) 0%, hsl(320 70% 50%) 100%);
+  }
+
+  .gradient-desert {
+    background: linear-gradient(135deg, hsl(18 75% 52%) 0%, hsl(40 60% 50%) 100%);
+  }
+
+  .gradient-arctic {
+    background: linear-gradient(135deg, hsl(200 90% 48%) 0%, hsl(220 70% 55%) 100%);
+  }
+
+  .gradient-emerald {
+    background: linear-gradient(135deg, hsl(160 60% 45%) 0%, hsl(48 90% 65%) 100%);
+  }
+
+  .gradient-sapphire {
+    background: linear-gradient(135deg, hsl(220 85% 48%) 0%, hsl(180 95% 60%) 100%);
+  }
+
+  .gradient-ruby {
+    background: linear-gradient(135deg, hsl(345 75% 52%) 0%, hsl(15 95% 70%) 100%);
+  }
+
+  .gradient-jade {
+    background: linear-gradient(135deg, hsl(175 65% 44%) 0%, hsl(60 70% 72%) 100%);
+  }
+
+  .gradient-obsidian {
+    background: linear-gradient(135deg, hsl(210 30% 32%) 0%, hsl(0 0% 85%) 100%);
+  }
+
+  .gradient-coral {
+    background: linear-gradient(135deg, hsl(10 85% 58%) 0%, hsl(185 90% 60%) 100%);
+  }
+
+  .gradient-amber {
+    background: linear-gradient(135deg, hsl(38 80% 55%) 0%, hsl(350 75% 60%) 100%);
+  }
+
+  .gradient-cherry {
+    background: linear-gradient(135deg, hsl(350 85% 50%) 0%, hsl(340 90% 65%) 100%);
+  }
+
+  /* Glow Effects */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  .dark .glow-primary {
+    box-shadow: 0 0 25px hsl(var(--primary) / 0.4);
+  }
+
+  /* Smooth Hover Transitions */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    @apply shadow-lg;
+  }
+
+  /* Card Variants */
+  .card-elevated {
+    @apply bg-card border border-border rounded-[var(--radius)] premium-shadow;
+  }
+
+  .card-outlined {
+    @apply bg-transparent border-2 border-border rounded-[var(--radius)];
+  }
+
+  .card-filled {
+    @apply bg-secondary border-none rounded-[var(--radius)];
+  }
 }

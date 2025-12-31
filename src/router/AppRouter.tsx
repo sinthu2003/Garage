@@ -4,6 +4,7 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { HomePage } from '../pages/HomePage';
 
 
+
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   useLayoutEffect(() => {
@@ -19,7 +20,7 @@ export const AppRouter = () => {
       <AppLayout>
         <Routes>
           <Route path="/" element={<HomePage />} />
-         
+
         </Routes>
       </AppLayout>
     </>

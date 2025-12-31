@@ -67,13 +67,13 @@ export const Features = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-orange-100 text-orange-600 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-3 sm:mb-4">
+          <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 text-primary text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-3 sm:mb-4">
             Why Choose Us
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 tracking-tight mb-4 sm:mb-6">
             Built for
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">modern car owners.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">modern car owners.</span>
           </h2>
           <p className="text-sm sm:text-base lg:text-lg text-gray-500">
             We've reimagined car service with technology, transparency, and trust.
@@ -106,7 +106,7 @@ export const Features = () => {
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
               >
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-xs font-semibold mb-4 sm:mb-6">
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-semibold mb-4 sm:mb-6">
                   <Award className="w-4 h-4" />
                   Premium Quality
                 </span>

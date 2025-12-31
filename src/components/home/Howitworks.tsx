@@ -63,7 +63,7 @@ export const HowItWorks = () => {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 tracking-tight mb-4 sm:mb-6">
             Car service in
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">4 simple steps.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">4 simple steps.</span>
           </h2>
           <p className="text-sm sm:text-base lg:text-lg text-gray-500">
             We've simplified car maintenance so you can focus on what matters most.
@@ -75,7 +75,7 @@ export const HowItWorks = () => {
           {/* Timeline Line */}
           <div className="absolute top-24 left-0 right-0 h-1 bg-gray-100">
             <motion.div 
-              className="h-full bg-gradient-to-r from-orange-500 via-blue-500 to-purple-500"
+              className="h-full bg-gradient-to-r from-primary via-primary to-primary"
               initial={{ width: '0%' }}
               whileInView={{ width: '100%' }}
               viewport={{ once: true }}

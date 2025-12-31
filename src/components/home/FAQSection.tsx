@@ -35,12 +35,12 @@ export const FAQSection = () => {
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
   return (
-    <section ref={sectionRef} className="py-16 sm:py-20 lg:py-24 bg-white relative overflow-hidden">
+    <section id="faq" ref={sectionRef} className="py-16 sm:py-20 lg:py-24 bg-background relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div 
-          className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-30"
-          style={{ background: 'radial-gradient(circle, rgba(255,87,51,0.05) 0%, transparent 70%)' }}
+          className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-30 bg-primary/5"
+          style={{ filter: 'blur(100px)' }}
         />
       </div>
 
@@ -54,19 +54,19 @@ export const FAQSection = () => {
             transition={{ duration: 0.6 }}
             className="lg:sticky lg:top-32"
           >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-orange-100 text-orange-600 text-xs font-semibold uppercase tracking-wider mb-4">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
               FAQ
             </span>
             
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-4">
               Frequently Asked
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">
+              <span className="text-primary">
                 Questions
               </span>
             </h2>
             
-            <p className="text-gray-500 text-base sm:text-lg mb-8 max-w-md">
+            <p className="text-muted-foreground text-base sm:text-lg mb-8 max-w-md">
               Everything you need to know about our car service. Can't find your answer? Contact us.
             </p>
 
@@ -74,32 +74,32 @@ export const FAQSection = () => {
             <div className="space-y-3">
               <motion.a
                 href="tel:+919876543210"
-                className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-orange-50 hover:border-orange-200 border border-gray-100 transition-all group"
+                className="flex items-center gap-4 p-4 bg-secondary rounded-xl hover:bg-primary/10 border border-border hover:border-primary/20 transition-all group"
                 whileHover={{ x: 5 }}
               >
-                <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center group-hover:bg-orange-500 transition-colors">
-                  <Phone className="w-5 h-5 text-orange-500 group-hover:text-white transition-colors" />
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
+                  <Phone className="w-5 h-5 text-primary group-hover:text-primary-foreground transition-colors" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-gray-500">Call us at</p>
-                  <p className="font-semibold text-gray-900">+91 98765 43210</p>
+                  <p className="text-sm text-muted-foreground">Call us at</p>
+                  <p className="font-semibold text-foreground">+91 98765 43210</p>
                 </div>
-                <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-orange-500 transition-colors" />
+                <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </motion.a>
 
               <motion.a
                 href="#"
-                className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-orange-50 hover:border-orange-200 border border-gray-100 transition-all group"
+                className="flex items-center gap-4 p-4 bg-secondary rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 border border-border hover:border-green-200 dark:hover:border-green-800 transition-all group"
                 whileHover={{ x: 5 }}
               >
-                <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center group-hover:bg-green-500 transition-colors">
+                <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:bg-green-500 transition-colors">
                   <MessageCircle className="w-5 h-5 text-green-500 group-hover:text-white transition-colors" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-gray-500">Chat with us</p>
-                  <p className="font-semibold text-gray-900">WhatsApp Support</p>
+                  <p className="text-sm text-muted-foreground">Chat with us</p>
+                  <p className="font-semibold text-foreground">WhatsApp Support</p>
                 </div>
-                <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-green-500 transition-colors" />
+                <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors" />
               </motion.a>
             </div>
           </motion.div>
@@ -119,8 +119,8 @@ export const FAQSection = () => {
                 transition={{ delay: 0.3 + index * 0.1 }}
                 className={`rounded-xl border overflow-hidden transition-all ${
                   openIndex === index 
-                    ? 'border-orange-200 bg-orange-50/50 shadow-sm' 
-                    : 'border-gray-100 bg-white hover:border-gray-200'
+                    ? 'border-primary/20 bg-primary/5 shadow-sm' 
+                    : 'border-border bg-card hover:border-border'
                 }`}
               >
                 <button
@@ -128,7 +128,7 @@ export const FAQSection = () => {
                   className="w-full flex items-center justify-between p-5 text-left"
                 >
                   <span className={`font-semibold pr-4 ${
-                    openIndex === index ? 'text-orange-600' : 'text-gray-900'
+                    openIndex === index ? 'text-primary' : 'text-foreground'
                   }`}>
                     {faq.question}
                   </span>
@@ -136,7 +136,7 @@ export const FAQSection = () => {
                     animate={{ rotate: openIndex === index ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                     className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                      openIndex === index ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'
+                      openIndex === index ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
                     }`}
                   >
                     <ChevronDown className="w-4 h-4" />
@@ -152,7 +152,7 @@ export const FAQSection = () => {
                       transition={{ duration: 0.2 }}
                     >
                       <div className="px-5 pb-5">
-                        <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                        <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
                           {faq.answer}
                         </p>
                       </div>

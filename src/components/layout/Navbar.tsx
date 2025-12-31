@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Phone, ChevronDown, Car } from 'lucide-react';
+import { Menu, X, Phone, ChevronDown } from 'lucide-react';
+import Logo from '../../assets/Logo.jpg';
 
 const navLinks = [
   { label: 'Services', href: '#services' },
@@ -18,7 +19,6 @@ export const Navbar = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 
-      // Detect active section
       const sections = navLinks.map(link => link.href.replace('#', ''));
       const scrollPosition = window.scrollY + 100;
 
@@ -38,7 +38,6 @@ export const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Smooth scroll to section
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>, href: string) => {
     e.preventDefault();
     const targetId = href.replace('#', '');
@@ -46,10 +45,7 @@ export const Navbar = () => {
     
     if (element) {
       const offsetTop = element.offsetTop - 80;
-      window.scrollTo({
-        top: offsetTop,
-        behavior: 'smooth'
-      });
+      window.scrollTo({ top: offsetTop, behavior: 'smooth' });
     }
     
     setIsMobileMenuOpen(false);
@@ -62,14 +58,13 @@ export const Navbar = () => {
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? 'py-3' : 'py-4'
+          isScrolled ? 'py-2' : 'py-3'
         }`}
       >
-        {/* Background */}
         <div 
           className={`absolute inset-0 transition-all duration-300 ${
             isScrolled 
-              ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-gray-100' 
+              ? 'bg-background/90 backdrop-blur-xl shadow-sm border-b border-border' 
               : 'bg-transparent'
           }`} 
         />
@@ -85,14 +80,21 @@ export const Navbar = () => {
               }}
               className="flex items-center gap-2.5"
             >
-              {/* <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                <Car className="w-5 h-5 text-white" />
-              </div> */}
-              <span className={`text-xl font-bold tracking-tight transition-colors ${
-                isScrolled ? 'text-gray-900' : 'text-white'
-              }`}>
-                AutoCare<span className="text-orange-500 pl-0.5">PRO</span>
-              </span>
+              <img 
+                src={Logo} 
+                alt="Addax Automotive" 
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-contain"
+              />
+              <div className="flex flex-col">
+                <span className={`text-lg sm:text-xl font-bold tracking-tight leading-tight transition-colors ${
+                  isScrolled ? 'text-foreground' : 'text-white'
+                }`}>
+                  Addax
+                </span>
+                <span className="text-[10px] sm:text-xs font-semibold tracking-wider uppercase text-primary">
+                  Automotive
+                </span>
+              </div>
             </a>
 
             {/* Desktop Navigation */}
@@ -106,11 +108,9 @@ export const Navbar = () => {
                     onClick={(e) => scrollToSection(e, link.href)}
                     className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all ${
                       isActive
-                        ? isScrolled 
-                          ? 'text-orange-600' 
-                          : 'text-orange-400'
+                        ? 'text-primary'
                         : isScrolled 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' 
+                          ? 'text-muted-foreground hover:text-foreground hover:bg-secondary' 
                           : 'text-white/80 hover:text-white hover:bg-white/10'
                     }`}
                   >
@@ -119,7 +119,7 @@ export const Navbar = () => {
                       <motion.div
                         layoutId="navbar-active"
                         className={`absolute inset-0 rounded-full -z-10 ${
-                          isScrolled ? 'bg-orange-100' : 'bg-white/10'
+                          isScrolled ? 'bg-primary/10' : 'bg-white/10'
                         }`}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
@@ -131,21 +131,20 @@ export const Navbar = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-4">
-              {/* Phone */}
               <a 
                 href="tel:+919876543210" 
                 className={`hidden md:flex items-center gap-2 text-sm font-medium transition-colors ${
-                  isScrolled ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
+                  isScrolled ? 'text-muted-foreground hover:text-foreground' : 'text-white/80 hover:text-white'
                 }`}
               >
                 <Phone className="w-4 h-4" />
                 <span>+91 98765 43210</span>
               </a>
 
-              {/* CTA */}
+              {/* CTA Button - Uses theme primary */}
               <button 
                 onClick={(e) => scrollToSection(e, '#services')}
-                className="hidden sm:flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-semibold rounded-full hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-300"
+                className="hidden sm:flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-full hover:opacity-90 hover:shadow-lg transition-all duration-300"
               >
                 Book Service
               </button>
@@ -154,7 +153,7 @@ export const Navbar = () => {
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className={`lg:hidden w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                  isScrolled ? 'bg-gray-100 text-gray-600' : 'bg-white/10 text-white'
+                  isScrolled ? 'bg-secondary text-foreground' : 'bg-white/10 text-white'
                 }`}
               >
                 {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -173,33 +172,34 @@ export const Navbar = () => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-40 lg:hidden"
           >
-            {/* Overlay */}
             <div 
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               onClick={() => setIsMobileMenuOpen(false)}
             />
             
-            {/* Menu */}
             <motion.div 
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25 }}
-              className="absolute top-0 right-0 bottom-0 w-80 bg-white shadow-2xl"
+              className="absolute top-0 right-0 bottom-0 w-80 bg-background shadow-2xl"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                      <Car className="w-5 h-5 text-white" />
+                    <img 
+                      src={Logo} 
+                      alt="Addax Automotive" 
+                      className="w-10 h-10 rounded-xl object-contain"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-lg font-bold text-foreground leading-tight">Addax</span>
+                      <span className="text-[10px] font-semibold text-primary tracking-wider uppercase">Automotive</span>
                     </div>
-                    <span className="text-xl font-bold text-gray-900">
-                      AutoCare<span className="text-orange-500">PRO</span>
-                    </span>
                   </div>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600"
+                    className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-foreground"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -218,8 +218,8 @@ export const Navbar = () => {
                         onClick={(e) => scrollToSection(e, link.href)}
                         className={`flex items-center justify-between px-4 py-4 rounded-xl font-medium transition-colors ${
                           isActive 
-                            ? 'bg-orange-50 text-orange-600' 
-                            : 'text-gray-700 hover:bg-gray-50'
+                            ? 'bg-primary/10 text-primary' 
+                            : 'text-foreground hover:bg-secondary'
                         }`}
                       >
                         {link.label}
@@ -229,17 +229,17 @@ export const Navbar = () => {
                   })}
                 </nav>
 
-                <div className="mt-8 pt-8 border-t border-gray-100 space-y-4">
+                <div className="mt-8 pt-8 border-t border-border space-y-4">
                   <a 
                     href="tel:+919876543210" 
-                    className="flex items-center gap-3 px-4 py-3 text-gray-600"
+                    className="flex items-center gap-3 px-4 py-3 text-muted-foreground"
                   >
                     <Phone className="w-5 h-5" />
                     <span className="font-medium">+91 98765 43210</span>
                   </a>
                   <button 
                     onClick={(e) => scrollToSection(e, '#services')}
-                    className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-xl"
+                    className="w-full py-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-opacity"
                   >
                     Book Service Now
                   </button>

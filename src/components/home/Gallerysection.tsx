@@ -184,7 +184,7 @@ export const GallerySection = () => {
           className="text-center max-w-2xl mx-auto mb-10 sm:mb-14"
         >
           <motion.span 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 text-orange-600 text-xs font-semibold uppercase tracking-wider mb-4"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4"
             initial={{ opacity: 0, y: -20, scale: 0.8 }}
             animate={isHeaderInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: -20, scale: 0.8 }}
             transition={{ type: "spring" }}
@@ -206,7 +206,7 @@ export const GallerySection = () => {
                 {char}
               </motion.span>
             ))}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">
               {"work in action".split('').map((char, i) => (
                 <motion.span
                   key={i}
@@ -231,7 +231,7 @@ export const GallerySection = () => {
 
           {/* Animated Underline */}
           <motion.div
-            className="mt-6 mx-auto h-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500"
+            className="mt-6 mx-auto h-1 rounded-full bg-gradient-to-r from-primary to-primary"
             initial={{ width: 0 }}
             animate={isHeaderInView ? { width: 120 } : { width: 0 }}
             transition={{ delay: 0.8, duration: 0.6 }}
@@ -251,8 +251,8 @@ export const GallerySection = () => {
               onClick={() => setActiveCategory(cat.id)}
               className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-sm font-semibold transition-all ${
                 activeCategory === cat.id
-                  ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/30'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-orange-300 hover:text-orange-500'
+                  ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/30'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-primary/30 hover:text-primary'
               }`}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={isHeaderInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
@@ -345,18 +345,18 @@ export const GallerySection = () => {
           ].map((stat, idx) => (
             <motion.div
               key={idx}
-              className="text-center p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 hover:border-orange-200 hover:shadow-lg transition-all"
+              className="text-center p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-lg transition-all"
               initial={{ opacity: 0, y: 20, scale: 0.9 }}
               animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.9 }}
               transition={{ delay: 0.9 + idx * 0.1, type: "spring" }}
               whileHover={{ scale: 1.05, y: -5 }}
             >
               <motion.div 
-                className="w-12 h-12 mx-auto mb-3 rounded-xl bg-orange-100 flex items-center justify-center"
+                className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 flex items-center justify-center"
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.5 }}
               >
-                <stat.icon className="w-6 h-6 text-orange-500" />
+                <stat.icon className="w-6 h-6 text-primary" />
               </motion.div>
               <motion.p 
                 className="text-2xl sm:text-3xl font-bold text-gray-900"

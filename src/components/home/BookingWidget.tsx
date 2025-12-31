@@ -350,10 +350,10 @@ export const BookingWidget = () => {
       transition={{ delay: 0.4, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       className="w-full max-w-md relative"
     >
-      <div className="bg-white rounded-3xl shadow-2xl shadow-black/20 overflow-hidden">
-        {/* Top Accent Bar */}
+      <div className="bg-card rounded-3xl shadow-2xl shadow-primary/20 overflow-hidden">
+        {/* Top Accent Bar - Themeable */}
         <motion.div 
-          className="h-1.5 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 bg-[length:200%_100%]"
+          className="h-1.5 bg-gradient-to-r from-primary via-primary/80 to-primary bg-[length:200%_100%]"
           animate={{ backgroundPosition: ['0% 0%', '100% 0%', '0% 0%'] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
         />
@@ -372,30 +372,30 @@ export const BookingWidget = () => {
               >
                 {/* Header */}
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
+                  <h3 className="text-2xl font-bold text-foreground tracking-tight">
                     Book Your Service
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     Get instant quotes & doorstep service
                   </p>
                 </div>
 
                 {/* City Selector */}
                 <div className="relative">
-                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
                     Select City
                   </label>
                   <button
                     onClick={() => setIsCityOpen(!isCityOpen)}
-                    className="w-full flex items-center justify-between px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl hover:border-orange-300 hover:bg-orange-50/30 transition-all"
+                    className="w-full flex items-center justify-between px-4 py-4 bg-secondary/50 border border-border rounded-2xl hover:border-primary/50 hover:bg-primary/5 transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                        <MapPin className="w-5 h-5 text-white" />
+                      <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                        <MapPin className="w-5 h-5 text-primary-foreground" />
                       </div>
-                      <span className="text-base font-semibold text-gray-900">{selectedCity}</span>
+                      <span className="text-base font-semibold text-foreground">{selectedCity}</span>
                     </div>
-                    <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isCityOpen ? 'rotate-90' : ''}`} />
+                    <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isCityOpen ? 'rotate-90' : ''}`} />
                   </button>
                   
                   <AnimatePresence>
@@ -405,7 +405,7 @@ export const BookingWidget = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden z-30 max-h-52 overflow-y-auto custom-scrollbar"
+                        className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-xl overflow-hidden z-30 max-h-52 overflow-y-auto custom-scrollbar"
                       >
                         {cities.map((city) => (
                           <button
@@ -413,12 +413,12 @@ export const BookingWidget = () => {
                             onClick={() => { setSelectedCity(city); setIsCityOpen(false); }}
                             className={`w-full px-4 py-3.5 text-left text-sm font-medium transition-all flex items-center justify-between ${
                               selectedCity === city 
-                                ? 'text-orange-600 bg-orange-50' 
-                                : 'text-gray-600 hover:bg-gray-50'
+                                ? 'text-primary bg-primary/10' 
+                                : 'text-muted-foreground hover:bg-secondary'
                             }`}
                           >
                             {city}
-                            {selectedCity === city && <CheckCircle2 className="w-4 h-4 text-orange-500" />}
+                            {selectedCity === city && <CheckCircle2 className="w-4 h-4 text-primary" />}
                           </button>
                         ))}
                       </motion.div>
@@ -428,22 +428,22 @@ export const BookingWidget = () => {
 
                 {/* Car Selector */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
                     Select Your Car
                   </label>
                   <button
                     onClick={() => setCurrentView('brands')}
                     className={`w-full flex items-center justify-between px-4 py-4 border rounded-2xl transition-all ${
                       isCarSelected 
-                        ? 'bg-gradient-to-r from-orange-50 to-red-50 border-orange-200' 
-                        : 'bg-gray-50 border-gray-200 hover:border-orange-300 hover:bg-orange-50/30'
+                        ? 'bg-primary/5 border-primary/20' 
+                        : 'bg-secondary/50 border-border hover:border-primary/50 hover:bg-primary/5'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden ${
                         isCarSelected 
-                          ? 'bg-white shadow-md border border-orange-100' 
-                          : 'bg-gray-200'
+                          ? 'bg-card shadow-md border border-primary/20' 
+                          : 'bg-secondary'
                       }`}>
                         {isCarSelected && selectedBrand ? (
                           <img 
@@ -457,47 +457,47 @@ export const BookingWidget = () => {
                             }}
                           />
                         ) : (
-                          <Car className="w-5 h-5 text-gray-500" />
+                          <Car className="w-5 h-5 text-muted-foreground" />
                         )}
                       </div>
                       <div className="text-left">
-                        <span className={`text-base font-semibold block ${isCarSelected ? 'text-gray-900' : 'text-gray-400'}`}>
+                        <span className={`text-base font-semibold block ${isCarSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
                           {getCarDisplayText()}
                         </span>
                         {isCarSelected && selectedFuel && (
-                          <span className="text-xs text-orange-600 font-medium">{selectedFuel.name} • {selectedModel?.type}</span>
+                          <span className="text-xs text-primary font-medium">{selectedFuel.name} • {selectedModel?.type}</span>
                         )}
                       </div>
                     </div>
                     {isCarSelected ? (
                       <button 
                         onClick={(e) => { e.stopPropagation(); resetCarSelection(); }}
-                        className="p-2 hover:bg-orange-100 rounded-full transition-colors"
+                        className="p-2 hover:bg-destructive/10 rounded-full transition-colors group"
                       >
-                        <X className="w-4 h-4 text-orange-500" />
+                        <X className="w-4 h-4 text-muted-foreground group-hover:text-destructive" />
                       </button>
                     ) : (
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     )}
                   </button>
                 </div>
 
                 {/* Mobile Number */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
                     Mobile Number
                   </label>
-                  <div className="flex items-center gap-3 px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus-within:border-orange-400 focus-within:ring-2 focus-within:ring-orange-100 transition-all">
-                    <div className="w-10 h-10 rounded-xl bg-gray-200 flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-gray-500" />
+                  <div className="flex items-center gap-3 px-4 py-4 bg-secondary/50 border border-border rounded-2xl focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-muted-foreground" />
                     </div>
-                    <span className="text-base font-semibold text-gray-400">+91</span>
+                    <span className="text-base font-semibold text-muted-foreground">+91</span>
                     <input
                       type="tel"
                       value={mobileNumber}
                       onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
                       placeholder="Enter your mobile number"
-                      className="flex-1 bg-transparent outline-none text-base font-semibold text-gray-900 placeholder-gray-400"
+                      className="flex-1 bg-transparent outline-none text-base font-semibold text-foreground placeholder-muted-foreground"
                     />
                     {mobileNumber.length === 10 && (
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -510,7 +510,7 @@ export const BookingWidget = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   disabled={!isCarSelected || mobileNumber.length !== 10}
-                  className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white text-base font-bold rounded-2xl shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-primary text-primary-foreground text-base font-bold rounded-2xl shadow-lg shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all flex items-center justify-center gap-2"
                 >
                   Check Prices For Free
                   <ChevronRight className="w-5 h-5" />
@@ -531,30 +531,30 @@ export const BookingWidget = () => {
                 <div className="flex items-center gap-3 mb-5">
                   <button 
                     onClick={goBack} 
-                    className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
+                    className="p-2 -ml-2 hover:bg-secondary rounded-xl transition-colors"
                   >
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                    <ChevronLeft className="w-5 h-5 text-muted-foreground" />
                   </button>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">Select Brand</h3>
-                    <p className="text-xs text-gray-500">Choose your car manufacturer</p>
+                    <h3 className="text-xl font-bold text-foreground">Select Brand</h3>
+                    <p className="text-xs text-muted-foreground">Choose your car manufacturer</p>
                   </div>
                 </div>
 
                 {/* Search Bar */}
-                <div className="flex items-center gap-3 px-4 py-3 bg-gray-100 rounded-xl mb-5">
-                  <Search className="w-5 h-5 text-gray-400" />
+                <div className="flex items-center gap-3 px-4 py-3 bg-secondary rounded-xl mb-5">
+                  <Search className="w-5 h-5 text-muted-foreground" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search car brand..."
-                    className="flex-1 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder-gray-400"
+                    className="flex-1 bg-transparent outline-none text-sm font-medium text-foreground placeholder-muted-foreground"
                     autoFocus
                   />
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} className="p-1 hover:bg-gray-200 rounded-full">
-                      <X className="w-4 h-4 text-gray-500" />
+                    <button onClick={() => setSearchQuery('')} className="p-1 hover:bg-border rounded-full">
+                      <X className="w-4 h-4 text-muted-foreground" />
                     </button>
                   )}
                 </div>
@@ -570,7 +570,7 @@ export const BookingWidget = () => {
                       whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => handleBrandSelect(brand)}
-                      className="flex flex-col items-center p-4 bg-gray-50 hover:bg-orange-50 border-2 border-transparent hover:border-orange-200 rounded-2xl transition-all"
+                      className="flex flex-col items-center p-4 bg-secondary/30 hover:bg-primary/5 border-2 border-transparent hover:border-primary/20 rounded-2xl transition-all"
                     >
                       <div className="w-14 h-14 mb-2 flex items-center justify-center">
                         <img 
@@ -584,7 +584,7 @@ export const BookingWidget = () => {
                           }}
                         />
                       </div>
-                      <span className="text-xs font-semibold text-gray-700 text-center leading-tight">
+                      <span className="text-xs font-semibold text-foreground text-center leading-tight">
                         {brand.name}
                       </span>
                     </motion.button>
@@ -593,9 +593,9 @@ export const BookingWidget = () => {
 
                 {filteredBrands.length === 0 && (
                   <div className="text-center py-10">
-                    <Car className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 font-medium">No brands found</p>
-                    <p className="text-sm text-gray-400">Try a different search term</p>
+                    <Car className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground font-medium">No brands found</p>
+                    <p className="text-sm text-muted-foreground/80">Try a different search term</p>
                   </div>
                 )}
               </motion.div>
@@ -614,9 +614,9 @@ export const BookingWidget = () => {
                 <div className="flex items-center gap-3 mb-5">
                   <button 
                     onClick={goBack} 
-                    className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
+                    className="p-2 -ml-2 hover:bg-secondary rounded-xl transition-colors"
                   >
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                    <ChevronLeft className="w-5 h-5 text-muted-foreground" />
                   </button>
                   <div className="flex items-center gap-3">
                     <img 
@@ -630,25 +630,25 @@ export const BookingWidget = () => {
                       }}
                     />
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900">Select Model</h3>
-                      <p className="text-xs text-gray-500">{selectedBrand.name} models</p>
+                      <h3 className="text-xl font-bold text-foreground">Select Model</h3>
+                      <p className="text-xs text-muted-foreground">{selectedBrand.name} models</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Search Bar */}
-                <div className="flex items-center gap-3 px-4 py-3 bg-gray-100 rounded-xl mb-5">
-                  <Search className="w-5 h-5 text-gray-400" />
+                <div className="flex items-center gap-3 px-4 py-3 bg-secondary rounded-xl mb-5">
+                  <Search className="w-5 h-5 text-muted-foreground" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search model..."
-                    className="flex-1 bg-transparent outline-none text-sm font-medium text-gray-900 placeholder-gray-400"
+                    className="flex-1 bg-transparent outline-none text-sm font-medium text-foreground placeholder-muted-foreground"
                   />
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} className="p-1 hover:bg-gray-200 rounded-full">
-                      <X className="w-4 h-4 text-gray-500" />
+                    <button onClick={() => setSearchQuery('')} className="p-1 hover:bg-border rounded-full">
+                      <X className="w-4 h-4 text-muted-foreground" />
                     </button>
                   )}
                 </div>
@@ -664,7 +664,7 @@ export const BookingWidget = () => {
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleModelSelect(model)}
-                      className="flex flex-col items-center p-3 bg-gray-50 hover:bg-orange-50 border-2 border-transparent hover:border-orange-200 rounded-2xl transition-all text-center"
+                      className="flex flex-col items-center p-3 bg-secondary/30 hover:bg-primary/5 border-2 border-transparent hover:border-primary/20 rounded-2xl transition-all text-center"
                     >
                       <div className="w-full h-16 mb-2 flex items-center justify-center">
                         <img 
@@ -674,25 +674,24 @@ export const BookingWidget = () => {
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.onerror = null;
-                            // Fallback to a car icon
                             target.style.display = 'none';
                             target.parentElement!.innerHTML = '<span class="text-3xl">🚗</span>';
                           }}
                         />
                       </div>
-                      <span className="text-sm font-semibold text-gray-800 block truncate w-full">
+                      <span className="text-sm font-semibold text-foreground block truncate w-full">
                         {model.name}
                       </span>
-                      <span className="text-xs text-gray-500">{model.type}</span>
+                      <span className="text-xs text-muted-foreground">{model.type}</span>
                     </motion.button>
                   ))}
                 </div>
 
                 {filteredModels.length === 0 && (
                   <div className="text-center py-10">
-                    <Car className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 font-medium">No models found</p>
-                    <p className="text-sm text-gray-400">Try a different search term</p>
+                    <Car className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground font-medium">No models found</p>
+                    <p className="text-sm text-muted-foreground/80">Try a different search term</p>
                   </div>
                 )}
               </motion.div>
@@ -711,18 +710,18 @@ export const BookingWidget = () => {
                 <div className="flex items-center gap-3 mb-5">
                   <button 
                     onClick={goBack} 
-                    className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-colors"
+                    className="p-2 -ml-2 hover:bg-secondary rounded-xl transition-colors"
                   >
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                    <ChevronLeft className="w-5 h-5 text-muted-foreground" />
                   </button>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">Select Fuel Type</h3>
-                    <p className="text-xs text-gray-500">Choose your car's fuel type</p>
+                    <h3 className="text-xl font-bold text-foreground">Select Fuel Type</h3>
+                    <p className="text-xs text-muted-foreground">Choose your car's fuel type</p>
                   </div>
                 </div>
 
-                {/* Selected Car Summary with Model Image */}
-                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-2xl mb-5">
+                {/* Selected Car Summary */}
+                <div className="flex items-center gap-4 p-4 bg-primary/5 border border-primary/20 rounded-2xl mb-5">
                   <div className="w-16 h-12 flex items-center justify-center">
                     <img 
                       src={selectedModel?.image} 
@@ -737,10 +736,10 @@ export const BookingWidget = () => {
                     />
                   </div>
                   <div className="flex-1">
-                    <p className="text-base font-bold text-gray-900">
+                    <p className="text-base font-bold text-foreground">
                       {selectedBrand?.name} {selectedModel?.name}
                     </p>
-                    <p className="text-xs text-orange-600 font-medium">
+                    <p className="text-xs text-primary font-medium">
                       {selectedModel?.type} • Almost there!
                     </p>
                   </div>
@@ -762,7 +761,7 @@ export const BookingWidget = () => {
                       whileHover={{ x: 4 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleFuelSelect(fuel)}
-                      className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-orange-50 border-2 border-transparent hover:border-orange-200 rounded-2xl transition-all group"
+                      className="w-full flex items-center justify-between p-4 bg-secondary/30 hover:bg-primary/5 border-2 border-transparent hover:border-primary/20 rounded-2xl transition-all group"
                     >
                       <div className="flex items-center gap-4">
                         <div 
@@ -771,9 +770,9 @@ export const BookingWidget = () => {
                         >
                           {fuel.icon}
                         </div>
-                        <span className="text-base font-semibold text-gray-800">{fuel.name}</span>
+                        <span className="text-base font-semibold text-foreground">{fuel.name}</span>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                     </motion.button>
                   ))}
                 </div>
@@ -784,13 +783,13 @@ export const BookingWidget = () => {
 
         {/* Trust Footer - Only on main view */}
         {currentView === 'main' && (
-          <div className="px-6 sm:px-8 py-4 bg-gray-50 border-t border-gray-100">
-            <div className="flex items-center justify-center gap-6 text-xs text-gray-500">
+          <div className="px-6 sm:px-8 py-4 bg-secondary/20 border-t border-border">
+            <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-orange-500" />
+                <Sparkles className="w-4 h-4 text-primary" />
                 <span className="font-semibold">4.8/5</span> Rating
               </span>
-              <span className="w-1 h-1 rounded-full bg-gray-300" />
+              <span className="w-1 h-1 rounded-full bg-border" />
               <span><span className="font-semibold">50,000+</span> Services</span>
             </div>
           </div>
@@ -806,11 +805,11 @@ export const BookingWidget = () => {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #E5E7EB;
+          background: hsl(var(--border));
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #D1D5DB;
+          background: hsl(var(--muted-foreground));
         }
       `}</style>
     </motion.div>

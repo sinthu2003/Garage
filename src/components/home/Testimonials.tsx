@@ -121,19 +121,19 @@ export const Testimonials = () => {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/10">
             <div className="flex -space-x-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="w-6 h-6 rounded-full bg-orange-500 border-2 border-gray-900 flex items-center justify-center text-[8px] text-white font-bold">
+                <div key={i} className="w-6 h-6 rounded-full bg-primary border-2 border-gray-900 flex items-center justify-center text-[8px] text-primary-foreground font-bold">
                   ★
                 </div>
               ))}
             </div>
-            <span className="text-orange-400 text-xs font-bold uppercase tracking-wider">
+            <span className="text-primary text-xs font-bold uppercase tracking-wider">
               Trusted by 50,000+ Owners
             </span>
           </div>
           
           <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
             Loved by drivers,
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
               Approved by mechanics.
             </span>
           </h2>
@@ -153,17 +153,17 @@ export const Testimonials = () => {
             >
               <div className="bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row">
                 
-                {/* Left: Image Side (Desktop) - NOW SHOWING THE CAR */}
+                {/* Left: Image Side (Desktop) */}
                 <div className="md:w-2/5 relative h-64 md:h-auto overflow-hidden bg-gray-900">
-                   <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 z-10 mix-blend-overlay" />
+                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-black/20 z-10 mix-blend-overlay" />
                    <img 
                     src={testimonials[currentIndex].image} 
                     alt={`${testimonials[currentIndex].carModel} - ${testimonials[currentIndex].name}`}
                     className="w-full h-full object-cover transform scale-105 transition-transform duration-1000 hover:scale-110"
                    />
-                   {/* Image Overlay - Updated to emphasize Car Model */}
+                   {/* Image Overlay */}
                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 text-white">
-                     <div className="inline-block px-3 py-1 bg-orange-600 rounded-full text-xs font-bold mb-2 shadow-sm">
+                     <div className="inline-block px-3 py-1 bg-primary rounded-full text-xs font-bold mb-2 shadow-sm text-primary-foreground">
                         {testimonials[currentIndex].carModel}
                      </div>
                      <p className="text-lg font-bold">{testimonials[currentIndex].name}</p>
@@ -173,14 +173,14 @@ export const Testimonials = () => {
 
                 {/* Right: Content Side */}
                 <div className="md:w-3/5 p-8 md:p-12 flex flex-col justify-center relative bg-white">
-                  <Quote className="absolute top-8 right-8 text-orange-100 w-20 h-20 -rotate-12" />
+                  <Quote className="absolute top-8 right-8 text-primary/10 w-20 h-20 -rotate-12" />
                   
                   <div className="relative z-10">
                     <div className="flex items-center gap-1 mb-6">
                       {[...Array(5)].map((_, i) => (
                         <Star 
                           key={i} 
-                          className={`w-5 h-5 ${i < testimonials[currentIndex].rating ? 'text-orange-500 fill-orange-500' : 'text-gray-300'}`} 
+                          className={`w-5 h-5 ${i < testimonials[currentIndex].rating ? 'text-primary fill-primary' : 'text-gray-300'}`} 
                         />
                       ))}
                     </div>
@@ -190,7 +190,6 @@ export const Testimonials = () => {
                     </p>
 
                     <div className="flex flex-wrap gap-4 pt-8 border-t border-gray-100">
-                      {/* Car Model Badge (Redundant here but good for mobile view if image stacks) */}
                       <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg md:hidden">
                         <span className="text-lg">🚗</span>
                         <span className="font-semibold">{testimonials[currentIndex].carModel}</span>
@@ -231,7 +230,7 @@ export const Testimonials = () => {
                 setCurrentIndex(i);
               }}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === currentIndex ? 'w-8 bg-orange-500' : 'w-2 bg-gray-700 hover:bg-gray-600'
+                i === currentIndex ? 'w-8 bg-primary' : 'w-2 bg-gray-700 hover:bg-gray-600'
               }`}
             />
           ))}

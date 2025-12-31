@@ -9,9 +9,9 @@ import {
   Instagram,
   Youtube,
   ChevronRight,
-  ArrowUp,
-  Car
+  ArrowUp
 } from 'lucide-react';
+import Logo from '../../assets/logo.jpg';
 
 const footerLinks = {
   services: [
@@ -85,12 +85,14 @@ export const Footer = () => {
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
             <a href="#" className="flex items-center gap-2.5 mb-6">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                <Car className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
+              <img 
+                src={Logo} 
+                alt="Addax Automotive" 
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-contain bg-white p-1"
+              />
               <div className="flex flex-col">
-                <span className="text-xl sm:text-2xl font-bold leading-none">AutoCare</span>
-                <span className="text-[10px] sm:text-xs font-semibold text-orange-500 tracking-widest uppercase">PRO</span>
+                <span className="text-xl sm:text-2xl font-bold leading-tight">Addax</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-primary tracking-wider uppercase">Automotive</span>
               </div>
             </a>
             
@@ -101,15 +103,15 @@ export const Footer = () => {
             {/* Contact Info */}
             <div className="space-y-3">
               <a href="tel:+919876543210" className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors text-sm">
-                <Phone className="w-4 h-4 text-orange-500" />
+                <Phone className="w-4 h-4 text-primary" />
                 +91 98765 43210
               </a>
-              <a href="mailto:support@autocarepro.in" className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors text-sm">
-                <Mail className="w-4 h-4 text-orange-500" />
-                support@autocarepro.in
+              <a href="mailto:support@addaxautomotive.in" className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors text-sm">
+                <Mail className="w-4 h-4 text-primary" />
+                support@addaxautomotive.in
               </a>
               <div className="flex items-center gap-3 text-gray-400 text-sm">
-                <Clock className="w-4 h-4 text-orange-500" />
+                <Clock className="w-4 h-4 text-primary" />
                 Mon-Sun: 8AM - 8PM
               </div>
             </div>
@@ -121,7 +123,7 @@ export const Footer = () => {
                   key={social.label}
                   href={social.href}
                   whileHover={{ scale: 1.1, y: -2 }}
-                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-white/10 flex items-center justify-center text-gray-400 hover:bg-orange-500 hover:text-white transition-colors"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-white/10 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-primary-foreground transition-colors"
                   aria-label={social.label}
                 >
                   <social.icon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -139,7 +141,7 @@ export const Footer = () => {
                   <a
                     href={link.href}
                     onClick={(e) => scrollToSection(e, link.href)}
-                    className="text-gray-400 hover:text-orange-500 transition-colors text-xs sm:text-sm flex items-center gap-1 group"
+                    className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm flex items-center gap-1 group"
                   >
                     <ChevronRight className="w-3 h-3 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                     {link.name}
@@ -157,7 +159,7 @@ export const Footer = () => {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-gray-400 hover:text-orange-500 transition-colors text-xs sm:text-sm flex items-center gap-1 group"
+                    className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm flex items-center gap-1 group"
                   >
                     <ChevronRight className="w-3 h-3 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                     {link.name}
@@ -176,7 +178,7 @@ export const Footer = () => {
                   <a
                     href={link.href}
                     onClick={(e) => scrollToSection(e, link.href)}
-                    className="text-gray-400 hover:text-orange-500 transition-colors text-xs sm:text-sm flex items-center gap-1 group"
+                    className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm flex items-center gap-1 group"
                   >
                     <ChevronRight className="w-3 h-3 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
                     {link.name}
@@ -189,7 +191,7 @@ export const Footer = () => {
           {/* Cities */}
           <div>
             <h4 className="font-semibold text-white mb-4 sm:mb-5 text-sm sm:text-base flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-orange-500" />
+              <MapPin className="w-4 h-4 text-primary" />
               We Serve
             </h4>
             <ul className="space-y-2 sm:space-y-3">
@@ -197,7 +199,7 @@ export const Footer = () => {
                 <li key={city}>
                   <a
                     href="#"
-                    className="text-gray-400 hover:text-orange-500 transition-colors text-xs sm:text-sm"
+                    className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm"
                   >
                     {city}
                   </a>
@@ -213,7 +215,7 @@ export const Footer = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-5 sm:py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
-              © {new Date().getFullYear()} AutoCare Pro. All rights reserved.
+              © {new Date().getFullYear()} Addax Automotive. All rights reserved.
             </p>
             
             <div className="flex items-center gap-4 sm:gap-6">
@@ -233,7 +235,7 @@ export const Footer = () => {
         onClick={scrollToTop}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className="fixed bottom-6 right-6 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30 z-40"
+        className="fixed bottom-6 right-6 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-black/30 z-40 border border-primary/30"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}

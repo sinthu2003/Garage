@@ -102,7 +102,7 @@ const ComparisonSlider = ({ before, after, title }: { before: string; after: str
       </div>
 
       {/* Labels */}
-      <div className="absolute top-4 left-4 px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+      <div className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-bold rounded-full">
         BEFORE
       </div>
       <div className="absolute top-4 right-4 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
@@ -278,7 +278,7 @@ export const BeforeAfterSection = () => {
                 onClick={() => setActiveIndex(idx)}
                 className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all ${
                   activeIndex === idx 
-                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/30' 
+                    ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/30' 
                     : 'bg-gray-50 hover:bg-gray-100'
                 }`}
                 initial={{ opacity: 0, x: 30 }}

@@ -35,12 +35,12 @@ export const PartnersSection = () => {
   const isInView = useInView(sectionRef, { once: false, margin: "-100px" });
 
   return (
-    <section ref={sectionRef} className="py-12 sm:py-16 lg:py-20 bg-white relative overflow-hidden">
+    <section ref={sectionRef} className="py-12 sm:py-16 lg:py-20 bg-background relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-30"
-          style={{ background: 'radial-gradient(circle, rgba(255,87,51,0.05) 0%, transparent 60%)' }}
+          style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.05) 0%, transparent 60%)' }}
           animate={isInView ? { scale: [1, 1.2, 1] } : {}}
           transition={{ duration: 10, repeat: Infinity }}
         />
@@ -54,7 +54,7 @@ export const PartnersSection = () => {
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
         >
           <motion.span 
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold uppercase tracking-wider mb-4"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-4"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
             transition={{ delay: 0.2 }}
@@ -65,7 +65,7 @@ export const PartnersSection = () => {
             Trusted Partners
           </motion.span>
 
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mb-4">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight mb-4">
             {"We service ".split('').map((char, i) => (
               <motion.span
                 key={i}
@@ -76,7 +76,7 @@ export const PartnersSection = () => {
                 {char}
               </motion.span>
             ))}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
               {"all major brands".split('').map((char, i) => (
                 <motion.span
                   key={i}
@@ -91,7 +91,7 @@ export const PartnersSection = () => {
           </h2>
 
           <motion.p 
-            className="text-gray-500 max-w-xl mx-auto"
+            className="text-muted-foreground max-w-xl mx-auto"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ delay: 0.5 }}
@@ -103,8 +103,8 @@ export const PartnersSection = () => {
         {/* Scrolling Brand Logos - Row 1 */}
         <div className="relative mb-6 overflow-hidden">
           {/* Gradient Masks */}
-          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />
           
           <motion.div
             className="flex gap-8 sm:gap-12"
@@ -114,7 +114,7 @@ export const PartnersSection = () => {
             {[...partners, ...partners].map((partner, idx) => (
               <motion.div
                 key={idx}
-                className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-20 bg-gray-50 rounded-xl flex items-center justify-center p-4 border border-gray-100 hover:border-orange-200 hover:shadow-lg transition-all cursor-pointer"
+                className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-20 bg-card rounded-xl flex items-center justify-center p-4 border border-border hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer"
                 whileHover={{ scale: 1.1, y: -5 }}
               >
                 <img 
@@ -124,7 +124,7 @@ export const PartnersSection = () => {
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    target.parentElement!.innerHTML = `<span class="text-gray-400 text-sm font-semibold">${partner.name}</span>`;
+                    target.parentElement!.innerHTML = `<span class="text-muted-foreground text-sm font-semibold">${partner.name}</span>`;
                   }}
                 />
               </motion.div>
@@ -135,8 +135,8 @@ export const PartnersSection = () => {
         {/* Scrolling Brand Logos - Row 2 (Reverse) */}
         <div className="relative overflow-hidden">
           {/* Gradient Masks */}
-          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />
           
           <motion.div
             className="flex gap-8 sm:gap-12"
@@ -146,7 +146,7 @@ export const PartnersSection = () => {
             {[...partners.slice().reverse(), ...partners.slice().reverse()].map((partner, idx) => (
               <motion.div
                 key={idx}
-                className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-20 bg-gray-50 rounded-xl flex items-center justify-center p-4 border border-gray-100 hover:border-orange-200 hover:shadow-lg transition-all cursor-pointer"
+                className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-20 bg-card rounded-xl flex items-center justify-center p-4 border border-border hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer"
                 whileHover={{ scale: 1.1, y: -5 }}
               >
                 <img 
@@ -156,7 +156,7 @@ export const PartnersSection = () => {
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    target.parentElement!.innerHTML = `<span class="text-gray-400 text-sm font-semibold">${partner.name}</span>`;
+                    target.parentElement!.innerHTML = `<span class="text-muted-foreground text-sm font-semibold">${partner.name}</span>`;
                   }}
                 />
               </motion.div>
@@ -174,22 +174,22 @@ export const PartnersSection = () => {
           {trustBadges.map((badge, idx) => (
             <motion.div
               key={idx}
-              className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-orange-200 hover:shadow-md transition-all cursor-pointer"
+              className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-md transition-all cursor-pointer"
               initial={{ opacity: 0, y: 20, scale: 0.9 }}
               animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.9 }}
               transition={{ delay: 0.7 + idx * 0.1, type: "spring" }}
               whileHover={{ scale: 1.05, y: -3 }}
             >
               <motion.div 
-                className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center"
+                className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.5 }}
               >
-                <badge.icon className="w-6 h-6 text-orange-500" />
+                <badge.icon className="w-6 h-6 text-primary" />
               </motion.div>
               <div>
-                <p className="font-semibold text-gray-900 text-sm sm:text-base">{badge.title}</p>
-                <p className="text-xs sm:text-sm text-gray-500">{badge.subtitle}</p>
+                <p className="font-semibold text-foreground text-sm sm:text-base">{badge.title}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{badge.subtitle}</p>
               </div>
             </motion.div>
           ))}

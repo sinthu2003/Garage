@@ -33,30 +33,31 @@ export const Button = ({
     overflow-hidden
   `;
 
+  // Updated variants to use Semantic Theme Colors
   const variants = {
     primary: `
-      bg-gray-900 text-white border-gray-900
-      hover:bg-black hover:shadow-lg
+      bg-primary text-primary-foreground border-primary
+      hover:opacity-90 hover:shadow-lg
       active:scale-[0.98]
     `,
     secondary: `
-      bg-gray-100 text-gray-900 border-gray-100
-      hover:bg-gray-200
+      bg-secondary text-secondary-foreground border-secondary
+      hover:bg-secondary/80
       active:scale-[0.98]
     `,
     outline: `
-      bg-transparent text-gray-700 border-gray-200
-      hover:bg-gray-50 hover:border-gray-300
+      bg-transparent text-foreground border-input
+      hover:bg-accent hover:text-accent-foreground
       active:scale-[0.98]
     `,
     ghost: `
-      bg-transparent text-gray-600 border-transparent
-      hover:bg-gray-100 hover:text-gray-900
+      bg-transparent text-muted-foreground border-transparent
+      hover:bg-accent hover:text-accent-foreground
       active:scale-[0.98]
     `,
     accent: `
-      bg-[var(--primary)] text-white border-[var(--primary)]
-      hover:bg-[var(--primary-dark)] hover:shadow-lg
+      bg-accent text-accent-foreground border-accent
+      hover:bg-accent/80 hover:shadow-lg
       active:scale-[0.98]
     `
   };
