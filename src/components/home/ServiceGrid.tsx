@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { services } from '../../utils/data';
 import { ServiceCard } from './ServiceCard';
 import { motion, useInView } from 'framer-motion';
-import { ArrowRight, Settings, Wrench, Car, Gauge, Sparkles } from 'lucide-react';
+import { ArrowRight, Settings, Wrench, Car } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const ServiceGrid = () => {
@@ -142,7 +142,7 @@ export const ServiceGrid = () => {
         )}
 
         {/* Quick Stats */}
-        <motion.div 
+        {/* <motion.div 
           className="mt-12 lg:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
@@ -169,7 +169,7 @@ export const ServiceGrid = () => {
               <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
             </motion.div>
           ))}
-        </motion.div>
+        </motion.div> */}
       </div>
     </section>
   );
