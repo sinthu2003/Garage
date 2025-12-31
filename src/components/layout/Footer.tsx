@@ -11,7 +11,7 @@ import {
   ChevronRight,
   ArrowUp
 } from 'lucide-react';
-import Logo from '../../assets/logo.jpg';
+import Logo from '../../assets/Logo.jpg';
 
 const footerLinks = {
   services: [
