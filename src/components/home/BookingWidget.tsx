@@ -308,7 +308,7 @@ type ViewState = 'main' | 'brands' | 'models' | 'fuel';
 export const BookingWidget = () => {
   const [currentView, setCurrentView] = useState<ViewState>('main');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCity, setSelectedCity] = useState('Coimbatore');
+  const [selectedCity, setSelectedCity] = useState('Chennai');
   const [isCityOpen, setIsCityOpen] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<typeof brands[0] | null>(null);
   const [selectedModel, setSelectedModel] = useState<{ name: string; type: string; image: string } | null>(null);
