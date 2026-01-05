@@ -183,14 +183,19 @@ export const Hero = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </motion.button>
-              <motion.button 
-                className="group flex items-center justify-center gap-2 px-5 sm:px-6 py-3 sm:py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-full hover:bg-white/20 transition-all duration-300 text-sm sm:text-base"
+              
+              {/* UPDATED: Watch Video Button is now a Link */}
+              <motion.a 
+                href="https://www.youtube.com/@ADDAXAUTOMOTIVE"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center gap-2 px-5 sm:px-6 py-3 sm:py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-full hover:bg-white/20 transition-all duration-300 text-sm sm:text-base cursor-pointer"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Play className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" />
                 Watch Video
-              </motion.button>
+              </motion.a>
             </motion.div>
 
             {/* Trust Badges */}
