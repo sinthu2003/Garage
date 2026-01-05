@@ -300,9 +300,7 @@ const fuelTypes = [
 ];
 
 const cities = [
-  'Coimbatore', 'Chennai', 'Bangalore', 'Hyderabad', 'Mumbai', 
-  'Delhi', 'Pune', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Madurai',
-  'Trichy', 'Salem', 'Erode', 'Tirupur'
+   'Chennai'
 ];
 
 type ViewState = 'main' | 'brands' | 'models' | 'fuel';
