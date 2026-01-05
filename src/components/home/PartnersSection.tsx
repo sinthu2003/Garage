@@ -2,24 +2,65 @@ import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Award, Shield, Car, Sparkles } from 'lucide-react';
 
-// Car brand partners
+// Complete list of all car brands available in India
 const partners = [
+  // Mass Market - Indian Brands
   { name: 'Maruti Suzuki', logo: 'https://www.carlogos.org/car-logos/suzuki-logo.png' },
-  { name: 'Hyundai', logo: 'https://www.carlogos.org/car-logos/hyundai-logo.png' },
-  { name: 'Honda', logo: 'https://www.carlogos.org/car-logos/honda-logo.png' },
   { name: 'Tata', logo: 'https://www.carlogos.org/car-logos/tata-logo.png' },
-  { name: 'Toyota', logo: 'https://www.carlogos.org/car-logos/toyota-logo.png' },
   { name: 'Mahindra', logo: 'https://www.carlogos.org/car-logos/mahindra-logo.png' },
+  
+  // Mass Market - Korean Brands
+  { name: 'Hyundai', logo: 'https://www.carlogos.org/car-logos/hyundai-logo.png' },
   { name: 'Kia', logo: 'https://www.carlogos.org/car-logos/kia-logo.png' },
-  { name: 'MG', logo: 'https://www.carlogos.org/car-logos/mg-logo.png' },
+  
+  // Mass Market - Japanese Brands
+  { name: 'Toyota', logo: 'https://www.carlogos.org/car-logos/toyota-logo.png' },
+  { name: 'Honda', logo: 'https://www.carlogos.org/car-logos/honda-logo.png' },
+  { name: 'Nissan', logo: 'https://www.carlogos.org/car-logos/nissan-logo.png' },
+  { name: 'Isuzu', logo: 'https://www.carlogos.org/car-logos/isuzu-logo.png' },
+  
+  // Mass Market - European Brands
   { name: 'Volkswagen', logo: 'https://www.carlogos.org/car-logos/volkswagen-logo.png' },
   { name: 'Skoda', logo: 'https://www.carlogos.org/car-logos/skoda-logo.png' },
-  { name: 'BMW', logo: 'https://www.carlogos.org/car-logos/bmw-logo.png' },
-  { name: 'Audi', logo: 'https://www.carlogos.org/car-logos/audi-logo.png' },
-  { name: 'Mercedes-Benz', logo: 'https://www.carlogos.org/car-logos/mercedes-benz-logo.png' },
-  { name: 'Ford', logo: 'https://www.carlogos.org/car-logos/ford-logo.png' },
   { name: 'Renault', logo: 'https://www.carlogos.org/car-logos/renault-logo.png' },
-  { name: 'Nissan', logo: 'https://www.carlogos.org/car-logos/nissan-logo.png' },
+  { name: 'Citroen', logo: 'https://www.carlogos.org/car-logos/citroen-logo.png' },
+  
+  // Mass Market - American Brands
+  { name: 'Jeep', logo: 'https://www.carlogos.org/car-logos/jeep-logo.png' },
+  
+  // Mass Market - Chinese Brands
+  { name: 'MG', logo: 'https://www.carlogos.org/car-logos/mg-logo.png' },
+  { name: 'BYD', logo: 'https://www.carlogos.org/car-logos/byd-logo.png' },
+  
+  // Premium Brands - German
+  { name: 'BMW', logo: 'https://www.carlogos.org/car-logos/bmw-logo.png' },
+  { name: 'Mercedes-Benz', logo: 'https://www.carlogos.org/car-logos/mercedes-benz-logo.png' },
+  { name: 'Audi', logo: 'https://www.carlogos.org/car-logos/audi-logo.png' },
+  { name: 'Porsche', logo: 'https://www.carlogos.org/car-logos/porsche-logo.png' },
+  
+  // Premium Brands - British
+  { name: 'Jaguar', logo: 'https://www.carlogos.org/car-logos/jaguar-logo.png' },
+  { name: 'Land Rover', logo: 'https://www.carlogos.org/car-logos/land-rover-logo.png' },
+  { name: 'Mini', logo: 'https://www.carlogos.org/car-logos/mini-logo.png' },
+  { name: 'Bentley', logo: 'https://www.carlogos.org/car-logos/bentley-logo.png' },
+  { name: 'Rolls-Royce', logo: 'https://www.carlogos.org/car-logos/rolls-royce-logo.png' },
+  { name: 'Aston Martin', logo: 'https://www.carlogos.org/car-logos/aston-martin-logo.png' },
+  { name: 'McLaren', logo: 'https://www.carlogos.org/car-logos/mclaren-logo.png' },
+  { name: 'Lotus', logo: 'https://www.carlogos.org/car-logos/lotus-logo.png' },
+  
+  // Premium Brands - Swedish
+  { name: 'Volvo', logo: 'https://www.carlogos.org/car-logos/volvo-logo.png' },
+  
+  // Premium Brands - Japanese Luxury
+  { name: 'Lexus', logo: 'https://www.carlogos.org/car-logos/lexus-logo.png' },
+  
+  // Premium Brands - Italian
+  { name: 'Lamborghini', logo: 'https://www.carlogos.org/car-logos/lamborghini-logo.png' },
+  { name: 'Ferrari', logo: 'https://www.carlogos.org/car-logos/ferrari-logo.png' },
+  { name: 'Maserati', logo: 'https://www.carlogos.org/car-logos/maserati-logo.png' },
+  
+  // Other Brands
+  { name: 'Force Motors', logo: 'https://www.carlogos.org/car-logos/force-logo.png' },
 ];
 
 // Trust badges
@@ -96,11 +137,11 @@ export const PartnersSection = () => {
             animate={isInView ? { opacity: 1 } : { opacity: 0 }}
             transition={{ delay: 0.5 }}
           >
-            Expert mechanics trained for all car makes and models
+            Expert mechanics trained for all car makes and models - from budget hatchbacks to luxury supercars
           </motion.p>
         </motion.div>
 
-        {/* Scrolling Brand Logos - Row 1 */}
+        {/* Scrolling Brand Logos - Row 1 (First half of brands) */}
         <div className="relative mb-6 overflow-hidden">
           {/* Gradient Masks */}
           <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
@@ -109,9 +150,9 @@ export const PartnersSection = () => {
           <motion.div
             className="flex gap-8 sm:gap-12"
             animate={{ x: ['0%', '-50%'] }}
-            transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+            transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
           >
-            {[...partners, ...partners].map((partner, idx) => (
+            {[...partners.slice(0, 17), ...partners.slice(0, 17)].map((partner, idx) => (
               <motion.div
                 key={idx}
                 className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-20 bg-card rounded-xl flex items-center justify-center p-4 border border-border hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer"
@@ -124,7 +165,7 @@ export const PartnersSection = () => {
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    target.parentElement!.innerHTML = `<span class="text-muted-foreground text-sm font-semibold">${partner.name}</span>`;
+                    target.parentElement!.innerHTML = `<span class="text-muted-foreground text-xs sm:text-sm font-semibold text-center">${partner.name}</span>`;
                   }}
                 />
               </motion.div>
@@ -132,8 +173,8 @@ export const PartnersSection = () => {
           </motion.div>
         </div>
 
-        {/* Scrolling Brand Logos - Row 2 (Reverse) */}
-        <div className="relative overflow-hidden">
+        {/* Scrolling Brand Logos - Row 2 (Second half of brands - Reverse) */}
+        <div className="relative mb-6 overflow-hidden">
           {/* Gradient Masks */}
           <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
           <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />
@@ -141,9 +182,9 @@ export const PartnersSection = () => {
           <motion.div
             className="flex gap-8 sm:gap-12"
             animate={{ x: ['-50%', '0%'] }}
-            transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
+            transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
           >
-            {[...partners.slice().reverse(), ...partners.slice().reverse()].map((partner, idx) => (
+            {[...partners.slice(17), ...partners.slice(17)].map((partner, idx) => (
               <motion.div
                 key={idx}
                 className="flex-shrink-0 w-24 h-16 sm:w-32 sm:h-20 bg-card rounded-xl flex items-center justify-center p-4 border border-border hover:border-primary/30 hover:shadow-lg transition-all cursor-pointer"
@@ -156,7 +197,7 @@ export const PartnersSection = () => {
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
-                    target.parentElement!.innerHTML = `<span class="text-muted-foreground text-sm font-semibold">${partner.name}</span>`;
+                    target.parentElement!.innerHTML = `<span class="text-muted-foreground text-xs sm:text-sm font-semibold text-center">${partner.name}</span>`;
                   }}
                 />
               </motion.div>
@@ -164,9 +205,22 @@ export const PartnersSection = () => {
           </motion.div>
         </div>
 
+        {/* Brand Count Badge */}
+        <motion.div 
+          className="text-center mb-8"
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold">
+            <Car className="w-4 h-4" />
+            {partners.length}+ Car Brands Serviced
+          </span>
+        </motion.div>
+
         {/* Trust Badges */}
         <motion.div 
-          className="mt-12 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
+          className="mt-8 sm:mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ delay: 0.6 }}

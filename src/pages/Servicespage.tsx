@@ -14,6 +14,17 @@ import {
   X} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { services } from '../utils/data';
+
+// Import local assets
+import PeriodicServiceImg from '../assets/PeriodicService.jpg';
+import ACServiceImg from '../assets/ACService.jpg';
+import DentingImg from '../assets/Denting.jpg';
+import CarInspectionImg from '../assets/CarInspection.jpg';
+import WheelCareImg from '../assets/Wheelcare.jpg';
+import BatteryServiceImg from '../assets/BatteryService.jpg';
+import ClutchBody1Img from '../assets/ClutchBody1.jpg';
+import InsuranceClaimsImg from '../assets/InsuranceClaims.jpg';
+
 // Service categories with icons
 const categories = [
   { id: 'all', label: 'All', icon: Sparkles },
@@ -36,15 +47,15 @@ const serviceCategoryMap: Record<string, string> = {
 };
 
 const serviceImages: Record<string, string> = {
-  'Periodic Service': 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=600&h=400&fit=crop',
-  'AC Service & Repair': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&h=400&fit=crop',
-  'Denting & Painting': 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=600&h=400&fit=crop',
-  'Car Inspection': 'https://images.unsplash.com/photo-1632823471565-1ecdf5c6da20?w=600&h=400&fit=crop',
-  'Wheel Care': 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=600&h=400&fit=crop',
-  'Battery Service': 'https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?w=600&h=400&fit=crop',
-  'Clutch & Body': 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=400&fit=crop',
-  'Insurance Claims': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&h=400&fit=crop',
-  'default': 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=600&h=400&fit=crop'
+  'Periodic Service': PeriodicServiceImg,
+  'AC Service & Repair': ACServiceImg,
+  'Denting & Painting': DentingImg,
+  'Car Inspection': CarInspectionImg,
+  'Wheel Care': WheelCareImg,
+  'Battery Service': BatteryServiceImg,
+  'Clutch & Body': ClutchBody1Img,
+  'Insurance Claims': InsuranceClaimsImg,
+  'default': PeriodicServiceImg
 };
 
 export const ServicesPage = () => {

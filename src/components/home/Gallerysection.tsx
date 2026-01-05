@@ -1,13 +1,28 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { 
-  X, 
-  ChevronLeft, 
-  ChevronRight, 
-  Camera, 
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Camera,
   Wrench,
   Car,
-  Sparkles} from 'lucide-react';
+  Sparkles
+} from 'lucide-react';
+
+// Import local assets
+import PeriodicServiceImg from '../../assets/PeriodicService.jpg';
+import WeServiceImg from '../../assets/WeService.jpg';
+import CarInspection2Img from '../../assets/CarInspection2.jpg';
+import InteriorDetailingImg from '../../assets/toyota-fortuner-interior-deep-clean-after.png';
+import BrakeServiceImg from '../../assets/WheelCare1.jpg';
+import ServiceBayImg from '../../assets/CarInspection1.jpg';
+import ExpertDiagnosticsImg from '../../assets/CarInspection.jpg';
+import ACServiceImg from '../../assets/ACService.jpg';
+import WheelAlignmentImg from '../../assets/WheelCare2.jpg';
+import FullServiceImg from '../../assets/honda-city-full-car-detailing-after.png';
+import ExpertTeamImg from '../../assets/expert-mechanics.png';
+import PaintBoothImg from '../../assets/Denting1.jpg';
 
 // Gallery categories
 const categories = [
@@ -22,7 +37,7 @@ const categories = [
 const galleryImages = [
   {
     id: 1,
-    src: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&q=80',
+    src: PeriodicServiceImg,
     alt: 'Mechanic servicing car engine',
     category: 'service',
     title: 'Engine Service',
@@ -30,7 +45,7 @@ const galleryImages = [
   },
   {
     id: 2,
-    src: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80',
+    src: WeServiceImg,
     alt: 'Car on hydraulic lift',
     category: 'workshop',
     title: 'Modern Workshop',
@@ -38,7 +53,7 @@ const galleryImages = [
   },
   {
     id: 3,
-    src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+    src: CarInspection2Img,
     alt: 'Car undercarriage inspection',
     category: 'service',
     title: 'Undercarriage Check',
@@ -46,7 +61,7 @@ const galleryImages = [
   },
   {
     id: 4,
-    src: 'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=800&q=80',
+    src: InteriorDetailingImg,
     alt: 'Car interior detailing',
     category: 'before-after',
     title: 'Interior Detailing',
@@ -54,7 +69,7 @@ const galleryImages = [
   },
   {
     id: 5,
-    src: 'https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=800&q=80',
+    src: BrakeServiceImg,
     alt: 'Brake disc repair',
     category: 'service',
     title: 'Brake Service',
@@ -62,7 +77,7 @@ const galleryImages = [
   },
   {
     id: 6,
-    src: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=800&q=80',
+    src: ServiceBayImg,
     alt: 'Car workshop interior',
     category: 'workshop',
     title: 'Service Bay',
@@ -70,7 +85,7 @@ const galleryImages = [
   },
   {
     id: 7,
-    src: 'https://images.unsplash.com/photo-1632823471565-1ecdf5c6da20?w=800&q=80',
+    src: ExpertDiagnosticsImg,
     alt: 'Mechanic with diagnostic tool',
     category: 'team',
     title: 'Expert Diagnostics',
@@ -78,7 +93,7 @@ const galleryImages = [
   },
   {
     id: 8,
-    src: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800&q=80',
+    src: ACServiceImg,
     alt: 'Car AC service',
     category: 'service',
     title: 'AC Service',
@@ -86,7 +101,7 @@ const galleryImages = [
   },
   {
     id: 9,
-    src: 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=800&q=80',
+    src: WheelAlignmentImg,
     alt: 'Wheel alignment machine',
     category: 'service',
     title: 'Wheel Alignment',
@@ -94,7 +109,7 @@ const galleryImages = [
   },
   {
     id: 10,
-    src: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&q=80',
+    src: FullServiceImg,
     alt: 'Polished car after service',
     category: 'before-after',
     title: 'After Full Service',
@@ -102,7 +117,7 @@ const galleryImages = [
   },
   {
     id: 11,
-    src: 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=800&q=80',
+    src: ExpertTeamImg,
     alt: 'Mechanic team',
     category: 'team',
     title: 'Our Expert Team',
@@ -110,7 +125,7 @@ const galleryImages = [
   },
   {
     id: 12,
-    src: 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=800&q=80',
+    src: PaintBoothImg,
     alt: 'Car painting booth',
     category: 'workshop',
     title: 'Paint Booth',
@@ -126,8 +141,8 @@ export const GallerySection = () => {
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-50px" });
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
-  const filteredImages = activeCategory === 'all' 
-    ? galleryImages 
+  const filteredImages = activeCategory === 'all'
+    ? galleryImages
     : galleryImages.filter(img => img.category === activeCategory);
 
   const handlePrev = () => {
@@ -165,8 +180,8 @@ export const GallerySection = () => {
             key={i}
             className="absolute text-orange-200"
             style={{ left: `${10 + i * 20}%`, top: `${15 + (i % 3) * 25}%` }}
-            animate={isInView ? { 
-              y: [0, -20, 0], 
+            animate={isInView ? {
+              y: [0, -20, 0],
               rotate: [0, 10, -10, 0],
               opacity: [0.3, 0.6, 0.3]
             } : {}}
@@ -179,11 +194,11 @@ export const GallerySection = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
         {/* Header */}
-        <motion.div 
+        <motion.div
           ref={headerRef}
           className="text-center max-w-2xl mx-auto mb-10 sm:mb-14"
         >
-          <motion.span 
+          <motion.span
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4"
             initial={{ opacity: 0, y: -20, scale: 0.8 }}
             animate={isHeaderInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: -20, scale: 0.8 }}
@@ -220,7 +235,7 @@ export const GallerySection = () => {
             </span>
           </h2>
 
-          <motion.p 
+          <motion.p
             className="text-gray-500 text-base sm:text-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
@@ -239,7 +254,7 @@ export const GallerySection = () => {
         </motion.div>
 
         {/* Category Filters */}
-        <motion.div 
+        <motion.div
           className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-10"
           initial={{ opacity: 0, y: 20 }}
           animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
@@ -249,11 +264,10 @@ export const GallerySection = () => {
             <motion.button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-sm font-semibold transition-all ${
-                activeCategory === cat.id
+              className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-sm font-semibold transition-all ${activeCategory === cat.id
                   ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/30'
                   : 'bg-white text-gray-600 border border-gray-200 hover:border-primary/30 hover:text-primary'
-              }`}
+                }`}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={isHeaderInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
               transition={{ delay: 0.6 + idx * 0.1 }}
@@ -266,7 +280,7 @@ export const GallerySection = () => {
         </motion.div>
 
         {/* Gallery Grid */}
-        <motion.div 
+        <motion.div
           className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
           layout
         >
@@ -279,15 +293,13 @@ export const GallerySection = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
-                className={`relative group cursor-pointer overflow-hidden rounded-xl sm:rounded-2xl ${
-                  index === 0 || index === 5 ? 'md:col-span-2 md:row-span-2' : ''
-                }`}
+                className={`relative group cursor-pointer overflow-hidden rounded-xl sm:rounded-2xl ${index === 0 || index === 5 ? 'md:col-span-2 md:row-span-2' : ''
+                  }`}
                 onClick={() => setSelectedImage(image.id)}
                 whileHover={{ scale: 1.02 }}
               >
-                <div className={`relative overflow-hidden ${
-                  index === 0 || index === 5 ? 'h-64 sm:h-80 md:h-full' : 'h-40 sm:h-48'
-                }`}>
+                <div className={`relative overflow-hidden ${index === 0 || index === 5 ? 'h-64 sm:h-80 md:h-full' : 'h-40 sm:h-48'
+                  }`}>
                   <motion.img
                     src={image.src}
                     alt={image.alt}
@@ -297,14 +309,14 @@ export const GallerySection = () => {
                     whileHover={{ scale: 1.1 }}
                     transition={{ duration: 0.6 }}
                   />
-                  
+
                   {/* Overlay */}
-                  <motion.div 
+                  <motion.div
                     className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   />
-                  
+
                   {/* Content */}
-                  <motion.div 
+                  <motion.div
                     className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
                   >
                     <h4 className="font-bold text-sm sm:text-base mb-1">{image.title}</h4>
@@ -312,7 +324,7 @@ export const GallerySection = () => {
                   </motion.div>
 
                   {/* View Icon */}
-                  <motion.div 
+                  <motion.div
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-50 group-hover:scale-100"
                   >
                     <Sparkles className="w-6 h-6 text-white" />
@@ -331,7 +343,7 @@ export const GallerySection = () => {
         </motion.div>
 
         {/* Stats Row */}
-        <motion.div 
+        <motion.div
           className="mt-12 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
@@ -351,14 +363,14 @@ export const GallerySection = () => {
               transition={{ delay: 0.9 + idx * 0.1, type: "spring" }}
               whileHover={{ scale: 1.05, y: -5 }}
             >
-              <motion.div 
+              <motion.div
                 className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 flex items-center justify-center"
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.5 }}
               >
                 <stat.icon className="w-6 h-6 text-primary" />
               </motion.div>
-              <motion.p 
+              <motion.p
                 className="text-2xl sm:text-3xl font-bold text-gray-900"
                 initial={{ scale: 0 }}
                 animate={isInView ? { scale: 1 } : { scale: 0 }}
@@ -424,7 +436,7 @@ export const GallerySection = () => {
                 alt={selectedImageData.alt}
                 className="max-w-full max-h-[75vh] object-contain rounded-2xl"
               />
-              <motion.div 
+              <motion.div
                 className="mt-4 text-center text-white"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

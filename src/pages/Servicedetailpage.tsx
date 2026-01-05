@@ -12,11 +12,45 @@ import {
   ChevronDown,
   BadgePercent,
   Users,
-  Calendar
+  Calendar,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { services } from '../utils/data';
 
-// Extended service data with more details
+// Import local assets - Main images
+import PeriodicServiceImg from '../assets/PeriodicService.jpg';
+import PeriodicService1Img from '../assets/PeriodicService1.jpg';
+import PeriodicService2Img from '../assets/PeriodicService2.jpg';
+
+import ACServiceImg from '../assets/ACService.jpg';
+import ACService1Img from '../assets/ACService1.jpg';
+import ACService2Img from '../assets/ACService2.jpg';
+
+import DentingImg from '../assets/Denting.jpg';
+import Denting1Img from '../assets/Denting1.jpg';
+import Denting2Img from '../assets/Denting2.jpg';
+
+import CarInspectionImg from '../assets/CarInspection.jpg';
+import CarInspection1Img from '../assets/CarInspection1.jpg';
+import CarInspection2Img from '../assets/CarInspection2.jpg';
+
+import WheelCareImg from '../assets/Wheelcare.jpg';
+import WheelCare1Img from '../assets/WheelCare1.jpg';
+import WheelCare2Img from '../assets/WheelCare2.jpg';
+
+import BatteryServiceImg from '../assets/BatteryService.jpg';
+import BatteryService1Img from '../assets/BatteryService1.jpg';
+import BatteryService2Img from '../assets/BatteryService2.jpg';
+
+
+import ClutchBody1Img from '../assets/ClutchBody1.jpg';
+
+import InsuranceClaimsImg from '../assets/InsuranceClaims.jpg';
+import InsuranceClaims1Img from '../assets/InsuranceClaims1.jpg';
+import InsuranceClaims2Img from '../assets/InsuranceClaims2.jpg';
+
+// Extended service data with SERVICE-SPECIFIC process steps
 const serviceExtendedData: Record<string, {
   duration: string;
   warranty: string;
@@ -44,9 +78,10 @@ const serviceExtendedData: Record<string, {
     process: [
       { step: 1, title: 'Book Online', description: 'Select your car model and preferred time slot' },
       { step: 2, title: 'Free Pickup', description: 'We collect your car from your doorstep' },
-      { step: 3, title: 'Service', description: 'Expert mechanics service your car with genuine parts' },
-      { step: 4, title: 'Quality Check', description: 'Supervisor inspects all work done' },
-      { step: 5, title: 'Delivery', description: 'Car delivered back, sanitized and sparkling clean' }
+      { step: 3, title: 'Multi-Point Check', description: '50+ point inspection of your vehicle' },
+      { step: 4, title: 'Oil & Filter Change', description: 'Replace engine oil and filters' },
+      { step: 5, title: 'Quality Check', description: 'Supervisor inspects all work done' },
+      { step: 6, title: 'Delivery', description: 'Car delivered sanitized and sparkling clean' }
     ],
     faqs: [
       { question: 'How often should I get periodic service?', answer: 'Every 10,000 km or 6 months, whichever comes first.' },
@@ -80,7 +115,159 @@ const serviceExtendedData: Record<string, {
       { question: 'How long does AC gas last?', answer: 'Typically 2-3 years, but depends on usage and leaks.' }
     ]
   },
-  // Add more services as needed...
+  'Denting & Painting': {
+    duration: '2-5 days',
+    warranty: '1 year',
+    includes: [
+      'Dent removal',
+      'Surface preparation',
+      'Primer application',
+      'Base coat painting',
+      'Clear coat finish',
+      'Color matching',
+      'Buffing and polishing',
+      'Quality inspection'
+    ],
+    process: [
+      { step: 1, title: 'Damage Assessment', description: 'Evaluate dents and scratches thoroughly' },
+      { step: 2, title: 'Dent Removal', description: 'Professional dent pulling and smoothing' },
+      { step: 3, title: 'Surface Prep', description: 'Sand, clean and prepare for painting' },
+      { step: 4, title: 'Color Matching', description: 'Computer-aided exact color matching' },
+      { step: 5, title: 'Paint Application', description: 'Apply primer, base coat and clear coat' },
+      { step: 6, title: 'Polish & Finish', description: 'Buff and polish for showroom finish' }
+    ],
+    faqs: [
+      { question: 'How long does denting and painting take?', answer: 'Minor dents take 1-2 days, major repairs may take 3-5 days.' },
+      { question: 'Do you match the original color?', answer: 'Yes, we use computerized color matching for perfect results.' }
+    ]
+  },
+  'Car Inspection': {
+    duration: '1-2 hours',
+    warranty: 'Report validity 30 days',
+    includes: [
+      'Engine diagnostics',
+      'Brake system check',
+      'Suspension inspection',
+      'Electrical system test',
+      'Fluid levels check',
+      'Tire condition assessment',
+      'Body inspection',
+      'Road test',
+      'Detailed report'
+    ],
+    process: [
+      { step: 1, title: 'Visual Inspection', description: 'Check exterior and interior condition' },
+      { step: 2, title: 'Engine Check', description: 'Inspect engine components and fluids' },
+      { step: 3, title: 'OBD Scan', description: 'Run diagnostic scan for error codes' },
+      { step: 4, title: 'Underbody Check', description: 'Inspect suspension, brakes and chassis' },
+      { step: 5, title: 'Road Test', description: 'Test drive to check performance' },
+      { step: 6, title: 'Report Generation', description: 'Detailed inspection report with photos' }
+    ],
+    faqs: [
+      { question: 'When should I get my car inspected?', answer: 'Before buying a used car or annually for maintenance.' },
+      { question: 'What does the inspection report include?', answer: 'Complete assessment of all systems with photos and recommendations.' }
+    ]
+  },
+  'Wheel Care': {
+    duration: '1-2 hours',
+    warranty: '3 months',
+    includes: [
+      'Wheel alignment',
+      'Wheel balancing',
+      'Tire rotation',
+      'Tire pressure check',
+      'Tread depth measurement',
+      'Rim inspection',
+      'Valve replacement',
+      'Nitrogen filling'
+    ],
+    process: [
+      { step: 1, title: 'Initial Check', description: 'Inspect tire condition and wear pattern' },
+      { step: 2, title: 'Wheel Removal', description: 'Remove wheels for detailed inspection' },
+      { step: 3, title: 'Alignment Check', description: 'Measure camber, caster and toe angles' },
+      { step: 4, title: 'Precision Alignment', description: 'Adjust to manufacturer specifications' },
+      { step: 5, title: 'Wheel Balancing', description: 'Computer-aided dynamic balancing' },
+      { step: 6, title: 'Road Test', description: 'Verify smooth handling and steering' }
+    ],
+    faqs: [
+      { question: 'How often should I get wheel alignment?', answer: 'Every 10,000 km or when you notice uneven tire wear.' },
+      { question: 'What are signs of wheel imbalance?', answer: 'Vibration in steering wheel, especially at high speeds.' }
+    ]
+  },
+  'Battery Service': {
+    duration: '30 mins - 1 hour',
+    warranty: 'Up to 60 months (battery dependent)',
+    includes: [
+      'Battery health test',
+      'Terminal cleaning',
+      'Voltage check',
+      'Charging system test',
+      'Battery replacement',
+      'Jump start service',
+      'Disposal of old battery'
+    ],
+    process: [
+      { step: 1, title: 'Battery Testing', description: 'Check battery health and cold cranking amps' },
+      { step: 2, title: 'Voltage Check', description: 'Measure voltage under load and rest' },
+      { step: 3, title: 'Terminal Cleaning', description: 'Clean corrosion from terminals' },
+      { step: 4, title: 'Alternator Test', description: 'Verify charging system output' },
+      { step: 5, title: 'Replacement', description: 'Install new battery if required' }
+    ],
+    faqs: [
+      { question: 'How long does a car battery last?', answer: 'Typically 3-5 years depending on usage and climate.' },
+      { question: 'How do I know if my battery needs replacement?', answer: 'Slow cranking, dim lights, or battery warning light are common signs.' }
+    ]
+  },
+  'Clutch & Body': {
+    duration: '4-8 hours',
+    warranty: '6 months / 10,000 km',
+    includes: [
+      'Clutch plate replacement',
+      'Pressure plate inspection',
+      'Release bearing check',
+      'Flywheel inspection',
+      'Clutch cable adjustment',
+      'Gear shifting test',
+      'Road test'
+    ],
+    process: [
+      { step: 1, title: 'Symptom Analysis', description: 'Diagnose clutch slipping or hard shifting' },
+      { step: 2, title: 'Gearbox Removal', description: 'Carefully remove transmission assembly' },
+      { step: 3, title: 'Component Inspection', description: 'Check clutch plate, pressure plate, bearing' },
+      { step: 4, title: 'Parts Replacement', description: 'Install new clutch kit components' },
+      { step: 5, title: 'Reassembly', description: 'Reinstall gearbox with proper alignment' },
+      { step: 6, title: 'Road Test', description: 'Test smooth engagement and gear shifts' }
+    ],
+    faqs: [
+      { question: 'How do I know if my clutch needs replacement?', answer: 'Slipping clutch, difficulty shifting, or burning smell are common signs.' },
+      { question: 'How long does clutch replacement take?', answer: 'Typically 4-8 hours depending on the vehicle model.' }
+    ]
+  },
+  'Insurance Claims': {
+    duration: 'Varies',
+    warranty: 'As per insurance policy',
+    includes: [
+      'Claim documentation',
+      'Survey coordination',
+      'Repair estimation',
+      'Insurance liaison',
+      'Cashless facility',
+      'Quality repairs',
+      'Final inspection'
+    ],
+    process: [
+      { step: 1, title: 'Claim Registration', description: 'Register claim with insurance company' },
+      { step: 2, title: 'Documentation', description: 'Collect FIR, license, RC and photos' },
+      { step: 3, title: 'Survey', description: 'Coordinate with insurance surveyor' },
+      { step: 4, title: 'Approval', description: 'Get repair estimate sanctioned' },
+      { step: 5, title: 'Repair Work', description: 'Complete repairs as per approval' },
+      { step: 6, title: 'Settlement', description: 'Cashless settlement or reimbursement' }
+    ],
+    faqs: [
+      { question: 'Do you offer cashless claims?', answer: 'Yes, we are empaneled with all major insurance companies.' },
+      { question: 'How long does the claim process take?', answer: 'Typically 3-7 days for approval, repairs depend on damage extent.' }
+    ]
+  }
 };
 
 // Default data for services without extended info
@@ -100,19 +287,17 @@ const defaultExtendedData = {
   ]
 };
 
+// Service images mapping with multiple images per service
 const serviceImages: Record<string, string[]> = {
-  'Periodic Service': [
-    'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&q=80',
-    'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80',
-    'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=800&q=80'
-  ],
-  'AC Service & Repair': [
-    'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=800&q=80',
-    'https://images.unsplash.com/photo-1635273051427-7c2a37a2c8f9?w=800&q=80'
-  ],
-  'default': [
-    'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=800&q=80'
-  ]
+  'Periodic Service': [PeriodicServiceImg, PeriodicService1Img, PeriodicService2Img],
+  'AC Service & Repair': [ACServiceImg, ACService1Img, ACService2Img],
+  'Denting & Painting': [DentingImg, Denting1Img, Denting2Img],
+  'Car Inspection': [CarInspectionImg, CarInspection1Img, CarInspection2Img],
+  'Wheel Care': [WheelCareImg, WheelCare1Img, WheelCare2Img],
+  'Battery Service': [BatteryServiceImg, BatteryService1Img, BatteryService2Img],
+  'Clutch & Body': [ ClutchBody1Img],
+  'Insurance Claims': [InsuranceClaimsImg, InsuranceClaims1Img, InsuranceClaims2Img],
+  'default': [PeriodicServiceImg, PeriodicService1Img, PeriodicService2Img]
 };
 
 export const ServiceDetailPage = () => {
@@ -142,6 +327,22 @@ export const ServiceDetailPage = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [serviceSlug]);
+
+  // Auto-advance gallery
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveImage((prev) => (prev + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  const nextImage = () => {
+    setActiveImage((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setActiveImage((prev) => (prev - 1 + images.length) % images.length);
+  };
 
   if (!service) {
     return (
@@ -188,44 +389,75 @@ export const ServiceDetailPage = () => {
               transition={{ duration: 0.5 }}
             >
               {/* Main Image */}
-              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4 aspect-[4/3]">
+              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4 aspect-[4/3] group">
                 <motion.img 
                   key={activeImage}
                   src={images[activeImage]}
                   alt={service.title}
                   className="w-full h-full object-cover"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 
-                {/* Discount Badge */}
-                {service.originalPrice && service.price && (
-                  <div className="absolute top-4 right-4">
-                    <span className="px-4 py-2 bg-green-500 text-white font-bold rounded-full flex items-center gap-2">
-                      <BadgePercent className="w-4 h-4" />
-                      {Math.round(((service.originalPrice - service.price) / service.originalPrice) * 100)}% OFF
-                    </span>
-                  </div>
-                )}
+                {/* Navigation Arrows */}
+                <button
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-gray-700"
+                >
+                  <ChevronLeft className="w-5 h-5 text-foreground" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-gray-700"
+                >
+                  <ChevronRight className="w-5 h-5 text-foreground" />
+                </button>
+
+                {/* Image Counter */}
+                <div className="absolute bottom-4 right-4 px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-full text-white text-sm">
+                  {activeImage + 1} / {images.length}
+                </div>
+
+                {/* Badges */}
+                <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                  <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md text-white text-xs rounded-full flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    {extendedData.duration}
+                  </span>
+                  <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md text-white text-xs rounded-full flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5" />
+                    {extendedData.warranty}
+                  </span>
+                </div>
               </div>
 
               {/* Thumbnail Gallery */}
-              {images.length > 1 && (
-                <div className="flex gap-3 overflow-x-auto pb-2">
-                  {images.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveImage(idx)}
-                      className={`flex-shrink-0 w-20 h-16 rounded-xl overflow-hidden border-2 transition-all ${
-                        activeImage === idx ? 'border-primary' : 'border-transparent opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={img} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {images.map((img, idx) => (
+                  <motion.button
+                    key={idx}
+                    onClick={() => setActiveImage(idx)}
+                    className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden transition-all ${
+                      activeImage === idx 
+                        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' 
+                        : 'opacity-60 hover:opacity-100'
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <img 
+                      src={img} 
+                      alt={`${service.title} ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    {activeImage === idx && (
+                      <div className="absolute inset-0 bg-primary/10" />
+                    )}
+                  </motion.button>
+                ))}
+              </div>
             </motion.div>
 
             {/* Service Info */}
@@ -234,41 +466,50 @@ export const ServiceDetailPage = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              {/* Badges */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-full flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  {extendedData.duration}
-                </span>
-                <span className="px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-semibold rounded-full flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5" />
-                  {extendedData.warranty} warranty
-                </span>
-                <span className="px-3 py-1.5 bg-secondary text-muted-foreground text-xs font-semibold rounded-full flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5" />
-                  500+ bookings
-                </span>
-              </div>
-
               {/* Title */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-4">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3">
                 {service.title}
               </h1>
 
-              {/* Rating */}
-              <div className="flex items-center gap-3 mb-4">
+              {/* Rating & Stats */}
+              <div className="flex flex-wrap items-center gap-4 mb-4">
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                    <Star 
+                      key={star} 
+                      className={`w-4 h-4 ${star <= 4 ? 'fill-yellow-400 text-yellow-400' : 'fill-yellow-400/50 text-yellow-400/50'}`} 
+                    />
                   ))}
                 </div>
                 <span className="text-sm text-muted-foreground">4.8 (2,340 reviews)</span>
+                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  5,000+ serviced
+                </span>
               </div>
 
               {/* Description */}
               <p className="text-muted-foreground text-base sm:text-lg leading-relaxed mb-6">
                 {service.description}
               </p>
+
+              {/* Quick Features */}
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-xl">
+                  <Clock className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Duration</p>
+                    <p className="text-sm font-semibold text-foreground">{extendedData.duration}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-secondary/50 rounded-xl">
+                  <Shield className="w-5 h-5 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Warranty</p>
+                    <p className="text-sm font-semibold text-foreground">{extendedData.warranty}</p>
+                  </div>
+                </div>
+              </div>
 
               {/* Price */}
               <div className="p-6 bg-secondary/50 rounded-2xl mb-6">
@@ -285,7 +526,8 @@ export const ServiceDetailPage = () => {
                     </span>
                   </div>
                   {service.originalPrice && service.price && (
-                    <span className="px-3 py-1 bg-green-500 text-white text-sm font-bold rounded-full">
+                    <span className="px-3 py-1 bg-green-500 text-white text-sm font-bold rounded-full flex items-center gap-1">
+                      <BadgePercent className="w-4 h-4" />
                       Save ₹{(service.originalPrice - service.price).toLocaleString()}
                     </span>
                   )}
@@ -367,37 +609,219 @@ export const ServiceDetailPage = () => {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-12 sm:py-16">
+      {/* How It Works - Premium Redesigned UI */}
+      <section className="py-16 sm:py-20 bg-white dark:bg-gray-950">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-8">
-            How It Works
-          </h2>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3">
+              How It Works
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Our streamlined process ensures quality service for your {service.title.toLowerCase()}
+            </p>
+          </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {extendedData.process.map((step, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+          {/* Process Steps - Desktop */}
+          <div className="hidden lg:block">
+            {/* Timeline Container */}
+            <div className="relative">
+              {/* Horizontal Line */}
+              <div className="absolute top-7 left-[8%] right-[8%] h-0.5 bg-gray-200 dark:bg-gray-800" />
+              
+              {/* Progress Line (animated) */}
+              <motion.div 
+                className="absolute top-7 left-[8%] h-0.5 bg-primary"
+                initial={{ width: 0 }}
+                whileInView={{ width: '84%' }}
                 viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="relative"
+                transition={{ duration: 1.5, ease: "easeOut" }}
+              />
+
+              {/* Steps Grid */}
+              <div 
+                className="grid gap-4"
+                style={{ 
+                  gridTemplateColumns: `repeat(${Math.min(extendedData.process.length, 6)}, 1fr)` 
+                }}
               >
-                {/* Connector Line */}
-                {idx < extendedData.process.length - 1 && (
-                  <div className="hidden lg:block absolute top-6 left-1/2 w-full h-0.5 bg-border" />
-                )}
-                
-                <div className="relative z-10 text-center">
-                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
+                {extendedData.process.slice(0, 6).map((step, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.15 }}
+                    className="relative flex flex-col items-center text-center"
+                  >
+                    {/* Step Number Circle */}
+                    <motion.div
+                      className="relative z-10 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold shadow-lg shadow-primary/25"
+                      initial={{ scale: 0 }}
+                      whileInView={{ scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.15 + 0.2, type: "spring", stiffness: 200 }}
+                    >
+                      {step.step}
+                    </motion.div>
+
+                    {/* Content */}
+                    <div className="mt-6">
+                      <h3 className="text-base font-semibold text-foreground mb-2">
+                        {step.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {step.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Second Row if more than 6 steps */}
+            {extendedData.process.length > 6 && (
+              <div className="relative mt-16">
+                <div className="absolute top-7 left-[8%] right-[8%] h-0.5 bg-gray-200 dark:bg-gray-800" />
+                <motion.div 
+                  className="absolute top-7 left-[8%] h-0.5 bg-primary"
+                  initial={{ width: 0 }}
+                  whileInView={{ width: '84%' }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
+                />
+                <div 
+                  className="grid gap-4"
+                  style={{ 
+                    gridTemplateColumns: `repeat(${extendedData.process.length - 6}, 1fr)` 
+                  }}
+                >
+                  {extendedData.process.slice(6).map((step, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.15 + 0.5 }}
+                      className="relative flex flex-col items-center text-center"
+                    >
+                      <motion.div
+                        className="relative z-10 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold shadow-lg shadow-primary/25"
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: idx * 0.15 + 0.7, type: "spring", stiffness: 200 }}
+                      >
+                        {step.step}
+                      </motion.div>
+                      <div className="mt-6">
+                        <h3 className="text-base font-semibold text-foreground mb-2">
+                          {step.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {step.description}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Process Steps - Tablet */}
+          <div className="hidden sm:block lg:hidden">
+            <div className="grid sm:grid-cols-2 gap-6">
+              {extendedData.process.map((step, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: idx % 2 === 0 ? -20 : 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="relative flex gap-4 p-5 bg-card rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all"
+                >
+                  {/* Step Number */}
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
                     {step.step}
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">{step.description}</p>
-                </div>
-              </motion.div>
-            ))}
+                  
+                  {/* Content */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground mb-1">
+                      {step.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {step.description}
+                    </p>
+                  </div>
+
+                  {/* Connector Arrow (for even items) */}
+                  {idx % 2 === 0 && idx < extendedData.process.length - 1 && (
+                    <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 text-primary">
+                      <ChevronRight className="w-6 h-6" />
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Process Steps - Mobile */}
+          <div className="sm:hidden">
+            <div className="relative">
+              {/* Vertical Line */}
+              <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-800" />
+              
+              {/* Animated Progress Line */}
+              <motion.div 
+                className="absolute left-6 top-0 w-0.5 bg-primary"
+                initial={{ height: 0 }}
+                whileInView={{ height: '100%' }}
+                viewport={{ once: true }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+              />
+              
+              <div className="space-y-6">
+                {extendedData.process.map((step, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="relative flex gap-4 pl-2"
+                  >
+                    {/* Step Number */}
+                    <motion.div
+                      className="relative z-10 flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold shadow-md"
+                      initial={{ scale: 0 }}
+                      whileInView={{ scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.1 + 0.2, type: "spring" }}
+                    >
+                      {step.step}
+                    </motion.div>
+                    
+                    {/* Content Card */}
+                    <div className="flex-1 pb-6">
+                      <div className="p-4 bg-card rounded-xl border border-border">
+                        <h3 className="text-base font-semibold text-foreground mb-1">
+                          {step.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -453,6 +877,16 @@ export const ServiceDetailPage = () => {
         </div>
       </section>
 
+      {/* Custom scrollbar hide */}
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 };

@@ -1,8 +1,18 @@
-import { useRef } from 'react';
+import { useRef, memo } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { ArrowUpRight, Check, Clock, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Service } from '../../types';
+
+// Import local assets
+import PeriodicServiceImg from '../../assets/PeriodicService.jpg';
+import ACServiceImg from '../../assets/ACService.jpg';
+import DentingImg from '../../assets/Denting.jpg';
+import CarInspectionImg from '../../assets/CarInspection.jpg';
+import WheelCareImg from '../../assets/Wheelcare.jpg';
+import BatteryServiceImg from '../../assets/BatteryService.jpg';
+import ClutchBody1Img from '../../assets/ClutchBody1.jpg';
+import InsuranceClaimsImg from '../../assets/InsuranceClaims.jpg';
 
 interface ServiceCardProps {
   service: Service;
@@ -10,20 +20,33 @@ interface ServiceCardProps {
 }
 
 const serviceImages: Record<string, string> = {
-  'Periodic Service': 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=400&h=300&fit=crop',
-  'AC Service & Repair': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&h=300&fit=crop',
-  'Denting & Painting': 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?w=400&h=300&fit=crop',
-  'Car Inspection': 'https://images.unsplash.com/photo-1632823471565-1ecdf5c6da20?w=400&h=300&fit=crop',
-  'Wheel Care': 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=400&h=300&fit=crop',
-  'Battery Service': 'https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?w=400&h=300&fit=crop',
-  'Clutch & Body': 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=300&fit=crop',
-  'Insurance Claims': 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&h=300&fit=crop',
-  'default': 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=400&h=300&fit=crop'
+  'Periodic Service': PeriodicServiceImg,
+  'AC Service & Repair': ACServiceImg,
+  'Denting & Painting': DentingImg,
+  'Car Inspection': CarInspectionImg,
+  'Wheel Care': WheelCareImg,
+  'Battery Service': BatteryServiceImg,
+  'Clutch & Body': ClutchBody1Img,
+  'Insurance Claims': InsuranceClaimsImg,
+  'default': PeriodicServiceImg
 };
 
-export const ServiceCard = ({ service, index }: ServiceCardProps) => {
+// Memoized feature item to prevent re-renders
+const FeatureItem = memo(({ feature }: { feature: string }) => (
+  <li className="flex items-center gap-2 text-xs sm:text-sm text-foreground">
+    <div className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+      <Check size={10} className="text-green-600 dark:text-green-400" strokeWidth={3} />
+    </div>
+    <span className="line-clamp-1">{feature}</span>
+  </li>
+));
+
+FeatureItem.displayName = 'FeatureItem';
+
+export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
   const cardRef = useRef(null);
-  const isInView = useInView(cardRef, { once: true, margin: "-80px" });
+  // Use amount instead of margin for more reliable triggering
+  const isInView = useInView(cardRef, { once: true, amount: 0.15 });
   const navigate = useNavigate();
 
   const imageUrl = serviceImages[service.title] || serviceImages['default'];
@@ -37,33 +60,52 @@ export const ServiceCard = ({ service, index }: ServiceCardProps) => {
 
   const handleBookNow = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Scroll to booking widget or open booking modal
     const bookingWidget = document.getElementById('booking-widget');
     if (bookingWidget) {
       bookingWidget.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
+  // Pre-calculate discount
+  const discountPercent = service.originalPrice && service.price 
+    ? Math.round(((service.originalPrice - service.price) / service.originalPrice) * 100)
+    : null;
+
   return (
     <motion.div
       ref={cardRef}
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration: 0.5, delay: index * 0.08 }}
+      transition={{ 
+        duration: 0.5, 
+        delay: Math.min(index * 0.08, 0.4), // Cap max delay
+        ease: [0.25, 0.1, 0.25, 1] // Custom easing for smoother feel
+      }}
       whileHover={{ y: -8 }}
       onClick={handleCardClick}
-      className="group relative bg-card rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 border border-border"
+      className="group relative bg-card rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl border border-border"
+      style={{ 
+        willChange: isInView ? 'auto' : 'transform, opacity',
+        contain: 'layout style paint'
+      }}
     >
       {/* Image Section */}
       <div className="relative h-40 sm:h-48 overflow-hidden">
-        <motion.img 
-          src={imageUrl}
-          alt={service.title}
-          className="w-full h-full object-cover"
+        <motion.div
+          className="w-full h-full"
           whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.4 }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
+          <img 
+            src={imageUrl}
+            alt={service.title}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover"
+            style={{ willChange: 'transform' }}
+          />
+        </motion.div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
         
         {/* Quick Info Badges */}
         <div className="absolute top-3 left-3 flex gap-2">
@@ -74,15 +116,15 @@ export const ServiceCard = ({ service, index }: ServiceCardProps) => {
         </div>
         
         {/* Discount Badge */}
-        {service.originalPrice && service.price && (
+        {discountPercent && (
           <motion.div 
             className="absolute top-3 right-3"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
-            transition={{ delay: index * 0.08 + 0.2 }}
+            transition={{ delay: Math.min(index * 0.08 + 0.2, 0.6), type: "spring", stiffness: 200 }}
           >
             <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
-              {Math.round(((service.originalPrice - service.price) / service.originalPrice) * 100)}% OFF
+              {discountPercent}% OFF
             </span>
           </motion.div>
         )}
@@ -108,15 +150,7 @@ export const ServiceCard = ({ service, index }: ServiceCardProps) => {
         {/* Features */}
         <ul className="space-y-1.5 mb-4">
           {service.features.slice(0, 3).map((feature, i) => (
-            <li 
-              key={i} 
-              className="flex items-center gap-2 text-xs sm:text-sm text-foreground"
-            >
-              <div className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                <Check size={10} className="text-green-600 dark:text-green-400" strokeWidth={3} />
-              </div>
-              <span className="line-clamp-1">{feature}</span>
-            </li>
+            <FeatureItem key={i} feature={feature} />
           ))}
         </ul>
 
@@ -139,9 +173,10 @@ export const ServiceCard = ({ service, index }: ServiceCardProps) => {
           {/* Book Now Button */}
           <motion.button 
             onClick={handleBookNow}
-            className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold flex items-center gap-1.5 hover:opacity-90 transition-all"
+            className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold flex items-center gap-1.5 hover:opacity-90"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             Book Now
             <ArrowUpRight size={14} />
@@ -159,4 +194,6 @@ export const ServiceCard = ({ service, index }: ServiceCardProps) => {
       </div>
     </motion.div>
   );
-};
+});
+
+ServiceCard.displayName = 'ServiceCard';

@@ -3,26 +3,32 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 
 // Enhanced data with CAR IMAGES instead of user photos
+import CretaAfterImg from '../../assets/hyundai-creta-denting-painting-after.png';
+import SwiftDentingImg from '../../assets/Denting1.jpg';
+import CityDetailingImg from '../../assets/honda-city-full-car-detailing-after.png';
+import NexonServiceImg from '../../assets/PeriodicService2.jpg';
+import BgImage from '../../assets/CarInspection.jpg';
+
 const testimonials = [
   {
     id: 1,
     name: "Rajesh Kumar",
     role: "Business Owner",
     location: "Coimbatore",
-    image: "https://images.unsplash.com/photo-1609521263047-28b99b30e646?q=80&w=1000&auto=format&fit=crop",
+    image: CretaAfterImg,
     carModel: "Hyundai Creta",
-    service: "General Service",
+    service: "Denting & Painting",
     rating: 5,
-    content: "I was skeptical about online car service, but they proved me wrong. The free pickup and drop was a lifesaver. My Creta feels brand new, and the bill was 30% less than the showroom quote."
+    content: "My Creta had a bad dent on the rear door. Carage restored it to factory finish! The color matching is perfect and the paint quality is amazing. Highly recommended."
   },
   {
     id: 2,
     name: "Priya Sundaram",
     role: "Software Engineer",
     location: "Chennai",
-    image: "https://images.unsplash.com/photo-1542362567-b07e54358753?q=80&w=1000&auto=format&fit=crop",
+    image: SwiftDentingImg,
     carModel: "Maruti Swift",
-    service: "Denting & Painting",
+    service: "Body Repairs",
     rating: 5,
     content: "Had a nasty scratch on the bumper. Their paint matching technology is incredible. You literally cannot tell there was a dent. Highly recommended for body work!"
   },
@@ -31,18 +37,18 @@ const testimonials = [
     name: "Arun Vijay",
     role: "Doctor",
     location: "Bangalore",
-    image: "https://images.unsplash.com/photo-1617469767053-d3b523a0b982?q=80&w=1000&auto=format&fit=crop",
+    image: CityDetailingImg,
     carModel: "Honda City",
-    service: "AC Repair",
-    rating: 4,
-    content: "The AC cooling coil replacement was done professionally. They sent me photos of the old part vs the new part on WhatsApp which built a lot of trust."
+    service: "Premium Detailing",
+    rating: 5,
+    content: "Opted for their full car detailing package. The results are stunning - the interior smells fresh and the exterior shine is better than when I bought it."
   },
   {
     id: 4,
     name: "Sneha Reddy",
     role: "Architect",
     location: "Hyderabad",
-    image: "https://images.unsplash.com/photo-1615906655593-ad0386982a0f?q=80&w=1000&auto=format&fit=crop",
+    image: NexonServiceImg,
     carModel: "Tata Nexon",
     service: "Periodic Service",
     rating: 5,
@@ -102,9 +108,9 @@ export const Testimonials = () => {
     <section id="testimonials" className="py-24 relative overflow-hidden bg-gray-900">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
-        <img 
-          src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=2000&auto=format&fit=crop" 
-          alt="Happy Driver Background" 
+        <img
+          src={BgImage}
+          alt="Happy Driver Background"
           className="w-full h-full object-cover opacity-20"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900/90 to-gray-900" />
@@ -112,7 +118,7 @@ export const Testimonials = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -130,7 +136,7 @@ export const Testimonials = () => {
               Trusted by 50,000+ Owners
             </span>
           </div>
-          
+
           <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
             Loved by drivers,
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
@@ -152,35 +158,35 @@ export const Testimonials = () => {
               className="w-full"
             >
               <div className="bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row">
-                
+
                 {/* Left: Image Side (Desktop) */}
                 <div className="md:w-2/5 relative h-64 md:h-auto overflow-hidden bg-gray-900">
-                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-black/20 z-10 mix-blend-overlay" />
-                   <img 
-                    src={testimonials[currentIndex].image} 
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-black/20 z-10 mix-blend-overlay" />
+                  <img
+                    src={testimonials[currentIndex].image}
                     alt={`${testimonials[currentIndex].carModel} - ${testimonials[currentIndex].name}`}
                     className="w-full h-full object-cover transform scale-105 transition-transform duration-1000 hover:scale-110"
-                   />
-                   {/* Image Overlay */}
-                   <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 text-white">
-                     <div className="inline-block px-3 py-1 bg-primary rounded-full text-xs font-bold mb-2 shadow-sm text-primary-foreground">
-                        {testimonials[currentIndex].carModel}
-                     </div>
-                     <p className="text-lg font-bold">{testimonials[currentIndex].name}</p>
-                     <p className="text-sm text-gray-300 opacity-80">{testimonials[currentIndex].location}</p>
-                   </div>
+                  />
+                  {/* Image Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 text-white">
+                    <div className="inline-block px-3 py-1 bg-primary rounded-full text-xs font-bold mb-2 shadow-sm text-primary-foreground">
+                      {testimonials[currentIndex].carModel}
+                    </div>
+                    <p className="text-lg font-bold">{testimonials[currentIndex].name}</p>
+                    <p className="text-sm text-gray-300 opacity-80">{testimonials[currentIndex].location}</p>
+                  </div>
                 </div>
 
                 {/* Right: Content Side */}
                 <div className="md:w-3/5 p-8 md:p-12 flex flex-col justify-center relative bg-white">
                   <Quote className="absolute top-8 right-8 text-primary/10 w-20 h-20 -rotate-12" />
-                  
+
                   <div className="relative z-10">
                     <div className="flex items-center gap-1 mb-6">
                       {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          className={`w-5 h-5 ${i < testimonials[currentIndex].rating ? 'text-primary fill-primary' : 'text-gray-300'}`} 
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 ${i < testimonials[currentIndex].rating ? 'text-primary fill-primary' : 'text-gray-300'}`}
                         />
                       ))}
                     </div>
@@ -206,13 +212,13 @@ export const Testimonials = () => {
           </AnimatePresence>
 
           {/* Navigation Buttons */}
-          <button 
+          <button
             onClick={prevSlide}
             className="absolute top-1/2 -left-4 md:-left-12 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-gray-900 transition-all z-20"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <button 
+          <button
             onClick={nextSlide}
             className="absolute top-1/2 -right-4 md:-right-12 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-gray-900 transition-all z-20"
           >
@@ -229,9 +235,8 @@ export const Testimonials = () => {
                 setDirection(i > currentIndex ? 1 : -1);
                 setCurrentIndex(i);
               }}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === currentIndex ? 'w-8 bg-primary' : 'w-2 bg-gray-700 hover:bg-gray-600'
-              }`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-8 bg-primary' : 'w-2 bg-gray-700 hover:bg-gray-600'
+                }`}
             />
           ))}
         </div>

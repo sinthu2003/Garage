@@ -2,36 +2,44 @@ import { motion } from 'framer-motion';
 import { Check, ArrowRight, TrendingDown, BadgePercent } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+// Import local assets
+import CarInspectionImg from '../../assets/CarInspection.jpg';
+import GeneralServiceImg from '../../assets/PeriodicService.jpg';
+import ACServiceImg from '../../assets/ACService.jpg';
+import WheelAlignmentImg from '../../assets/WheelCare2.jpg';
+import BrakePadsImg from '../../assets/WheelCare1.jpg';
+import WorkshopFeatureImg from '../../assets/WeService.jpg';
+
 const pricingData = [
-  { 
-    service: 'Car Inspection', 
-    market: 800, 
-    ours: 499, 
-    image: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=80&h=80&fit=crop'
+  {
+    service: 'Car Inspection',
+    market: 800,
+    ours: 499,
+    image: CarInspectionImg
   },
-  { 
-    service: 'General Service', 
-    market: 4500, 
-    ours: 2999, 
-    image: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=80&h=80&fit=crop'
+  {
+    service: 'General Service',
+    market: 4500,
+    ours: 2999,
+    image: GeneralServiceImg
   },
-  { 
-    service: 'AC Gas Top-up', 
-    market: 2200, 
-    ours: 1499, 
-    image: 'https://images.unsplash.com/photo-1635273051427-7c2a37a2c8f9?w=80&h=80&fit=crop'
+  {
+    service: 'AC Gas Top-up',
+    market: 2200,
+    ours: 1499,
+    image: ACServiceImg
   },
-  { 
-    service: 'Wheel Alignment', 
-    market: 1200, 
-    ours: 699, 
-    image: 'https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=80&h=80&fit=crop'
+  {
+    service: 'Wheel Alignment',
+    market: 1200,
+    ours: 699,
+    image: WheelAlignmentImg
   },
-  { 
-    service: 'Brake Pads', 
-    market: 2500, 
-    ours: 1800, 
-    image: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=80&h=80&fit=crop'
+  {
+    service: 'Brake Pads',
+    market: 2500,
+    ours: 1800,
+    image: BrakePadsImg
   },
 ];
 
@@ -63,10 +71,10 @@ export const PricingTable = () => {
     <section id="pricing" className="py-12 sm:py-16 lg:py-24 bg-background relative overflow-hidden">
       {/* Background */}
       <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent hidden lg:block" />
-      
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-20 items-center">
-          
+
           {/* Left Content */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
@@ -78,7 +86,7 @@ export const PricingTable = () => {
               <TrendingDown className="w-3 h-3" />
               Save Up to 40%
             </span>
-            
+
             <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground tracking-tight mb-4 sm:mb-6">
               Transparent
               <br />
@@ -86,9 +94,9 @@ export const PricingTable = () => {
               <br />
               <span className="text-muted-foreground/50">No surprises.</span>
             </h2>
-            
+
             <p className="text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed mb-6 sm:mb-8">
-              We operate centrally to minimize overheads and pass the savings directly to you. 
+              We operate centrally to minimize overheads and pass the savings directly to you.
               Compare our prices with authorized service centers.
             </p>
 
@@ -100,8 +108,8 @@ export const PricingTable = () => {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              <img 
-                src="https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+              <img
+                src={WorkshopFeatureImg}
                 alt="Car Service Workshop"
                 className="w-full h-full object-cover"
               />
@@ -114,7 +122,7 @@ export const PricingTable = () => {
                 </div>
               </div>
             </motion.div>
-            
+
             {/* Key Features */}
             <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
               {[
@@ -122,7 +130,7 @@ export const PricingTable = () => {
                 'No hidden charges ever',
                 'Price match guarantee',
               ].map((item, idx) => (
-                <motion.div 
+                <motion.div
                   key={idx}
                   className="flex items-center gap-2 sm:gap-3"
                   initial={{ opacity: 0, x: -20 }}
@@ -137,8 +145,8 @@ export const PricingTable = () => {
                 </motion.div>
               ))}
             </div>
-            
-            <button 
+
+            <button
               onClick={handleBookNow}
               className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-foreground text-background font-semibold rounded-full hover:opacity-90 transition-all duration-300 hover:shadow-lg text-sm sm:text-base group"
             >
@@ -169,7 +177,7 @@ export const PricingTable = () => {
                 <div className="flex items-center gap-3 sm:gap-4">
                   {/* Service Image */}
                   <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl overflow-hidden flex-shrink-0">
-                    <img 
+                    <img
                       src={item.image}
                       alt={item.service}
                       className="w-full h-full object-cover"
@@ -183,7 +191,7 @@ export const PricingTable = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-2 sm:gap-4">
                   <span className="px-2 sm:px-3 py-1 sm:py-1.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] sm:text-xs font-bold rounded-full whitespace-nowrap">
                     {calculateSaving(item.market, item.ours)}% off
@@ -192,7 +200,7 @@ export const PricingTable = () => {
                 </div>
               </motion.div>
             ))}
-            
+
             {/* Total Savings Card */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -208,13 +216,13 @@ export const PricingTable = () => {
                   backgroundSize: '20px 20px'
                 }} />
               </div>
-              
+
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm opacity-70 mb-1">Average savings per year</p>
                   <p className="text-2xl sm:text-3xl lg:text-4xl font-bold">₹{((totalMarket - totalOurs) * 2).toLocaleString()}+</p>
                 </div>
-                <motion.div 
+                <motion.div
                   className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-primary/20 flex items-center justify-center"
                   animate={{ rotate: [0, 10, -10, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}

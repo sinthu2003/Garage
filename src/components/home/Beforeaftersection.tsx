@@ -3,14 +3,23 @@ import { motion, useInView } from 'framer-motion';
 import { ArrowRight, Sparkles, CheckCircle, Star } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+// Import local assets
+import CretaBefore from '../../assets/hyundai-creta-denting-painting-before.png';
+import CretaAfter from '../../assets/hyundai-creta-denting-painting-after.png';
+import CityBefore from '../../assets/honda-city-full-car-detailing-before.png';
+import CityAfter from '../../assets/honda-city-full-car-detailing-after.png';
+import FortunerBefore from '../../assets/toyota-fortuner-interior-deep-clean-before.png';
+import FortunerAfter from '../../assets/toyota-fortuner-interior-deep-clean-after.png';
+
 // Before/After transformations with realistic car service images
 const transformations = [
   {
     id: 1,
     title: 'Denting & Painting',
     car: 'Hyundai Creta',
-    before: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&q=80',
-    after: 'https://images.unsplash.com/photo-1609521263047-28b99b30e646?w=600&q=80',
+    // Before: Scratched/damaged car | After: Clean polished SUV
+    before: CretaBefore,
+    after: CretaAfter,
     description: 'Complete bumper repair and full body paint restoration with color matching',
     time: '2 Days',
     savings: '₹8,000'
@@ -19,8 +28,9 @@ const transformations = [
     id: 2,
     title: 'Full Car Detailing',
     car: 'Honda City',
-    before: 'https://images.unsplash.com/photo-1489824904134-891ab64532f1?w=600&q=80',
-    after: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80',
+    // Before: Dusty/dirty sedan | After: Shiny polished sedan
+    before: CityBefore,
+    after: CityAfter,
     description: 'Deep exterior polish, ceramic coating and paint protection applied',
     time: '1 Day',
     savings: '₹3,500'
@@ -29,8 +39,9 @@ const transformations = [
     id: 3,
     title: 'Interior Deep Clean',
     car: 'Toyota Fortuner',
-    before: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80',
-    after: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=600&q=80',
+    // Before: Dirty car interior | After: Clean premium interior
+    before: FortunerBefore,
+    after: FortunerAfter,
     description: 'Complete interior steam cleaning, leather conditioning and sanitization',
     time: '4 Hours',
     savings: '₹2,000'
@@ -59,29 +70,29 @@ const ComparisonSlider = ({ before, after, title }: { before: string; after: str
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="relative w-full h-64 sm:h-80 rounded-2xl overflow-hidden cursor-ew-resize select-none"
       onMouseMove={handleMouseMove}
       onTouchMove={handleTouchMove}
     >
       {/* After Image (Background) */}
-      <img 
-        src={after} 
+      <img
+        src={after}
         alt={`${title} After`}
         className="absolute inset-0 w-full h-full object-cover"
       />
-      
+
       {/* Before Image (Clipped) */}
-      <div 
+      <div
         className="absolute inset-0 overflow-hidden"
         style={{ width: `${sliderPosition}%` }}
       >
-        <img 
-          src={before} 
+        <img
+          src={before}
           alt={`${title} Before`}
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ 
+          style={{
             width: containerRef.current ? containerRef.current.offsetWidth : '100%',
             maxWidth: 'none'
           }}
@@ -89,7 +100,7 @@ const ComparisonSlider = ({ before, after, title }: { before: string; after: str
       </div>
 
       {/* Slider Line */}
-      <div 
+      <div
         className="absolute top-0 bottom-0 w-1 bg-white shadow-lg"
         style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
       >
@@ -119,7 +130,7 @@ export const BeforeAfterSection = () => {
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-50px" });
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
@@ -159,8 +170,8 @@ export const BeforeAfterSection = () => {
             key={i}
             className="absolute text-orange-200"
             style={{ left: `${10 + i * 10}%`, top: `${20 + (i % 4) * 20}%` }}
-            animate={isInView ? { 
-              y: [0, -15, 0], 
+            animate={isInView ? {
+              y: [0, -15, 0],
               rotate: [0, 180, 360],
               opacity: [0.3, 0.6, 0.3]
             } : {}}
@@ -173,11 +184,11 @@ export const BeforeAfterSection = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
         {/* Header */}
-        <motion.div 
+        <motion.div
           ref={headerRef}
           className="text-center max-w-2xl mx-auto mb-12 sm:mb-16"
         >
-          <motion.span 
+          <motion.span
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-600 text-xs font-semibold uppercase tracking-wider mb-4"
             initial={{ opacity: 0, y: -20, scale: 0.8 }}
             animate={isHeaderInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: -20, scale: 0.8 }}
@@ -214,7 +225,7 @@ export const BeforeAfterSection = () => {
             </span>
           </h2>
 
-          <motion.p 
+          <motion.p
             className="text-gray-500 text-base sm:text-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
@@ -240,14 +251,14 @@ export const BeforeAfterSection = () => {
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
             transition={{ duration: 0.6 }}
           >
-            <ComparisonSlider 
+            <ComparisonSlider
               before={transformations[activeIndex].before}
               after={transformations[activeIndex].after}
               title={transformations[activeIndex].title}
             />
 
             {/* Service Details */}
-            <motion.div 
+            <motion.div
               className="mt-6 p-6 bg-gray-50 rounded-2xl"
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
@@ -264,9 +275,9 @@ export const BeforeAfterSection = () => {
                   ))}
                 </div>
               </div>
-              
+
               <p className="text-gray-600 mb-4">{transformations[activeIndex].description}</p>
-              
+
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500" />
@@ -281,23 +292,22 @@ export const BeforeAfterSection = () => {
           </motion.div>
 
           {/* Right - Transformation Cards */}
-          <motion.div 
+          <motion.div
             className="space-y-4"
             initial={{ opacity: 0, x: 50 }}
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Transformation</h3>
-            
+
             {transformations.map((item, idx) => (
               <motion.div
                 key={item.id}
                 onClick={() => setActiveIndex(idx)}
-                className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all ${
-                  activeIndex === idx 
-                    ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/30' 
+                className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all ${activeIndex === idx
+                    ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/30'
                     : 'bg-gray-50 hover:bg-gray-100'
-                }`}
+                  }`}
                 initial={{ opacity: 0, x: 30 }}
                 animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
                 transition={{ delay: 0.4 + idx * 0.1 }}
@@ -306,13 +316,13 @@ export const BeforeAfterSection = () => {
               >
                 {/* Thumbnail */}
                 <div className="w-20 h-16 rounded-xl overflow-hidden flex-shrink-0 relative">
-                  <img 
-                    src={item.after} 
+                  <img
+                    src={item.after}
                     alt={item.title}
                     className="w-full h-full object-cover"
                   />
                   {activeIndex === idx && (
-                    <motion.div 
+                    <motion.div
                       className="absolute inset-0 bg-white/20"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -341,7 +351,7 @@ export const BeforeAfterSection = () => {
             ))}
 
             {/* CTA */}
-            <motion.button 
+            <motion.button
               onClick={handleBookNow}
               className="w-full mt-6 flex items-center justify-center gap-2 px-6 py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-black transition-all group"
               initial={{ opacity: 0, y: 20 }}
