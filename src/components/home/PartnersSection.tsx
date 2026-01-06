@@ -2,65 +2,127 @@ import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Award, Shield, Car, Sparkles } from 'lucide-react';
 
+// ============== BRAND LOGO IMPORTS (.png) ==============
+import audiLogo from '../../assets/brand/audi-logo.png';
+import astonMartinLogo from '../../assets/brand/aston-martin-logo.png';
+import bmwLogo from '../../assets/brand/bmw-logo.png';
+import bentleyLogo from '../../assets/brand/bentley-logo.png';
+import bydLogo from '../../assets/brand/byd-logo.png';
+import chevroletLogo from '../../assets/brand/chevrolet-logo.png';
+import citroenLogo from '../../assets/brand/citroen-logo.png';
+import datsunLogo from '../../assets/brand/datsun-logo.png';
+import daewooLogo from '../../assets/brand/daewoo-logo.png';
+import fordLogo from '../../assets/brand/ford-logo.png';
+import ferrariLogo from '../../assets/brand/ferrari-logo.png';
+import forceMotorsLogo from '../../assets/brand/force-logo.png';
+import fotonLogo from '../../assets/brand/foton-logo.png';
+import fiatLogo from '../../assets/brand/fiat-logo.png';
+import hondaLogo from '../../assets/brand/honda-logo.png';
+import hyundaiLogo from '../../assets/brand/hyundai-logo.png';
+import hindustanLogo from '../../assets/brand/hindustan-logo.png';
+import hummerLogo from '../../assets/brand/hummer-logo.png';
+import isuzuLogo from '../../assets/brand/isuzu-logo.png';
+import jaguarLogo from '../../assets/brand/jaguar-logo.png';
+import jeepLogo from '../../assets/brand/jeep-logo.png';
+import kiaLogo from '../../assets/brand/kia-logo.png';
+import landRoverLogo from '../../assets/brand/land-rover-logo.png';
+import lexusLogo from '../../assets/brand/lexus-logo.png';
+import lamborghiniLogo from '../../assets/brand/lamborghini-logo.png';
+import lotusLogo from '../../assets/brand/lotus-logo.png';
+import mahindraLogo from '../../assets/brand/mahindra-logo.png';
+import mercedesLogo from '../../assets/brand/mercedes-benz-logo.png';
+import mgLogo from '../../assets/brand/mg-logo.png';
+import mclarenLogo from '../../assets/brand/mclaren-logo.png';
+import miniLogo from '../../assets/brand/mini-logo.png';
+import maseratiLogo from '../../assets/brand/maserati-logo.png';
+import mitsubishiLogo from '../../assets/brand/mitsubishi-logo.png';
+import nissanLogo from '../../assets/brand/nissan-logo.png';
+import opelLogo from '../../assets/brand/opel-logo.png';
+import porscheLogo from '../../assets/brand/porsche-logo.png';
+import premierlogo from '../../assets/brand/premier-logo.png';
+import renaultLogo from '../../assets/brand/renault-logo.png';
+import rollsRoyceLogo from '../../assets/brand/rolls-royce-logo.png';
+import skodaLogo from '../../assets/brand/skoda-logo.png';
+import suzukiLogo from '../../assets/brand/suzuki-logo.png';
+import ssangyongLogo from '../../assets/brand/ssangyong-logo.png';
+import tataLogo from '../../assets/brand/tata-logo.png';
+import toyotaLogo from '../../assets/brand/toyota-logo.png';
+import volkswagenLogo from '../../assets/brand/volkswagen-logo.png';
+import volvoLogo from '../../assets/brand/volvo-logo.png';
+
+
 // Complete list of all car brands available in India
 const partners = [
   // Mass Market - Indian Brands
-  { name: 'Maruti Suzuki', logo: 'https://www.carlogos.org/car-logos/suzuki-logo.png' },
-  { name: 'Tata', logo: 'https://www.carlogos.org/car-logos/tata-logo.png' },
-  { name: 'Mahindra', logo: 'https://www.carlogos.org/car-logos/mahindra-logo.png' },
+  { name: 'Maruti Suzuki', logo: suzukiLogo },
+  { name: 'Tata', logo: tataLogo },
+  { name: 'Mahindra', logo: mahindraLogo },
+  { name: 'Hindustan Motors', logo: hindustanLogo },
+  { name: 'Premier', logo: premierlogo },
   
   // Mass Market - Korean Brands
-  { name: 'Hyundai', logo: 'https://www.carlogos.org/car-logos/hyundai-logo.png' },
-  { name: 'Kia', logo: 'https://www.carlogos.org/car-logos/kia-logo.png' },
+  { name: 'Hyundai', logo: hyundaiLogo },
+  { name: 'Kia', logo: kiaLogo },
+  { name: 'SsangYong', logo: ssangyongLogo },
+  { name: 'Daewoo', logo: daewooLogo },
   
   // Mass Market - Japanese Brands
-  { name: 'Toyota', logo: 'https://www.carlogos.org/car-logos/toyota-logo.png' },
-  { name: 'Honda', logo: 'https://www.carlogos.org/car-logos/honda-logo.png' },
-  { name: 'Nissan', logo: 'https://www.carlogos.org/car-logos/nissan-logo.png' },
-  { name: 'Isuzu', logo: 'https://www.carlogos.org/car-logos/isuzu-logo.png' },
+  { name: 'Toyota', logo: toyotaLogo },
+  { name: 'Honda', logo: hondaLogo },
+  { name: 'Nissan', logo: nissanLogo },
+  { name: 'Isuzu', logo: isuzuLogo },
+  { name: 'Mitsubishi', logo: mitsubishiLogo },
+  { name: 'Datsun', logo: datsunLogo },
   
   // Mass Market - European Brands
-  { name: 'Volkswagen', logo: 'https://www.carlogos.org/car-logos/volkswagen-logo.png' },
-  { name: 'Skoda', logo: 'https://www.carlogos.org/car-logos/skoda-logo.png' },
-  { name: 'Renault', logo: 'https://www.carlogos.org/car-logos/renault-logo.png' },
-  { name: 'Citroen', logo: 'https://www.carlogos.org/car-logos/citroen-logo.png' },
+  { name: 'Volkswagen', logo: volkswagenLogo },
+  { name: 'Skoda', logo: skodaLogo },
+  { name: 'Renault', logo: renaultLogo },
+  { name: 'Citroen', logo: citroenLogo },
   
   // Mass Market - American Brands
-  { name: 'Jeep', logo: 'https://www.carlogos.org/car-logos/jeep-logo.png' },
+  { name: 'Jeep', logo: jeepLogo },
+  { name: 'Ford', logo: fordLogo },
+  { name: 'Chevrolet', logo: chevroletLogo },
+  { name: 'Hummer', logo: hummerLogo },
   
   // Mass Market - Chinese Brands
-  { name: 'MG', logo: 'https://www.carlogos.org/car-logos/mg-logo.png' },
-  { name: 'BYD', logo: 'https://www.carlogos.org/car-logos/byd-logo.png' },
+  { name: 'MG', logo: mgLogo },
+  { name: 'BYD', logo: bydLogo },
+  { name: 'Foton', logo: fotonLogo },
   
   // Premium Brands - German
-  { name: 'BMW', logo: 'https://www.carlogos.org/car-logos/bmw-logo.png' },
-  { name: 'Mercedes-Benz', logo: 'https://www.carlogos.org/car-logos/mercedes-benz-logo.png' },
-  { name: 'Audi', logo: 'https://www.carlogos.org/car-logos/audi-logo.png' },
-  { name: 'Porsche', logo: 'https://www.carlogos.org/car-logos/porsche-logo.png' },
+  { name: 'BMW', logo: bmwLogo },
+  { name: 'Mercedes-Benz', logo: mercedesLogo },
+  { name: 'Audi', logo: audiLogo },
+  { name: 'Porsche', logo: porscheLogo },
+  { name: 'Opel', logo: opelLogo },
   
   // Premium Brands - British
-  { name: 'Jaguar', logo: 'https://www.carlogos.org/car-logos/jaguar-logo.png' },
-  { name: 'Land Rover', logo: 'https://www.carlogos.org/car-logos/land-rover-logo.png' },
-  { name: 'Mini', logo: 'https://www.carlogos.org/car-logos/mini-logo.png' },
-  { name: 'Bentley', logo: 'https://www.carlogos.org/car-logos/bentley-logo.png' },
-  { name: 'Rolls-Royce', logo: 'https://www.carlogos.org/car-logos/rolls-royce-logo.png' },
-  { name: 'Aston Martin', logo: 'https://www.carlogos.org/car-logos/aston-martin-logo.png' },
-  { name: 'McLaren', logo: 'https://www.carlogos.org/car-logos/mclaren-logo.png' },
-  { name: 'Lotus', logo: 'https://www.carlogos.org/car-logos/lotus-logo.png' },
+  { name: 'Jaguar', logo: jaguarLogo },
+  { name: 'Land Rover', logo: landRoverLogo },
+  { name: 'Mini', logo: miniLogo },
+  { name: 'Bentley', logo: bentleyLogo },
+  { name: 'Rolls-Royce', logo: rollsRoyceLogo },
+  { name: 'Aston Martin', logo: astonMartinLogo },
+  { name: 'McLaren', logo: mclarenLogo },
+  { name: 'Lotus', logo: lotusLogo },
   
   // Premium Brands - Swedish
-  { name: 'Volvo', logo: 'https://www.carlogos.org/car-logos/volvo-logo.png' },
+  { name: 'Volvo', logo: volvoLogo },
   
   // Premium Brands - Japanese Luxury
-  { name: 'Lexus', logo: 'https://www.carlogos.org/car-logos/lexus-logo.png' },
+  { name: 'Lexus', logo: lexusLogo },
   
   // Premium Brands - Italian
-  { name: 'Lamborghini', logo: 'https://www.carlogos.org/car-logos/lamborghini-logo.png' },
-  { name: 'Ferrari', logo: 'https://www.carlogos.org/car-logos/ferrari-logo.png' },
-  { name: 'Maserati', logo: 'https://www.carlogos.org/car-logos/maserati-logo.png' },
+  { name: 'Lamborghini', logo: lamborghiniLogo },
+  { name: 'Ferrari', logo: ferrariLogo },
+  { name: 'Maserati', logo: maseratiLogo },
+  { name: 'Fiat', logo: fiatLogo },
   
   // Other Brands
-  { name: 'Force Motors', logo: 'https://www.carlogos.org/car-logos/force-logo.png' },
+  { name: 'Force Motors', logo: forceMotorsLogo },
+  {}
 ];
 
 // Trust badges
