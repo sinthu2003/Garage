@@ -1,9 +1,11 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { AppLayout } from '../components/layout/AppLayout';
 import { HomePage } from '../pages/HomePage';
 import { ServicesPage } from '../pages/Servicespage';
 import { ServiceDetailPage } from '../pages/Servicedetailpage';
+import { AdminPage } from '../admin-portal/components/AdminPage';
+import { LoginPage } from '../admin-portal/components/LoginPage';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -14,21 +16,36 @@ const ScrollToTop = () => {
 };
 
 export const AppRouter = () => {
+  // Check local storage for existing session on load
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    localStorage.getItem('isAdminAuthenticated') === 'true'
+  );
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
   return (
     <>
       <ScrollToTop />
-      <AppLayout>
-        <Routes>
-          {/* Home Page */}
-          <Route path="/" element={<HomePage />} />
-          
-          {/* All Services Page */}
-          <Route path="/services" element={<ServicesPage />} />
-          
-          {/* Individual Service Detail Page */}
-          <Route path="/services/:serviceSlug" element={<ServiceDetailPage />} />
-        </Routes>
-      </AppLayout>
+      <Routes>
+        {/* Admin Page - Protected by Login Check */}
+        <Route 
+          path="/admin" 
+          element={
+            isAuthenticated ? (
+              <AdminPage />
+            ) : (
+              <LoginPage onLogin={handleLoginSuccess} />
+            )
+          } 
+        />
+        
+        {/* Main Site Routes - With AppLayout */}
+        <Route path="/" element={<AppLayout><HomePage /></AppLayout>} />
+        <Route path="/services" element={<AppLayout><ServicesPage /></AppLayout>} />
+        <Route path="/services/:serviceSlug" element={<AppLayout><ServiceDetailPage /></AppLayout>} />
+      </Routes>
     </>
   );
 };

@@ -1,0 +1,687 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "lastModified": "2025-01-06T00:00:00.000Z"
+  },
+  "global": {
+    "brand": {
+      "name": "Addax",
+      "tagline": "Automotive",
+      "phone": "+91 98765 43210",
+      "email": "support@addaxautomotive.in",
+      "address": "Coimbatore, Tamil Nadu",
+      "workingHours": "Mon-Sun: 8AM - 8PM"
+    },
+    "social": {
+      "facebook": "https://facebook.com/addaxautomotive",
+      "twitter": "https://twitter.com/addaxautomotive",
+      "instagram": "https://instagram.com/addaxautomotive",
+      "youtube": "https://youtube.com/@ADDAXAUTOMOTIVE"
+    },
+    "seo": {
+      "title": "Addax Automotive - Premium Car Service at Your Doorstep",
+      "description": "India's leading car service network offering quality repairs, maintenance & detailing at transparent prices with doorstep convenience. Save up to 40%!"
+    }
+  },
+  "hero": {
+    "badge": "Trusted by 50,000+ Car Owners",
+    "headline": {
+      "line1": "Premium Car Service",
+      "line2": "at Your Doorstep",
+      "highlight": "Save 40%"
+    },
+    "subheadline": "Experience hassle-free car maintenance with certified mechanics, genuine parts, and transparent pricing. We come to you!",
+    "savings": {
+      "percentage": "40%",
+      "text": "vs dealership prices"
+    },
+    "cta": {
+      "primary": "Book Free Inspection",
+      "secondary": "Watch How It Works",
+      "videoUrl": "https://youtube.com/watch?v=example"
+    },
+    "backgroundImage": "hero-bg.jpg",
+    "stats": [
+      {
+        "icon": "Users",
+        "label": "Happy Customers",
+        "value": "50000",
+        "suffix": "+"
+      },
+      {
+        "icon": "Star",
+        "label": "Average Rating",
+        "value": "4.8",
+        "suffix": "/5"
+      },
+      {
+        "icon": "MapPin",
+        "label": "Cities Served",
+        "value": "25",
+        "suffix": "+"
+      },
+      {
+        "icon": "Wrench",
+        "label": "Services Completed",
+        "value": "100000",
+        "suffix": "+"
+      }
+    ],
+    "scrollingBrands": [
+      { "name": "Maruti Suzuki" },
+      { "name": "Hyundai" },
+      { "name": "Tata" },
+      { "name": "Mahindra" },
+      { "name": "Honda" },
+      { "name": "Toyota" },
+      { "name": "Kia" },
+      { "name": "MG" },
+      { "name": "Skoda" },
+      { "name": "Volkswagen" }
+    ]
+  },
+  "bookingWidget": {
+    "title": "Book Your Service",
+    "subtitle": "Get instant quote in 60 seconds",
+    "steps": {
+      "location": {
+        "title": "Select Your City",
+        "placeholder": "Search city..."
+      },
+      "brand": {
+        "title": "Select Car Brand",
+        "placeholder": "Search brand..."
+      },
+      "model": {
+        "title": "Select Model",
+        "placeholder": "Search model..."
+      },
+      "fuel": {
+        "title": "Select Fuel Type",
+        "subtitle": "Choose your car's fuel type"
+      }
+    },
+    "trustBadges": {
+      "rating": "4.8/5",
+      "services": "50,000+"
+    }
+  },
+  "howItWorks": {
+    "badge": "Simple Process",
+    "headline": {
+      "line1": "Car service in",
+      "highlight": "4 simple steps."
+    },
+    "description": "We've simplified car maintenance so you can focus on what matters most. From booking to completion, we handle everything.",
+    "cta": "Book Your Service Now",
+    "steps": [
+      {
+        "number": "01",
+        "icon": "MapPin",
+        "title": "Select Location",
+        "description": "Choose your city and preferred service location - home, office, or our workshop.",
+        "color": "#EF4444",
+        "image": "step-location.jpg"
+      },
+      {
+        "number": "02",
+        "icon": "Calendar",
+        "title": "Book Appointment",
+        "description": "Pick a convenient date and time slot that fits your schedule.",
+        "color": "#3B82F6",
+        "image": "step-booking.jpg"
+      },
+      {
+        "number": "03",
+        "icon": "Wrench",
+        "title": "We Service",
+        "description": "Our certified mechanics arrive with all tools and genuine parts to service your car.",
+        "color": "#8B5CF6",
+        "image": "step-service.jpg"
+      },
+      {
+        "number": "04",
+        "icon": "CheckCircle",
+        "title": "Happy Driving",
+        "description": "Get your car back in perfect condition with detailed service report and warranty.",
+        "color": "#10B981",
+        "image": "step-complete.jpg"
+      }
+    ]
+  },
+  "features": {
+    "badge": "Why Choose Us",
+    "headline": {
+      "line1": "Built for",
+      "highlight": "modern car owners."
+    },
+    "description": "We've reimagined car service with technology, transparency, and trust at its core.",
+    "mainFeature": {
+      "badge": "Premium Quality",
+      "title": "State-of-the-art Workshop with Modern Equipment",
+      "description": "Our workshops are equipped with the latest diagnostic tools and equipment to ensure your car gets the best care possible.",
+      "image": "workshop.jpg",
+      "highlights": [
+        "Advanced Diagnostics",
+        "Genuine Parts",
+        "Certified Mechanics"
+      ]
+    },
+    "items": [
+      {
+        "icon": "Shield",
+        "title": "6-Month Warranty",
+        "description": "All services come with comprehensive warranty coverage for your peace of mind.",
+        "color": "#3B82F6",
+        "image": ""
+      },
+      {
+        "icon": "BadgePercent",
+        "title": "Save Up to 40%",
+        "description": "Get dealership quality service at 40% lower prices with complete transparency.",
+        "color": "#10B981",
+        "image": ""
+      },
+      {
+        "icon": "Clock",
+        "title": "Doorstep Service",
+        "description": "We come to your home or office. No more waiting at service centers.",
+        "color": "#F59E0B",
+        "image": ""
+      },
+      {
+        "icon": "Smartphone",
+        "title": "Live Tracking",
+        "description": "Track your service in real-time with photos and updates at every step.",
+        "color": "#8B5CF6",
+        "image": ""
+      },
+      {
+        "icon": "Award",
+        "title": "Certified Mechanics",
+        "description": "All our mechanics are trained and certified with years of experience.",
+        "color": "#EC4899",
+        "image": ""
+      },
+      {
+        "icon": "MapPin",
+        "title": "25+ Cities",
+        "description": "Available across major cities in India with consistent quality service.",
+        "color": "#EF4444",
+        "image": ""
+      }
+    ]
+  },
+  "services": {
+    "badge": "Our Services",
+    "headline": {
+      "line1": "Complete car care",
+      "highlight": "solutions."
+    },
+    "description": "From routine maintenance to complex repairs, we've got your car covered.",
+    "viewAllCta": "View All Services",
+    "items": [
+      {
+        "id": 1,
+        "title": "Periodic Service",
+        "description": "Complete car checkup with oil change, filter replacement, and 40+ point inspection.",
+        "price": 2999,
+        "originalPrice": 4999,
+        "image": "periodic-service.jpg",
+        "features": [
+          "Engine Oil Change",
+          "Oil Filter Replacement",
+          "Air Filter Cleaning",
+          "40+ Point Checkup",
+          "Brake Inspection"
+        ],
+        "duration": "4-5 hours",
+        "warranty": "1 Month / 1000 Km"
+      },
+      {
+        "id": 2,
+        "title": "AC Service & Repair",
+        "description": "Complete AC system checkup, gas top-up, and cooling coil cleaning.",
+        "price": 1499,
+        "originalPrice": 2499,
+        "image": "ac-service.jpg",
+        "features": [
+          "AC Gas Top-up",
+          "Cooling Coil Cleaning",
+          "Compressor Check",
+          "Vent Cleaning",
+          "Performance Test"
+        ],
+        "duration": "2-3 hours",
+        "warranty": "1 Month"
+      },
+      {
+        "id": 3,
+        "title": "Denting & Painting",
+        "description": "Professional dent removal and paint restoration with color matching.",
+        "price": 3999,
+        "originalPrice": 6999,
+        "image": "denting-painting.jpg",
+        "features": [
+          "Dent Removal",
+          "Scratch Repair",
+          "Color Matching",
+          "Clear Coat Application",
+          "Paint Protection"
+        ],
+        "duration": "2-3 days",
+        "warranty": "6 Months"
+      },
+      {
+        "id": 4,
+        "title": "Battery Replacement",
+        "description": "Genuine battery replacement with old battery pickup and warranty.",
+        "price": 3499,
+        "originalPrice": 4999,
+        "image": "battery-service.jpg",
+        "features": [
+          "Battery Health Check",
+          "Genuine Battery",
+          "Old Battery Pickup",
+          "Terminal Cleaning",
+          "Charging System Check"
+        ],
+        "duration": "30 minutes",
+        "warranty": "2-3 Years"
+      },
+      {
+        "id": 5,
+        "title": "Car Detailing",
+        "description": "Premium interior and exterior detailing with ceramic coating.",
+        "price": 4999,
+        "originalPrice": 7999,
+        "image": "car-detailing.jpg",
+        "features": [
+          "Exterior Wash & Polish",
+          "Interior Deep Clean",
+          "Dashboard Treatment",
+          "Tyre Dressing",
+          "Glass Cleaning"
+        ],
+        "duration": "5-6 hours",
+        "warranty": "15 Days"
+      },
+      {
+        "id": 6,
+        "title": "Wheel Care",
+        "description": "Complete wheel alignment, balancing, and tyre rotation service.",
+        "price": 999,
+        "originalPrice": 1999,
+        "image": "wheel-care.jpg",
+        "features": [
+          "Wheel Alignment",
+          "Wheel Balancing",
+          "Tyre Rotation",
+          "Tyre Pressure Check",
+          "Suspension Inspection"
+        ],
+        "duration": "1-2 hours",
+        "warranty": "1 Month"
+      }
+    ]
+  },
+  "pricing": {
+    "badge": "Save Up to 40%",
+    "headline": {
+      "line1": "Transparent",
+      "line2": "pricing.",
+      "muted": "No surprises."
+    },
+    "description": "We operate centrally to minimize overheads and pass the savings directly to you. Compare and see the difference!",
+    "cta": "Book Now & Save",
+    "highlights": [
+      "No hidden charges",
+      "Genuine spare parts",
+      "Skilled mechanics",
+      "Service warranty"
+    ],
+    "featureImage": {
+      "subtitle": "Why pay more?",
+      "title": "Same Quality,",
+      "highlight": "Better Price.",
+      "image": "pricing-feature.jpg"
+    },
+    "items": [
+      {
+        "service": "Periodic Service",
+        "market": 4999,
+        "ours": 2999
+      },
+      {
+        "service": "AC Service",
+        "market": 2499,
+        "ours": 1499
+      },
+      {
+        "service": "Front Brake Pads",
+        "market": 3500,
+        "ours": 2100
+      },
+      {
+        "service": "Battery (65 AH)",
+        "market": 7500,
+        "ours": 5500
+      },
+      {
+        "service": "Clutch Set",
+        "market": 12000,
+        "ours": 8500
+      },
+      {
+        "service": "Full Body Paint",
+        "market": 35000,
+        "ours": 22000
+      }
+    ],
+    "savingsCard": {
+      "label": "Average savings per year",
+      "multiplier": 2
+    }
+  },
+  "beforeAfter": {
+    "badge": "Transformations",
+    "headline": {
+      "text": "Before & After",
+      "highlight": "magic"
+    },
+    "description": "Drag the slider to see the incredible transformations we deliver. Real results from real customers.",
+    "cta": "Get Your Car Transformed",
+    "selectLabel": "Select Transformation",
+    "items": [
+      {
+        "id": 1,
+        "title": "Denting & Painting",
+        "car": "Hyundai Creta",
+        "beforeImage": "creta-before.jpg",
+        "afterImage": "creta-after.jpg",
+        "description": "Complete bumper repair and full body paint restoration after accident damage.",
+        "time": "3 Days",
+        "savings": "₹12,000"
+      },
+      {
+        "id": 2,
+        "title": "Interior Detailing",
+        "car": "Honda City",
+        "beforeImage": "city-interior-before.jpg",
+        "afterImage": "city-interior-after.jpg",
+        "description": "Deep interior cleaning, leather conditioning, and dashboard restoration.",
+        "time": "1 Day",
+        "savings": "₹3,000"
+      },
+      {
+        "id": 3,
+        "title": "Headlight Restoration",
+        "car": "Maruti Swift",
+        "beforeImage": "swift-lights-before.jpg",
+        "afterImage": "swift-lights-after.jpg",
+        "description": "UV damaged headlights restored to crystal clear condition.",
+        "time": "2 Hours",
+        "savings": "₹5,000"
+      }
+    ]
+  },
+  "testimonials": {
+    "badge": "Trusted by 50,000+ Owners",
+    "headline": {
+      "line1": "Loved by drivers,",
+      "highlight": "Approved by mechanics."
+    },
+    "items": [
+      {
+        "id": 1,
+        "name": "Rajesh Kumar",
+        "role": "Business Owner",
+        "location": "Coimbatore",
+        "carModel": "Hyundai Creta",
+        "service": "Periodic Service",
+        "rating": 5,
+        "content": "Exceptional service quality! The mechanic arrived on time, was very professional, and completed the service at my doorstep. Saved me a trip to the service center and got better pricing too.",
+        "image": ""
+      },
+      {
+        "id": 2,
+        "name": "Priya Sharma",
+        "role": "IT Professional",
+        "location": "Chennai",
+        "carModel": "Honda City",
+        "service": "AC Repair",
+        "rating": 5,
+        "content": "My AC wasn't cooling properly for months. Addax fixed it in just 2 hours at my office parking. The real-time updates on my phone were really helpful. Highly recommended!",
+        "image": ""
+      },
+      {
+        "id": 3,
+        "name": "Mohammed Farhan",
+        "role": "Doctor",
+        "location": "Bangalore",
+        "carModel": "Toyota Innova",
+        "service": "Denting & Painting",
+        "rating": 5,
+        "content": "Had a minor accident and the bumper was badly damaged. Addax picked up my car, fixed it perfectly, and delivered it back. The paint matching was flawless!",
+        "image": ""
+      },
+      {
+        "id": 4,
+        "name": "Sneha Reddy",
+        "role": "Teacher",
+        "location": "Hyderabad",
+        "carModel": "Maruti Swift",
+        "service": "Car Detailing",
+        "rating": 5,
+        "content": "My 5-year-old Swift looks brand new after their detailing service! The interior deep cleaning was thorough and the exterior polish is just amazing. Worth every rupee!",
+        "image": ""
+      }
+    ]
+  },
+  "gallery": {
+    "badge": "Our Work",
+    "headline": {
+      "line1": "Our work",
+      "highlight": "speaks for itself"
+    },
+    "description": "Take a look at our state-of-the-art facilities and the quality of work we deliver.",
+    "categories": [
+      { "id": "all", "label": "All" },
+      { "id": "workshop", "label": "Workshop" },
+      { "id": "service", "label": "Service" },
+      { "id": "detailing", "label": "Detailing" },
+      { "id": "repair", "label": "Repair" }
+    ],
+    "images": [
+      {
+        "id": 1,
+        "src": "gallery-1.jpg",
+        "alt": "Modern workshop",
+        "category": "workshop",
+        "title": "State-of-the-art Workshop",
+        "description": "Our fully equipped workshop"
+      },
+      {
+        "id": 2,
+        "src": "gallery-2.jpg",
+        "alt": "Engine service",
+        "category": "service",
+        "title": "Engine Service",
+        "description": "Expert engine diagnostics"
+      },
+      {
+        "id": 3,
+        "src": "gallery-3.jpg",
+        "alt": "Car detailing",
+        "category": "detailing",
+        "title": "Premium Detailing",
+        "description": "Showroom finish detailing"
+      },
+      {
+        "id": 4,
+        "src": "gallery-4.jpg",
+        "alt": "Paint work",
+        "category": "repair",
+        "title": "Paint Restoration",
+        "description": "Professional paint booth"
+      },
+      {
+        "id": 5,
+        "src": "gallery-5.jpg",
+        "alt": "AC repair",
+        "category": "service",
+        "title": "AC Service",
+        "description": "Complete AC solutions"
+      },
+      {
+        "id": 6,
+        "src": "gallery-6.jpg",
+        "alt": "Interior cleaning",
+        "category": "detailing",
+        "title": "Interior Deep Clean",
+        "description": "Thorough interior restoration"
+      }
+    ],
+    "stats": [
+      { "icon": "Wrench", "value": "500+", "label": "Expert Mechanics" },
+      { "icon": "Car", "value": "100K+", "label": "Cars Serviced" },
+      { "icon": "Sparkles", "value": "50K+", "label": "Happy Customers" }
+    ]
+  },
+  "partners": {
+    "badge": "Trusted Partners",
+    "headline": {
+      "text": "We service",
+      "highlight": "all major brands"
+    },
+    "description": "Expert mechanics trained for all car makes and models. From hatchbacks to luxury sedans, we've got you covered.",
+    "brandCount": "35+",
+    "brandCountLabel": "Car Brands Serviced",
+    "trustBadges": [
+      {
+        "icon": "Shield",
+        "title": "Genuine Parts",
+        "subtitle": "OEM Quality"
+      },
+      {
+        "icon": "Award",
+        "title": "Certified",
+        "subtitle": "Mechanics"
+      },
+      {
+        "icon": "Sparkles",
+        "title": "ISO",
+        "subtitle": "9001:2015"
+      }
+    ]
+  },
+  "faq": {
+    "badge": "FAQ",
+    "headline": {
+      "line1": "Frequently Asked",
+      "highlight": "Questions"
+    },
+    "description": "Everything you need to know about our car service. Can't find the answer? Contact us!",
+    "contactCards": [
+      {
+        "type": "phone",
+        "label": "Call us at",
+        "value": "+91 98765 43210",
+        "href": "tel:+919876543210"
+      },
+      {
+        "type": "whatsapp",
+        "label": "WhatsApp us",
+        "value": "+91 98765 43210",
+        "href": "https://wa.me/919876543210"
+      }
+    ],
+    "items": [
+      {
+        "question": "How does doorstep car service work?",
+        "answer": "Our certified mechanics come to your location (home or office) with all necessary tools and equipment. You can track the service in real-time through our app, and we send photos and updates at every step."
+      },
+      {
+        "question": "What areas do you service?",
+        "answer": "We currently operate in 25+ major cities across India including Bangalore, Chennai, Hyderabad, Mumbai, Delhi, Coimbatore, and more. Enter your pincode on our booking page to check availability in your area."
+      },
+      {
+        "question": "Do you provide warranty on services?",
+        "answer": "Yes! All our services come with warranty coverage ranging from 1 month to 6 months depending on the service type. We also provide warranty on parts replaced during service."
+      },
+      {
+        "question": "How do I pay for the service?",
+        "answer": "We accept all major payment methods including UPI, credit/debit cards, net banking, and cash. Payment is collected only after service completion and your approval."
+      },
+      {
+        "question": "What if I'm not satisfied with the service?",
+        "answer": "Customer satisfaction is our priority. If you're not happy with any aspect of our service, we offer free re-service or full refund. Just contact our support team within 7 days."
+      },
+      {
+        "question": "Do you use genuine parts?",
+        "answer": "We use only genuine OEM or OEM-equivalent parts for all replacements. Before any part replacement, we share photos and get your approval along with transparent pricing."
+      }
+    ]
+  },
+  "footer": {
+    "description": "India's leading car service network offering quality repairs, maintenance & detailing at transparent prices with doorstep convenience.",
+    "links": {
+      "services": [
+        { "name": "Periodic Service", "href": "/services#periodic" },
+        { "name": "AC Service", "href": "/services#ac" },
+        { "name": "Denting & Painting", "href": "/services#denting" },
+        { "name": "Car Detailing", "href": "/services#detailing" },
+        { "name": "Battery Replacement", "href": "/services#battery" },
+        { "name": "Wheel Care", "href": "/services#wheel" }
+      ],
+      "company": [
+        { "name": "About Us", "href": "/about" },
+        { "name": "Careers", "href": "/careers" },
+        { "name": "Blog", "href": "/blog" },
+        { "name": "Partner With Us", "href": "/partner" }
+      ],
+      "support": [
+        { "name": "Contact Us", "href": "/contact" },
+        { "name": "FAQs", "href": "/#faq" },
+        { "name": "Privacy Policy", "href": "/privacy" },
+        { "name": "Terms of Service", "href": "/terms" }
+      ],
+      "cities": [
+        "Coimbatore",
+        "Chennai",
+        "Bangalore",
+        "Hyderabad",
+        "Mumbai",
+        "Delhi",
+        "Pune",
+        "Kolkata"
+      ]
+    },
+    "copyright": "© {year} Addax Automotive. All rights reserved."
+  },
+  "pages": {
+    "services": {
+      "title": "Our Services",
+      "description": "Comprehensive car care solutions for every need. From routine maintenance to complex repairs, our certified mechanics deliver quality service at your doorstep.",
+      "ctaSection": {
+        "title": "Can't find what you're looking for?",
+        "description": "Contact us for custom service packages or any specific requirements. We're here to help!",
+        "primaryCta": "Contact Us",
+        "secondaryCta": "Call Now"
+      }
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "Sorry, we couldn't find the page you're looking for. It might have been moved or doesn't exist.",
+      "searchPlaceholder": "Search for services...",
+      "primaryCta": "Go to Homepage",
+      "secondaryCta": "Contact Support",
+      "quickLinks": [
+        { "name": "Services", "href": "/services" },
+        { "name": "Pricing", "href": "/#pricing" },
+        { "name": "Book Now", "href": "/#booking" },
+        { "name": "Contact", "href": "/contact" }
+      ]
+    }
+  }
+}

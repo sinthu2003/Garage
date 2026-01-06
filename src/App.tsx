@@ -1,12 +1,15 @@
 import { BrowserRouter } from 'react-router-dom';
 import { AppRouter } from './router/AppRouter';
-// Import global styles
+import { ContentProvider } from './admin-portal/context/ContentContext';
 import './index.css';
 
 function App() {
   return (
     <BrowserRouter>
-      <AppRouter />
+      <ContentProvider>
+        {/* Main Router handles everything now */}
+        <AppRouter />
+      </ContentProvider>
     </BrowserRouter>
   );
 }

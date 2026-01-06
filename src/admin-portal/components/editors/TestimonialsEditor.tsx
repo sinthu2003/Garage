@@ -1,0 +1,504 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Star,
+  Type,
+  Image,
+  User,
+  MapPin,
+  Car,
+  ChevronRight,
+  ChevronDown,
+  Plus,
+  Trash2,
+  GripVertical,
+  Quote,
+  Briefcase,
+} from 'lucide-react';
+import { useTestimonialsContent } from '../../hooks/useContentHooks';
+import { useContent } from '../../context/ContentContext';
+import type { TestimonialItem } from '../../types/content.types';
+
+interface TestimonialsEditorProps {
+  isDarkMode: boolean;
+}
+
+export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
+  const { updateField } = useContent();
+  const content = useTestimonialsContent();
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(['header', 'items'])
+  );
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+
+  const toggleSection = (section: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
+    }
+    setExpandedSections(newExpanded);
+  };
+
+  const toggleItem = (index: number) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedItems(newExpanded);
+  };
+
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('testimonials', path, value);
+  };
+
+  // Theme-aware styling helpers using CSS variables
+  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
+
+  const labelClass = `text-sm font-medium text-muted-foreground`;
+
+  const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
+
+  const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
+
+  const addNewTestimonial = () => {
+    const newTestimonial: TestimonialItem = {
+      id: Date.now(),
+      name: 'Customer Name',
+      role: 'Profession',
+      location: 'City',
+      carModel: 'Car Brand Model',
+      service: 'Service Type',
+      rating: 5,
+      content: 'Write the customer review here...',
+      image: '',
+    };
+    handleUpdate('items', [...(content.items || []), newTestimonial]);
+  };
+
+  // Star Rating Component
+  const StarRating = ({ rating, onChange }: { rating: number; onChange: (r: number) => void }) => (
+    <div className="flex items-center gap-0.5 sm:gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          onClick={() => onChange(star)}
+          className={`p-0.5 sm:p-1 transition-colors ${
+            star <= rating ? 'text-yellow-400' : 'text-muted-foreground/30'
+          }`}
+        >
+          <Star className="w-4 h-4 sm:w-5 sm:h-5" fill={star <= rating ? 'currentColor' : 'none'} />
+        </button>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3 pb-4 border-b border-border">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-amber-500 flex items-center justify-center flex-shrink-0">
+          <Star className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
+            Testimonials Editor
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Customer reviews and ratings
+          </p>
+        </div>
+      </div>
+
+      {/* Section Header Content */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('header') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <Type className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Section Header</span>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('header') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="space-y-2">
+                  <label className={labelClass}>Badge Text</label>
+                  <input
+                    type="text"
+                    value={content.badge || ''}
+                    onChange={(e) => handleUpdate('badge', e.target.value)}
+                    placeholder="Trusted by 50,000+ Owners"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>Headline Line 1</label>
+                    <input
+                      type="text"
+                      value={content.headline?.line1 || ''}
+                      onChange={(e) => handleUpdate('headline.line1', e.target.value)}
+                      placeholder="Loved by drivers,"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Highlighted Text</label>
+                    <input
+                      type="text"
+                      value={content.headline?.highlight || ''}
+                      onChange={(e) => handleUpdate('headline.highlight', e.target.value)}
+                      placeholder="Approved by mechanics."
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                {/* Preview */}
+                <div className="p-3 sm:p-4 rounded-xl bg-secondary">
+                  <p className="text-xs uppercase tracking-wider mb-2 text-muted-foreground">
+                    Preview
+                  </p>
+                  <div className="inline-block px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium mb-2">
+                    {content.badge || 'Trusted by 50,000+ Owners'}
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+                    {content.headline?.line1 || 'Loved by drivers,'}
+                    <br />
+                    <span className="text-primary">{content.headline?.highlight || 'Approved by mechanics.'}</span>
+                  </h3>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Testimonial Items */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('items')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('items') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <Quote className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Reviews</span>
+            <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
+              {content.items?.length || 0}
+            </span>
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              addNewTestimonial();
+            }}
+            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('items') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                {content.items?.map((testimonial: TestimonialItem, index: number) => (
+                  <div
+                    key={testimonial.id || index}
+                    className="rounded-xl border overflow-hidden border-border bg-card"
+                  >
+                    {/* Testimonial Header */}
+                    <button
+                      onClick={() => toggleItem(index)}
+                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                        <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-secondary flex-shrink-0">
+                          <User className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground text-sm sm:text-base truncate">
+                            {testimonial.name || 'Customer Name'}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs sm:text-sm">
+                            <span className="text-muted-foreground truncate">
+                              {testimonial.location}
+                            </span>
+                            <span className="text-yellow-400 flex-shrink-0">
+                              {'★'.repeat(testimonial.rating || 5)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newItems = content.items?.filter((_: TestimonialItem, i: number) => i !== index);
+                            handleUpdate('items', newItems);
+                          }}
+                          className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <motion.div animate={{ rotate: expandedItems.has(index) ? 180 : 0 }}>
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        </motion.div>
+                      </div>
+                    </button>
+
+                    {/* Testimonial Details */}
+                    <AnimatePresence>
+                      {expandedItems.has(index) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                            {/* Customer Info */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                              <div className="space-y-2">
+                                <label className={labelClass}>
+                                  <User className="w-4 h-4 inline mr-1" />
+                                  Customer Name
+                                </label>
+                                <input
+                                  type="text"
+                                  value={testimonial.name || ''}
+                                  onChange={(e) => {
+                                    const newItems = [...(content.items || [])];
+                                    newItems[index] = { ...newItems[index], name: e.target.value };
+                                    handleUpdate('items', newItems);
+                                  }}
+                                  placeholder="Rajesh Kumar"
+                                  className={inputClass}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className={labelClass}>
+                                  <Briefcase className="w-4 h-4 inline mr-1" />
+                                  Profession / Role
+                                </label>
+                                <input
+                                  type="text"
+                                  value={testimonial.role || ''}
+                                  onChange={(e) => {
+                                    const newItems = [...(content.items || [])];
+                                    newItems[index] = { ...newItems[index], role: e.target.value };
+                                    handleUpdate('items', newItems);
+                                  }}
+                                  placeholder="Business Owner"
+                                  className={inputClass}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className={labelClass}>
+                                  <MapPin className="w-4 h-4 inline mr-1" />
+                                  Location
+                                </label>
+                                <input
+                                  type="text"
+                                  value={testimonial.location || ''}
+                                  onChange={(e) => {
+                                    const newItems = [...(content.items || [])];
+                                    newItems[index] = { ...newItems[index], location: e.target.value };
+                                    handleUpdate('items', newItems);
+                                  }}
+                                  placeholder="Coimbatore"
+                                  className={inputClass}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className={labelClass}>
+                                  <Car className="w-4 h-4 inline mr-1" />
+                                  Car Model
+                                </label>
+                                <input
+                                  type="text"
+                                  value={testimonial.carModel || ''}
+                                  onChange={(e) => {
+                                    const newItems = [...(content.items || [])];
+                                    newItems[index] = { ...newItems[index], carModel: e.target.value };
+                                    handleUpdate('items', newItems);
+                                  }}
+                                  placeholder="Hyundai Creta"
+                                  className={inputClass}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Service & Rating */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                              <div className="space-y-2">
+                                <label className={labelClass}>Service Used</label>
+                                <input
+                                  type="text"
+                                  value={testimonial.service || ''}
+                                  onChange={(e) => {
+                                    const newItems = [...(content.items || [])];
+                                    newItems[index] = { ...newItems[index], service: e.target.value };
+                                    handleUpdate('items', newItems);
+                                  }}
+                                  placeholder="Denting & Painting"
+                                  className={inputClass}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className={labelClass}>Rating</label>
+                                <StarRating
+                                  rating={testimonial.rating || 5}
+                                  onChange={(rating) => {
+                                    const newItems = [...(content.items || [])];
+                                    newItems[index] = { ...newItems[index], rating };
+                                    handleUpdate('items', newItems);
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Review Content */}
+                            <div className="space-y-2">
+                              <label className={labelClass}>
+                                <Quote className="w-4 h-4 inline mr-1" />
+                                Review Content
+                              </label>
+                              <textarea
+                                value={testimonial.content || ''}
+                                onChange={(e) => {
+                                  const newItems = [...(content.items || [])];
+                                  newItems[index] = { ...newItems[index], content: e.target.value };
+                                  handleUpdate('items', newItems);
+                                }}
+                                placeholder="Write the customer's review here..."
+                                rows={3}
+                                className={inputClass}
+                              />
+                            </div>
+
+                            {/* Image */}
+                            <div className="space-y-2">
+                              <label className={labelClass}>
+                                <Image className="w-4 h-4 inline mr-1" />
+                                Image (Optional)
+                              </label>
+                              <input
+                                type="text"
+                                value={testimonial.image || ''}
+                                onChange={(e) => {
+                                  const newItems = [...(content.items || [])];
+                                  newItems[index] = { ...newItems[index], image: e.target.value };
+                                  handleUpdate('items', newItems);
+                                }}
+                                placeholder="customer-car.jpg or https://..."
+                                className={inputClass}
+                              />
+                            </div>
+
+                            {/* Preview Card */}
+                            <div className="p-3 sm:p-4 rounded-xl bg-secondary">
+                              <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
+                                Preview
+                              </p>
+                              <div className="p-3 sm:p-4 rounded-xl bg-card shadow-sm">
+                                <div className="flex items-start gap-3 mb-3">
+                                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center bg-secondary flex-shrink-0">
+                                    <User className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-foreground truncate">
+                                      {testimonial.name || 'Customer Name'}
+                                    </p>
+                                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                                      {testimonial.role} • {testimonial.location}
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
+                                      <span className="text-yellow-400 text-xs sm:text-sm">
+                                        {'★'.repeat(testimonial.rating || 5)}
+                                      </span>
+                                      <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                                        {testimonial.carModel} • {testimonial.service}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                  "{testimonial.content || 'Review content will appear here...'}"
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+
+                {(!content.items || content.items.length === 0) && (
+                  <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                    <Star className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No testimonials added yet</p>
+                    <button onClick={addNewTestimonial} className="mt-2 text-primary text-sm font-medium">
+                      + Add your first testimonial
+                    </button>
+                  </div>
+                )}
+
+                {/* Stats Summary */}
+                {content.items && content.items.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 sm:gap-4 p-3 sm:p-4 rounded-xl bg-secondary">
+                    <div className="text-center">
+                      <p className="text-xl sm:text-2xl font-bold text-foreground">
+                        {content.items.length}
+                      </p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">Total Reviews</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xl sm:text-2xl font-bold text-yellow-500">
+                        {(content.items.reduce((acc: number, item: TestimonialItem) => acc + (item.rating || 5), 0) / content.items.length).toFixed(1)}
+                      </p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">Avg Rating</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xl sm:text-2xl font-bold text-green-500">
+                        {content.items.filter((item: TestimonialItem) => (item.rating || 5) === 5).length}
+                      </p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">5-Star Reviews</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
+export default TestimonialsEditor;
