@@ -54,7 +54,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
   };
 
   // Theme-aware styling helpers using CSS variables
-  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
+  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
   const labelClass = `text-sm font-medium text-muted-foreground`;
 
@@ -78,21 +78,6 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-          <SplitSquareHorizontal className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-            Before & After Editor
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Transformation showcases with comparison slider
-          </p>
-        </div>
-      </div>
-
       {/* Section Header Content */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
@@ -161,43 +146,25 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
-                    <label className={labelClass}>CTA Button Text</label>
+                    <label className={labelClass}>Before Label</label>
                     <input
                       type="text"
-                      value={content.cta || ''}
-                      onChange={(e) => handleUpdate('cta', e.target.value)}
-                      placeholder="Get Your Car Transformed"
+                      value={content.beforeLabel || ''}
+                      onChange={(e) => handleUpdate('beforeLabel', e.target.value)}
+                      placeholder="Before"
                       className={inputClass}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className={labelClass}>Select Label</label>
+                    <label className={labelClass}>After Label</label>
                     <input
                       type="text"
-                      value={content.selectLabel || ''}
-                      onChange={(e) => handleUpdate('selectLabel', e.target.value)}
-                      placeholder="Select Transformation"
+                      value={content.afterLabel || ''}
+                      onChange={(e) => handleUpdate('afterLabel', e.target.value)}
+                      placeholder="After"
                       className={inputClass}
                     />
                   </div>
-                </div>
-
-                {/* Preview */}
-                <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                  <p className="text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-                    Preview
-                  </p>
-                  <div className="inline-block px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-medium mb-2">
-                    {content.badge || 'Transformations'}
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                    {content.headline?.text || 'Before & After'}
-                    {' '}
-                    <span className="text-primary">{content.headline?.highlight || 'magic'}</span>
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {content.description}
-                  </p>
                 </div>
               </div>
             </motion.div>
@@ -248,31 +215,32 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                       onClick={() => toggleItem(index)}
                       className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
                     >
-                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          {item.afterImage && (
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex-shrink-0 bg-secondary">
+                          {item.afterImage ? (
                             <img
                               src={item.afterImage.startsWith('http') ? item.afterImage : `/assets/${item.afterImage}`}
                               alt={item.title}
-                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover flex-shrink-0"
-                              onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48'; }}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                             />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Image className="w-5 h-5 text-muted-foreground" />
+                            </div>
                           )}
-                          <div className="min-w-0">
-                            <p className="font-medium text-foreground text-sm sm:text-base truncate">
-                              {item.title || 'Transformation'}
-                            </p>
-                            <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                              {item.car} • {item.time}
-                            </p>
-                          </div>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground text-sm truncate">
+                            {item.title || 'New Transformation'}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {item.car || 'No car model'}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                        <span className="hidden sm:inline px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
-                          {item.savings}
-                        </span>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -299,7 +267,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                           className="overflow-hidden"
                         >
                           <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                            {/* Basic Info */}
+                            {/* Title & Car */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div className="space-y-2">
                                 <label className={labelClass}>Title</label>
@@ -311,7 +279,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                                     newItems[index] = { ...newItems[index], title: e.target.value };
                                     handleUpdate('items', newItems);
                                   }}
-                                  placeholder="Denting & Painting"
+                                  placeholder="Full Body Denting"
                                   className={inputClass}
                                 />
                               </div>
@@ -329,12 +297,13 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                                     newItems[index] = { ...newItems[index], car: e.target.value };
                                     handleUpdate('items', newItems);
                                   }}
-                                  placeholder="Hyundai Creta"
+                                  placeholder="Hyundai i20"
                                   className={inputClass}
                                 />
                               </div>
                             </div>
 
+                            {/* Description */}
                             <div className="space-y-2">
                               <label className={labelClass}>Description</label>
                               <textarea
@@ -344,13 +313,13 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                                   newItems[index] = { ...newItems[index], description: e.target.value };
                                   handleUpdate('items', newItems);
                                 }}
-                                placeholder="Complete bumper repair and full body paint restoration..."
+                                placeholder="Complete restoration from accident damage..."
                                 rows={2}
                                 className={inputClass}
                               />
                             </div>
 
-                            {/* Images */}
+                            {/* Before & After Images */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div className="space-y-2">
                                 <label className={labelClass}>
@@ -365,17 +334,9 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                                     newItems[index] = { ...newItems[index], beforeImage: e.target.value };
                                     handleUpdate('items', newItems);
                                   }}
-                                  placeholder="hyundai-creta-before.png"
+                                  placeholder="before-denting.jpg or https://..."
                                   className={inputClass}
                                 />
-                                {item.beforeImage && (
-                                  <img
-                                    src={item.beforeImage.startsWith('http') ? item.beforeImage : `/assets/${item.beforeImage}`}
-                                    alt="Before"
-                                    className="w-full h-20 sm:h-24 rounded-lg object-cover mt-2"
-                                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200x100?text=Before'; }}
-                                  />
-                                )}
                               </div>
 
                               <div className="space-y-2">
@@ -391,17 +352,9 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                                     newItems[index] = { ...newItems[index], afterImage: e.target.value };
                                     handleUpdate('items', newItems);
                                   }}
-                                  placeholder="hyundai-creta-after.png"
+                                  placeholder="after-denting.jpg or https://..."
                                   className={inputClass}
                                 />
-                                {item.afterImage && (
-                                  <img
-                                    src={item.afterImage.startsWith('http') ? item.afterImage : `/assets/${item.afterImage}`}
-                                    alt="After"
-                                    className="w-full h-20 sm:h-24 rounded-lg object-cover mt-2"
-                                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200x100?text=After'; }}
-                                  />
-                                )}
                               </div>
                             </div>
 
@@ -443,61 +396,6 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                                 />
                               </div>
                             </div>
-
-                            {/* Preview Card */}
-                            <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                              <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                                Comparison Preview
-                              </p>
-                              <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                                <div className="relative">
-                                  <span className="absolute top-1 left-1 sm:top-2 sm:left-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] sm:text-xs">Before</span>
-                                  {item.beforeImage ? (
-                                    <img
-                                      src={item.beforeImage.startsWith('http') ? item.beforeImage : `/assets/${item.beforeImage}`}
-                                      alt="Before"
-                                      className="w-full h-24 sm:h-32 rounded-lg object-cover"
-                                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200x128?text=Before'; }}
-                                    />
-                                  ) : (
-                                    <div className="w-full h-24 sm:h-32 rounded-lg flex items-center justify-center bg-muted">
-                                      <Image className="w-6 h-6 sm:w-8 sm:h-8 opacity-30" />
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="relative">
-                                  <span className="absolute top-1 left-1 sm:top-2 sm:left-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-green-500 text-white text-[10px] sm:text-xs">After</span>
-                                  {item.afterImage ? (
-                                    <img
-                                      src={item.afterImage.startsWith('http') ? item.afterImage : `/assets/${item.afterImage}`}
-                                      alt="After"
-                                      className="w-full h-24 sm:h-32 rounded-lg object-cover"
-                                      onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200x128?text=After'; }}
-                                    />
-                                  ) : (
-                                    <div className="w-full h-24 sm:h-32 rounded-lg flex items-center justify-center bg-muted">
-                                      <Image className="w-6 h-6 sm:w-8 sm:h-8 opacity-30" />
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                <div className="min-w-0">
-                                  <p className="font-medium text-foreground text-sm sm:text-base truncate">
-                                    {item.title} - {item.car}
-                                  </p>
-                                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                                    {item.description?.substring(0, 50)}...
-                                  </p>
-                                </div>
-                                <div className="text-left sm:text-right flex-shrink-0">
-                                  <p className="text-xs text-muted-foreground">
-                                    <Clock className="w-3 h-3 inline mr-1" />{item.time}
-                                  </p>
-                                  <p className="text-green-500 font-bold text-sm sm:text-base">{item.savings}</p>
-                                </div>
-                              </div>
-                            </div>
                           </div>
                         </motion.div>
                       )}
@@ -512,41 +410,6 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                     <button onClick={addNewTransformation} className="mt-2 text-primary text-sm font-medium">
                       + Add your first transformation
                     </button>
-                  </div>
-                )}
-
-                {/* Thumbnails Preview */}
-                {content.items && content.items.length > 0 && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                    <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                      Selector Preview
-                    </p>
-                    <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 -mx-1 px-1">
-                      {content.items.map((item: BeforeAfterItem, i: number) => (
-                        <div
-                          key={i}
-                          className={`flex-shrink-0 w-20 sm:w-24 rounded-lg overflow-hidden border-2 ${
-                            i === 0 ? 'border-primary' : 'border-border'
-                          }`}
-                        >
-                          {item.afterImage ? (
-                            <img
-                              src={item.afterImage.startsWith('http') ? item.afterImage : `/assets/${item.afterImage}`}
-                              alt={item.title}
-                              className="w-full h-12 sm:h-16 object-cover"
-                              onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/96x64'; }}
-                            />
-                          ) : (
-                            <div className="w-full h-12 sm:h-16 flex items-center justify-center bg-muted">
-                              <Image className="w-5 h-5 sm:w-6 sm:h-6 opacity-30" />
-                            </div>
-                          )}
-                          <p className="text-[10px] sm:text-xs p-1 text-center truncate bg-card text-muted-foreground">
-                            {item.title}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>

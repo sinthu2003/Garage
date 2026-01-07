@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Home,
   Type,
   Image,
   Play,
@@ -54,21 +53,6 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0">
-          <Home className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-            Hero Section Editor
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Main banner, headlines, CTAs, and statistics
-          </p>
-        </div>
-      </div>
-
       {/* Badge */}
       <div className="space-y-2">
         <label className={labelClass}>
@@ -144,20 +128,6 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
                   <p className="text-xs text-muted-foreground">
                     This text will be shown in the primary/accent color
                   </p>
-                </div>
-
-                {/* Live Preview */}
-                <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                  <p className="text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-                    Preview
-                  </p>
-                  <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                    {content.headline?.line1 || 'Premium Car'}
-                    <br />
-                    {content.headline?.line2 || 'Service at'}
-                    <br />
-                    <span className="text-primary">{content.headline?.highlight || 'Your Doorstep.'}</span>
-                  </h3>
                 </div>
               </div>
             </motion.div>
@@ -262,18 +232,33 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
 
       {/* Background Image */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('background')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('image')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('image')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
-            <motion.div animate={{ rotate: expandedSections.has('background') ? 90 : 0 }}>
+            <motion.div animate={{ rotate: expandedSections.has('image') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Image className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+            <Image className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Background Image</span>
           </div>
-        </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowImagePreview(!showImagePreview);
+            }}
+            className="p-2 rounded-lg hover:bg-secondary text-muted-foreground"
+          >
+            {showImagePreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
 
         <AnimatePresence>
-          {expandedSections.has('background') && (
+          {expandedSections.has('image') && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
@@ -282,39 +267,26 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 <div className="space-y-2">
-                  <label className={labelClass}>Image URL</label>
+                  <label className={labelClass}>Image URL or Path</label>
                   <input
                     type="text"
                     value={content.backgroundImage || ''}
                     onChange={(e) => handleUpdate('backgroundImage', e.target.value)}
-                    placeholder="https://images.unsplash.com/..."
+                    placeholder="hero-bg.jpg or https://..."
                     className={inputClass}
                   />
                 </div>
 
-                {content.backgroundImage && (
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => setShowImagePreview(!showImagePreview)}
-                      className="flex items-center gap-2 text-sm text-muted-foreground"
-                    >
-                      {showImagePreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      {showImagePreview ? 'Hide Preview' : 'Show Preview'}
-                    </button>
-
-                    {showImagePreview && (
-                      <div className="relative rounded-xl overflow-hidden aspect-video">
-                        <img
-                          src={content.backgroundImage}
-                          alt="Background Preview"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/800x400?text=Image+Error';
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-transparent" />
-                      </div>
-                    )}
+                {showImagePreview && content.backgroundImage && (
+                  <div className="rounded-xl overflow-hidden border border-border">
+                    <img
+                      src={content.backgroundImage}
+                      alt="Hero background preview"
+                      className="w-full h-32 sm:h-48 object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/800x400?text=Image+Not+Found';
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -323,7 +295,7 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
-      {/* Stats Section */}
+      {/* Statistics */}
       <div className={sectionClass}>
         <div
           onClick={() => toggleSection('stats')}
@@ -334,7 +306,7 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
             <motion.div animate={{ rotate: expandedSections.has('stats') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Statistics</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {content.stats?.length || 0}
@@ -343,7 +315,7 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              const newStat: HeroStat = { icon: 'Star', label: 'New Stat', value: '0', prefix: '', suffix: '' };
+              const newStat: HeroStat = { icon: 'Star', label: 'New Stat', value: '100', prefix: '', suffix: '+' };
               handleUpdate('stats', [...(content.stats || []), newStat]);
             }}
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
@@ -362,31 +334,26 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 {content.stats?.map((stat: HeroStat, index: number) => (
-                  <div
-                    key={index}
-                    className="p-3 sm:p-4 rounded-xl border border-border bg-card"
-                  >
+                  <div key={index} className="p-3 sm:p-4 rounded-xl bg-secondary/50">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">Stat #{index + 1}</span>
+                      <div className="flex items-center gap-1">
                         <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                        <span className="font-medium text-foreground text-sm sm:text-base">
-                          Stat #{index + 1}
-                        </span>
+                        <button
+                          onClick={() => {
+                            const newStats = content.stats?.filter((_: HeroStat, i: number) => i !== index);
+                            handleUpdate('stats', newStats);
+                          }}
+                          className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => {
-                          const newStats = content.stats?.filter((_: HeroStat, i: number) => i !== index);
-                          handleUpdate('stats', newStats);
-                        }}
-                        className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground">Icon Name</label>
+                        <label className="text-xs text-muted-foreground">Icon</label>
                         <select
                           value={stat.icon || 'Star'}
                           onChange={(e) => {
@@ -396,9 +363,8 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
                           }}
                           className={inputClass}
                         >
-                          <option value="ShieldCheck">Shield Check</option>
-                          <option value="Zap">Zap (Lightning)</option>
                           <option value="Award">Award</option>
+                          <option value="Shield">Shield</option>
                           <option value="Star">Star</option>
                           <option value="Users">Users</option>
                           <option value="Clock">Clock</option>
@@ -466,15 +432,6 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
                           className={inputClass}
                         />
                       </div>
-                    </div>
-
-                    {/* Stat Preview */}
-                    <div className="mt-3 p-3 rounded-lg bg-secondary">
-                      <p className="text-xs text-muted-foreground">Preview</p>
-                      <p className="text-base sm:text-lg font-bold text-foreground">
-                        {stat.prefix}{stat.value}{stat.suffix}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{stat.label}</p>
                     </div>
                   </div>
                 ))}

@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutGrid,
-  Type,
   MapPin,
   ChevronRight,
   Plus,
@@ -12,6 +10,11 @@ import {
   Building,
   Headphones,
   Copyright,
+  Phone,
+  Mail,
+  Clock,
+  Image,
+  Share2,
 } from 'lucide-react';
 import { useFooterContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
@@ -24,7 +27,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
   const { updateField } = useContent();
   const content = useFooterContent();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['description', 'services', 'company', 'support', 'cities'])
+    new Set(['brand', 'contact', 'services', 'company', 'support', 'cities'])
   );
 
   const toggleSection = (section: string) => {
@@ -42,7 +45,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
   };
 
   // Theme-aware styling helpers using CSS variables
-  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
+  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
   const labelClass = `text-sm font-medium text-muted-foreground`;
 
@@ -114,35 +117,91 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center flex-shrink-0">
-          <LayoutGrid className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-            Footer Editor
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Footer links, cities, and copyright
-          </p>
-        </div>
-      </div>
-
-      {/* Description */}
+      {/* Brand / Logo */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('description')} className={sectionHeaderClass}>
+        <button onClick={() => toggleSection('brand')} className={sectionHeaderClass}>
           <div className="flex items-center gap-2 sm:gap-3">
-            <motion.div animate={{ rotate: expandedSections.has('description') ? 90 : 0 }}>
+            <motion.div animate={{ rotate: expandedSections.has('brand') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Type className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Description & Copyright</span>
+            <Image className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Brand & Description</span>
           </div>
         </button>
 
         <AnimatePresence>
-          {expandedSections.has('description') && (
+          {expandedSections.has('brand') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>Brand Name</label>
+                    <input
+                      type="text"
+                      value={content.brandName || 'Addax'}
+                      onChange={(e) => handleUpdate('brandName', e.target.value)}
+                      placeholder="Addax"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Tagline</label>
+                    <input
+                      type="text"
+                      value={content.tagline || 'Automotive'}
+                      onChange={(e) => handleUpdate('tagline', e.target.value)}
+                      placeholder="Automotive"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>Logo Image URL</label>
+                  <input
+                    type="text"
+                    value={content.logoUrl || ''}
+                    onChange={(e) => handleUpdate('logoUrl', e.target.value)}
+                    placeholder="/assets/Logo.jpg or https://..."
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>Footer Description</label>
+                  <textarea
+                    value={content.description || ''}
+                    onChange={(e) => handleUpdate('description', e.target.value)}
+                    placeholder="India's leading car service network offering quality repairs at transparent prices with doorstep convenience."
+                    rows={3}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Contact Information */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('contact')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('contact') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Contact Information</span>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('contact') && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
@@ -151,38 +210,114 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 <div className="space-y-2">
-                  <label className={labelClass}>Footer Description</label>
-                  <textarea
-                    value={content.description || ''}
-                    onChange={(e) => handleUpdate('description', e.target.value)}
-                    placeholder="India's leading car service network..."
-                    rows={3}
+                  <label className={labelClass}>
+                    <Phone className="w-4 h-4 inline mr-1" />
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+                    value={content.phone || '+91 98765 43210'}
+                    onChange={(e) => handleUpdate('phone', e.target.value)}
+                    placeholder="+91 98765 43210"
                     className={inputClass}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label className={labelClass}>
-                    <Copyright className="w-4 h-4 inline mr-1" />
-                    Copyright Text
+                    <Mail className="w-4 h-4 inline mr-1" />
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={content.email || 'support@addaxautomotive.in'}
+                    onChange={(e) => handleUpdate('email', e.target.value)}
+                    placeholder="support@addaxautomotive.in"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>
+                    <Clock className="w-4 h-4 inline mr-1" />
+                    Working Hours
                   </label>
                   <input
                     type="text"
-                    value={content.copyright || ''}
-                    onChange={(e) => handleUpdate('copyright', e.target.value)}
-                    placeholder="© {year} Addax Automotive. All rights reserved."
+                    value={content.workingHours || 'Mon-Sun: 8AM - 8PM'}
+                    onChange={(e) => handleUpdate('workingHours', e.target.value)}
+                    placeholder="Mon-Sun: 8AM - 8PM"
                     className={inputClass}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Use <code className="px-1 py-0.5 rounded bg-muted">{'{year}'}</code> to auto-insert current year
-                  </p>
                 </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
-                {/* Copyright Preview */}
-                <div className="p-3 rounded-lg bg-secondary">
-                  <p className="text-sm text-muted-foreground">
-                    {(content.copyright || '© {year} Addax Automotive').replace('{year}', new Date().getFullYear().toString())}
-                  </p>
+      {/* Social Links */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('social')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('social') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <Share2 className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Social Links</span>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('social') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>Facebook</label>
+                    <input
+                      type="url"
+                      value={content.social?.facebook || ''}
+                      onChange={(e) => handleUpdate('social.facebook', e.target.value)}
+                      placeholder="https://facebook.com/..."
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Twitter / X</label>
+                    <input
+                      type="url"
+                      value={content.social?.twitter || ''}
+                      onChange={(e) => handleUpdate('social.twitter', e.target.value)}
+                      placeholder="https://twitter.com/..."
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Instagram</label>
+                    <input
+                      type="url"
+                      value={content.social?.instagram || ''}
+                      onChange={(e) => handleUpdate('social.instagram', e.target.value)}
+                      placeholder="https://instagram.com/..."
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>YouTube</label>
+                    <input
+                      type="url"
+                      value={content.social?.youtube || ''}
+                      onChange={(e) => handleUpdate('social.youtube', e.target.value)}
+                      placeholder="https://youtube.com/..."
+                      className={inputClass}
+                    />
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -232,7 +367,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
             <motion.div animate={{ rotate: expandedSections.has('company') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Building className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            <Building className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Company Links</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {content.links?.company?.length || 0}
@@ -297,13 +432,19 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
 
       {/* Cities */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('cities')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('cities')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('cities')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('cities') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
             <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Service Cities</span>
+            <span className="font-medium text-foreground text-sm sm:text-base">Service Cities (We Serve)</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {content.links?.cities?.length || 0}
             </span>
@@ -317,7 +458,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('cities') && (
@@ -357,27 +498,8 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
 
                 {(!content.links?.cities || content.links.cities.length === 0) && (
                   <p className="text-center py-4 text-sm text-muted-foreground">
-                    No cities added. <button onClick={() => handleUpdate('links.cities', ['Coimbatore'])} className="text-primary">Add one</button>
+                    No cities added. <button onClick={() => handleUpdate('links.cities', ['Coimbatore', 'Chennai', 'Bangalore'])} className="text-primary">Add defaults</button>
                   </p>
-                )}
-
-                {/* Cities Preview */}
-                {content.links?.cities && content.links.cities.length > 0 && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                    <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                      Cities Preview
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {content.links.cities.map((city: string, i: number) => (
-                        <span
-                          key={i}
-                          className="px-3 py-1 rounded-full text-xs sm:text-sm bg-card text-muted-foreground"
-                        >
-                          📍 {city}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
                 )}
               </div>
             </motion.div>
@@ -385,64 +507,67 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
-      {/* Footer Preview */}
-      <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-        <p className="text-xs uppercase tracking-wider mb-4 text-muted-foreground">
-          Footer Layout Preview
-        </p>
-        <div className="p-4 sm:p-6 rounded-xl bg-gray-800">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-sm">
-            {/* Brand Column */}
-            <div className="col-span-2 sm:col-span-1">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">A</span>
+      {/* Copyright & Bottom Bar */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('copyright')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('copyright') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <Copyright className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Copyright & Bottom Bar</span>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('copyright') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="space-y-2">
+                  <label className={labelClass}>Copyright Text</label>
+                  <input
+                    type="text"
+                    value={content.copyright || ''}
+                    onChange={(e) => handleUpdate('copyright', e.target.value)}
+                    placeholder="© {year} Addax Automotive. All rights reserved."
+                    className={inputClass}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Use <code className="px-1 py-0.5 rounded bg-muted">{'{year}'}</code> to auto-insert current year
+                  </p>
                 </div>
-                <span className="font-bold text-white">Addax</span>
-              </div>
-              <p className="text-gray-400 text-xs line-clamp-3">
-                {content.description?.substring(0, 80)}...
-              </p>
-            </div>
 
-            {/* Services */}
-            <div>
-              <p className="font-semibold text-white mb-2 text-xs sm:text-sm">Services</p>
-              <div className="space-y-1">
-                {content.links?.services?.slice(0, 4).map((link: { name: string; href: string }, i: number) => (
-                  <p key={i} className="text-gray-400 text-[10px] sm:text-xs truncate">{link.name}</p>
-                ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>Privacy Policy URL</label>
+                    <input
+                      type="text"
+                      value={content.privacyUrl || '#'}
+                      onChange={(e) => handleUpdate('privacyUrl', e.target.value)}
+                      placeholder="/privacy-policy"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Terms of Service URL</label>
+                    <input
+                      type="text"
+                      value={content.termsUrl || '#'}
+                      onChange={(e) => handleUpdate('termsUrl', e.target.value)}
+                      placeholder="/terms-of-service"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-
-            {/* Company */}
-            <div>
-              <p className="font-semibold text-white mb-2 text-xs sm:text-sm">Company</p>
-              <div className="space-y-1">
-                {content.links?.company?.slice(0, 4).map((link: { name: string; href: string }, i: number) => (
-                  <p key={i} className="text-gray-400 text-[10px] sm:text-xs truncate">{link.name}</p>
-                ))}
-              </div>
-            </div>
-
-            {/* Cities */}
-            <div>
-              <p className="font-semibold text-white mb-2 text-xs sm:text-sm">Cities</p>
-              <div className="flex flex-wrap gap-1">
-                {content.links?.cities?.slice(0, 6).map((city: string, i: number) => (
-                  <span key={i} className="text-gray-400 text-[10px] sm:text-xs">{city}{i < 5 ? ',' : ''}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Copyright */}
-          <div className="mt-4 sm:mt-6 pt-4 border-t border-gray-700">
-            <p className="text-gray-500 text-[10px] sm:text-xs text-center">
-              {(content.copyright || '© {year} Addax Automotive').replace('{year}', new Date().getFullYear().toString())}
-            </p>
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

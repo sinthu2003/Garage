@@ -73,7 +73,7 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
   };
 
   // Theme-aware styling helpers using CSS variables
-  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
+  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
   const labelClass = `text-sm font-medium text-muted-foreground`;
 
@@ -100,21 +100,6 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center flex-shrink-0">
-          <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-            Features Editor
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Why choose us section with feature cards
-          </p>
-        </div>
-      </div>
-
       {/* Section Header Content */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
@@ -169,47 +154,21 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                     />
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <label className={labelClass}>Description</label>
-                  <textarea
-                    value={content.description || ''}
-                    onChange={(e) => handleUpdate('description', e.target.value)}
-                    placeholder="We've reimagined car service with technology..."
-                    rows={2}
-                    className={inputClass}
-                  />
-                </div>
-
-                {/* Preview */}
-                <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                  <p className="text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-                    Preview
-                  </p>
-                  <div className="inline-block px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-medium mb-2">
-                    {content.badge || 'Why Choose Us'}
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                    {content.headline?.line1 || 'Built for'}
-                    {' '}
-                    <span className="text-primary">{content.headline?.highlight || 'modern car owners'}</span>
-                  </h3>
-                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Main Feature Showcase */}
+      {/* Main Feature Card */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('mainFeature')} className={sectionHeaderClass}>
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('mainFeature') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Image className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Main Feature Showcase</span>
+            <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Main Feature Card</span>
           </div>
         </button>
 
@@ -223,23 +182,12 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 <div className="space-y-2">
-                  <label className={labelClass}>Badge</label>
-                  <input
-                    type="text"
-                    value={content.mainFeature?.badge || ''}
-                    onChange={(e) => handleUpdate('mainFeature.badge', e.target.value)}
-                    placeholder="Premium Quality"
-                    className={inputClass}
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <label className={labelClass}>Title</label>
                   <input
                     type="text"
                     value={content.mainFeature?.title || ''}
                     onChange={(e) => handleUpdate('mainFeature.title', e.target.value)}
-                    placeholder="State-of-the-art Workshop"
+                    placeholder="6-Month Warranty"
                     className={inputClass}
                   />
                 </div>
@@ -249,99 +197,47 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                   <textarea
                     value={content.mainFeature?.description || ''}
                     onChange={(e) => handleUpdate('mainFeature.description', e.target.value)}
-                    placeholder="Our workshops are equipped with the latest diagnostic tools..."
-                    rows={2}
+                    placeholder="We stand behind our work with an industry-leading warranty..."
+                    rows={3}
                     className={inputClass}
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className={labelClass}>
-                    <Image className="w-4 h-4 inline mr-1" />
-                    Image
-                  </label>
-                  <input
-                    type="text"
-                    value={content.mainFeature?.image || ''}
-                    onChange={(e) => handleUpdate('mainFeature.image', e.target.value)}
-                    placeholder="CarInspection.jpg"
-                    className={inputClass}
-                  />
-                </div>
-
-                {/* Highlights */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className={labelClass}>Highlights</label>
-                    <button
-                      onClick={() => {
-                        const newHighlights = [...(content.mainFeature?.highlights || []), 'New highlight'];
-                        handleUpdate('mainFeature.highlights', newHighlights);
-                      }}
-                      className="text-sm text-primary font-medium"
-                    >
-                      + Add
-                    </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <Image className="w-4 h-4 inline mr-1" />
+                      Image
+                    </label>
+                    <input
+                      type="text"
+                      value={content.mainFeature?.image || ''}
+                      onChange={(e) => handleUpdate('mainFeature.image', e.target.value)}
+                      placeholder="warranty.jpg"
+                      className={inputClass}
+                    />
                   </div>
                   <div className="space-y-2">
-                    {content.mainFeature?.highlights?.map((highlight: string, index: number) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <input
-                          type="text"
-                          value={highlight}
-                          onChange={(e) => {
-                            const newHighlights = [...(content.mainFeature?.highlights || [])];
-                            newHighlights[index] = e.target.value;
-                            handleUpdate('mainFeature.highlights', newHighlights);
-                          }}
-                          className={`flex-1 ${inputClass}`}
-                        />
-                        <button
-                          onClick={() => {
-                            const newHighlights = content.mainFeature?.highlights?.filter((_: string, i: number) => i !== index);
-                            handleUpdate('mainFeature.highlights', newHighlights);
-                          }}
-                          className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Preview */}
-                {content.mainFeature?.image && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                    <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                      Preview
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                      <img
-                        src={content.mainFeature.image.startsWith('http') ? content.mainFeature.image : `/assets/${content.mainFeature.image}`}
-                        alt="Main Feature"
-                        className="w-full sm:w-32 h-24 rounded-xl object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/128x96'; }}
+                    <label className={labelClass}>
+                      <Palette className="w-4 h-4 inline mr-1" />
+                      Gradient Color
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={content.mainFeature?.gradient || '#3B82F6'}
+                        onChange={(e) => handleUpdate('mainFeature.gradient', e.target.value)}
+                        className="w-10 h-10 rounded-lg cursor-pointer border-0"
                       />
-                      <div className="flex-1 min-w-0">
-                        <span className="inline-block px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-medium mb-1">
-                          {content.mainFeature?.badge}
-                        </span>
-                        <h4 className="font-bold text-foreground truncate">
-                          {content.mainFeature?.title}
-                        </h4>
-                        <div className="flex flex-wrap gap-1 sm:gap-2 mt-2">
-                          {content.mainFeature?.highlights?.slice(0, 3).map((h: string, i: number) => (
-                            <span key={i} className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">
-                              {h}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                      <input
+                        type="text"
+                        value={content.mainFeature?.gradient || '#3B82F6'}
+                        onChange={(e) => handleUpdate('mainFeature.gradient', e.target.value)}
+                        className={`flex-1 ${inputClass}`}
+                      />
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             </motion.div>
           )}
@@ -350,13 +246,19 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
 
       {/* Feature Items */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('items')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('items')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('items')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('items') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
             <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Feature Cards</span>
+            <span className="font-medium text-foreground text-sm sm:text-base">Feature Items</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {content.items?.length || 0}
             </span>
@@ -370,7 +272,7 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('items') && (
@@ -383,7 +285,6 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 {content.items?.map((feature: FeatureItem, index: number) => {
                   const IconComponent = getIconComponent(feature.icon);
-                  
                   return (
                     <div
                       key={index}
@@ -394,22 +295,17 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                         onClick={() => toggleItem(index)}
                         className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
                       >
-                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                          <div 
-                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                          <div
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                             style={{ backgroundColor: `${feature.color}20` }}
                           >
                             <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: feature.color }} />
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-medium text-foreground text-sm sm:text-base truncate">
-                              {feature.title || 'New Feature'}
-                            </p>
-                            <p className="text-xs sm:text-sm truncate max-w-[150px] sm:max-w-xs text-muted-foreground">
-                              {feature.description?.substring(0, 50)}...
-                            </p>
-                          </div>
+                          <span className="font-medium text-foreground text-sm sm:text-base truncate">
+                            {feature.title || 'New Feature'}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                           <button
@@ -533,27 +429,6 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                                   className={inputClass}
                                 />
                               </div>
-
-                              {/* Preview Card */}
-                              <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                                <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                                  Preview
-                                </p>
-                                <div className="p-3 sm:p-4 rounded-xl bg-card shadow-sm">
-                                  <div 
-                                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3"
-                                    style={{ backgroundColor: `${feature.color}20` }}
-                                  >
-                                    <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: feature.color }} />
-                                  </div>
-                                  <h4 className="font-bold mb-1 text-foreground text-sm sm:text-base">
-                                    {feature.title || 'Feature Title'}
-                                  </h4>
-                                  <p className="text-xs sm:text-sm text-muted-foreground">
-                                    {feature.description || 'Feature description...'}
-                                  </p>
-                                </div>
-                              </div>
                             </div>
                           </motion.div>
                         )}
@@ -569,31 +444,6 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                     <button onClick={addNewFeature} className="mt-2 text-primary text-sm font-medium">
                       + Add your first feature
                     </button>
-                  </div>
-                )}
-
-                {/* Grid Preview */}
-                {content.items && content.items.length > 0 && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                    <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                      Grid Preview ({content.items.length} features)
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {content.items.map((feature: FeatureItem, i: number) => {
-                        const Icon = getIconComponent(feature.icon);
-                        return (
-                          <div 
-                            key={i} 
-                            className="p-2 sm:p-3 rounded-lg text-center bg-card"
-                          >
-                            <Icon className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1" style={{ color: feature.color }} />
-                            <p className="text-[10px] sm:text-xs truncate text-muted-foreground">
-                              {feature.title}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
                   </div>
                 )}
               </div>

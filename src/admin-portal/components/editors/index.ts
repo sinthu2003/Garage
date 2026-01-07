@@ -1,7 +1,12 @@
+// ============================================================================
+// EDITOR EXPORTS
+// Location: src/admin-portal/components/editors/index.ts
+// ============================================================================
+
 // Export all section-specific editors
 export { HeroEditor } from './HeroEditor';
 export { ServicesEditor } from './ServicesEditor';
-export { ServiceDetailEditor } from './ServiceDetailEditor'; // New export
+export { ServiceDetailEditor } from './ServiceDetailEditor';
 export { PricingEditor } from './PricingEditor';
 export { TestimonialsEditor } from './TestimonialsEditor';
 export { FAQEditor } from './FAQEditor';
@@ -16,7 +21,21 @@ export { GlobalSettingsEditor } from './GlobalSettingsEditor';
 export { BookingWidgetEditor } from './BookingWidgetEditor';
 export { PagesEditor } from './PagesEditor';
 
-// Editor metadata for dynamic rendering
+// Export preview components
+export { 
+  SectionPreviewWrapper, 
+  PreviewPanelHeader, 
+  PreviewUrlBar,
+  devicePresets,
+  getPreviewUrl,
+  type DeviceType 
+} from './SectionPreviewWrapper';
+
+// ============================================================================
+// EDITOR CONFIGURATION
+// Metadata for dynamic rendering and navigation
+// ============================================================================
+
 export const editorConfig = [
   {
     id: 'hero',
@@ -24,20 +43,29 @@ export const editorConfig = [
     icon: 'Sparkles',
     color: 'from-orange-500 to-red-500',
     component: 'HeroEditor',
+    description: 'Main banner, headlines, CTAs, and statistics',
+    previewRoute: '/#hero',
+    category: 'content',
   },
   {
     id: 'services',
     label: 'Services Landing',
-    icon: 'LayoutGrid', // Changed Icon
+    icon: 'LayoutGrid',
     color: 'from-blue-500 to-cyan-500',
     component: 'ServicesEditor',
+    description: 'Services section header and layout settings',
+    previewRoute: '/#services',
+    category: 'content',
   },
   {
-    id: 'serviceDetail', // New Config Entry
+    id: 'serviceDetail',
     label: 'Service Details',
     icon: 'Wrench',
     color: 'from-orange-500 to-red-500',
     component: 'ServiceDetailEditor',
+    description: 'Individual service offerings and details',
+    previewRoute: '/services',
+    category: 'content',
   },
   {
     id: 'pricing',
@@ -45,6 +73,9 @@ export const editorConfig = [
     icon: 'DollarSign',
     color: 'from-teal-500 to-emerald-500',
     component: 'PricingEditor',
+    description: 'Price comparison table and savings highlights',
+    previewRoute: '/#pricing',
+    category: 'content',
   },
   {
     id: 'testimonials',
@@ -52,6 +83,9 @@ export const editorConfig = [
     icon: 'Star',
     color: 'from-yellow-500 to-amber-500',
     component: 'TestimonialsEditor',
+    description: 'Customer reviews and ratings carousel',
+    previewRoute: '/#testimonials',
+    category: 'content',
   },
   {
     id: 'faq',
@@ -59,6 +93,9 @@ export const editorConfig = [
     icon: 'HelpCircle',
     color: 'from-green-500 to-emerald-500',
     component: 'FAQEditor',
+    description: 'Frequently asked questions and contact info',
+    previewRoute: '/#faq',
+    category: 'content',
   },
   {
     id: 'features',
@@ -66,6 +103,9 @@ export const editorConfig = [
     icon: 'Zap',
     color: 'from-amber-500 to-orange-500',
     component: 'FeaturesEditor',
+    description: 'Why choose us section with feature cards',
+    previewRoute: '/#features',
+    category: 'sections',
   },
   {
     id: 'howItWorks',
@@ -73,6 +113,9 @@ export const editorConfig = [
     icon: 'Layers',
     color: 'from-emerald-500 to-teal-500',
     component: 'HowItWorksEditor',
+    description: 'Step-by-step process explanation',
+    previewRoute: '/#how-it-works',
+    category: 'sections',
   },
   {
     id: 'partners',
@@ -80,6 +123,9 @@ export const editorConfig = [
     icon: 'Users',
     color: 'from-indigo-500 to-purple-500',
     component: 'PartnersEditor',
+    description: 'Partner brands and trust badges',
+    previewRoute: '/#partners',
+    category: 'sections',
   },
   {
     id: 'gallery',
@@ -87,6 +133,9 @@ export const editorConfig = [
     icon: 'Image',
     color: 'from-pink-500 to-rose-500',
     component: 'GalleryEditor',
+    description: 'Image gallery and showcase',
+    previewRoute: '/#gallery',
+    category: 'sections',
   },
   {
     id: 'beforeAfter',
@@ -94,6 +143,9 @@ export const editorConfig = [
     icon: 'SplitSquareHorizontal',
     color: 'from-violet-500 to-purple-500',
     component: 'BeforeAfterEditor',
+    description: 'Before and after comparison slider',
+    previewRoute: '/#before-after',
+    category: 'sections',
   },
   {
     id: 'navbar',
@@ -101,6 +153,9 @@ export const editorConfig = [
     icon: 'Navigation',
     color: 'from-slate-600 to-slate-800',
     component: 'NavbarEditor',
+    description: 'Navigation menu and logo settings',
+    previewRoute: '/',
+    category: 'layout',
   },
   {
     id: 'footer',
@@ -108,6 +163,9 @@ export const editorConfig = [
     icon: 'LayoutGrid',
     color: 'from-gray-600 to-gray-800',
     component: 'FooterEditor',
+    description: 'Footer links, contact info, and social media',
+    previewRoute: '/#footer',
+    category: 'layout',
   },
   {
     id: 'global',
@@ -115,6 +173,9 @@ export const editorConfig = [
     icon: 'Globe',
     color: 'from-indigo-500 to-blue-500',
     component: 'GlobalSettingsEditor',
+    description: 'Site-wide settings, colors, and metadata',
+    previewRoute: '/',
+    category: 'settings',
   },
   {
     id: 'bookingWidget',
@@ -122,6 +183,9 @@ export const editorConfig = [
     icon: 'CalendarCheck',
     color: 'from-purple-500 to-violet-500',
     component: 'BookingWidgetEditor',
+    description: 'Booking form configuration',
+    previewRoute: '/#booking',
+    category: 'settings',
   },
   {
     id: 'pages',
@@ -129,8 +193,99 @@ export const editorConfig = [
     icon: 'FileText',
     color: 'from-cyan-500 to-blue-500',
     component: 'PagesEditor',
+    description: 'Manage site pages and their content',
+    previewRoute: '/',
+    category: 'settings',
   },
 ] as const;
 
-// Type for editor IDs
-export type EditorId = typeof editorConfig[number]['id'];
+// ============================================================================
+// TYPES
+// ============================================================================
+
+// Type for editor IDs (includes dynamic page previews)
+export type EditorId = typeof editorConfig[number]['id'] | 'servicesPage' | 'notFoundPage';
+
+// Type for editor config items
+export type EditorConfigItem = typeof editorConfig[number];
+
+// Type for categories
+export type EditorCategory = 'content' | 'sections' | 'layout' | 'settings';
+
+// Type for page preview mapping
+export type PagePreviewId = 'servicesPage' | 'notFoundPage';
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Get editor configuration by ID
+ */
+export const getEditorConfig = (id: EditorId): EditorConfigItem | undefined => {
+  return editorConfig.find(config => config.id === id);
+};
+
+/**
+ * Get preview route by editor ID
+ */
+export const getEditorPreviewRoute = (id: EditorId): string => {
+  // Handle dynamic page previews
+  if (id === 'servicesPage') return '/services';
+  if (id === 'notFoundPage') return '/404';
+  
+  const config = getEditorConfig(id);
+  return config?.previewRoute || '/';
+};
+
+/**
+ * Get editors grouped by category
+ */
+export const editorCategories: Record<EditorCategory, readonly string[]> = {
+  content: ['hero', 'services', 'serviceDetail', 'pricing', 'testimonials', 'faq'],
+  sections: ['features', 'howItWorks', 'partners', 'gallery', 'beforeAfter'],
+  layout: ['navbar', 'footer'],
+  settings: ['global', 'bookingWidget', 'pages'],
+} as const;
+
+/**
+ * Get editors by category
+ */
+export const getEditorsByCategory = (category: EditorCategory): EditorConfigItem[] => {
+  const ids = editorCategories[category];
+  return editorConfig.filter(config => ids.includes(config.id));
+};
+
+/**
+ * Get all category labels
+ */
+export const categoryLabels: Record<EditorCategory, string> = {
+  content: 'Content Sections',
+  sections: 'Additional Sections', 
+  layout: 'Layout Components',
+  settings: 'Settings & Configuration',
+};
+
+/**
+ * Check if an editor has a direct preview component
+ */
+export const hasDirectPreview = (id: EditorId): boolean => {
+  const noPreviewIds: string[] = ['serviceDetail', 'global'];
+  // 'pages' has dynamic preview based on selected tab
+  return !noPreviewIds.includes(id);
+};
+
+/**
+ * Get the preview section ID for the Pages editor based on selected tab
+ * This is used by AdminPage to dynamically switch preview when PagesEditor tab changes
+ */
+export const getPagesPreviewId = (selectedPage: 'services' | 'notFound'): PagePreviewId => {
+  return selectedPage === 'services' ? 'servicesPage' : 'notFoundPage';
+};
+
+/**
+ * Check if an editor ID is a dynamic page preview
+ */
+export const isDynamicPagePreview = (id: EditorId): boolean => {
+  return id === 'servicesPage' || id === 'notFoundPage';
+};

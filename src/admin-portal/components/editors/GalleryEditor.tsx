@@ -69,7 +69,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
   };
 
   // Theme-aware styling helpers using CSS variables
-  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
+  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
   const labelClass = `text-sm font-medium text-muted-foreground`;
 
@@ -98,28 +98,9 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
   };
 
   // Get icon component by name
-  const getIconComponent = (iconName: string) => {
-    const iconOption = statIconOptions.find(opt => opt.value === iconName);
-    return iconOption?.icon || Wrench;
-  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0">
-          <Image className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-            Gallery Editor
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Image gallery with categories and stats
-          </p>
-        </div>
-      </div>
-
       {/* Section Header Content */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
@@ -185,21 +166,6 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                     className={inputClass}
                   />
                 </div>
-
-                {/* Preview */}
-                <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                  <p className="text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-                    Preview
-                  </p>
-                  <div className="inline-block px-3 py-1 rounded-full bg-pink-100 text-pink-700 text-xs font-medium mb-2">
-                    {content.badge || 'Gallery'}
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                    {content.headline?.line1 || 'Our work'}
-                    {' '}
-                    <span className="text-primary">{content.headline?.highlight || 'speaks for itself'}</span>
-                  </h3>
-                </div>
               </div>
             </motion.div>
           )}
@@ -208,7 +174,13 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
 
       {/* Categories */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('categories')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('categories')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('categories')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('categories') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -228,7 +200,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('categories') && (
@@ -238,67 +210,54 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border">
+              <div className="p-3 sm:p-4 pt-0 space-y-2 sm:space-y-3 border-t border-border">
                 {content.categories?.map((category: GalleryCategory, index: number) => (
-                  <div key={index} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                      <input
-                        type="text"
-                        value={category.id || ''}
-                        onChange={(e) => {
-                          const newCategories = [...(content.categories || [])];
-                          newCategories[index] = { ...newCategories[index], id: e.target.value };
-                          handleUpdate('categories', newCategories);
-                        }}
-                        placeholder="category-id"
-                        className={`w-full sm:w-32 ${inputClass}`}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 flex-1">
-                      <input
-                        type="text"
-                        value={category.label || ''}
-                        onChange={(e) => {
-                          const newCategories = [...(content.categories || [])];
-                          newCategories[index] = { ...newCategories[index], label: e.target.value };
-                          handleUpdate('categories', newCategories);
-                        }}
-                        placeholder="Category Label"
-                        className={`flex-1 ${inputClass}`}
-                      />
-                      <button
-                        onClick={() => {
-                          const newCategories = content.categories?.filter((_: GalleryCategory, i: number) => i !== index);
-                          handleUpdate('categories', newCategories);
-                        }}
-                        className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
-                        disabled={category.id === 'all'}
-                      >
-                        <Trash2 className={`w-4 h-4 ${category.id === 'all' ? 'opacity-30' : ''}`} />
-                      </button>
-                    </div>
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 sm:gap-3"
+                  >
+                    <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
+                    <input
+                      type="text"
+                      value={category.id || ''}
+                      onChange={(e) => {
+                        const newCategories = [...(content.categories || [])];
+                        newCategories[index] = { ...newCategories[index], id: e.target.value };
+                        handleUpdate('categories', newCategories);
+                      }}
+                      placeholder="category-id"
+                      className={`w-24 sm:w-32 ${inputClass}`}
+                    />
+                    <input
+                      type="text"
+                      value={category.label || ''}
+                      onChange={(e) => {
+                        const newCategories = [...(content.categories || [])];
+                        newCategories[index] = { ...newCategories[index], label: e.target.value };
+                        handleUpdate('categories', newCategories);
+                      }}
+                      placeholder="Category Label"
+                      className={`flex-1 ${inputClass}`}
+                    />
+                    <button
+                      onClick={() => {
+                        const newCategories = content.categories?.filter((_: GalleryCategory, i: number) => i !== index);
+                        handleUpdate('categories', newCategories);
+                      }}
+                      className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
 
-                {/* Category Pills Preview */}
-                {content.categories && content.categories.length > 0 && (
-                  <div className="p-3 rounded-lg bg-secondary">
-                    <p className="text-xs mb-2 text-muted-foreground">Filter Preview</p>
-                    <div className="flex flex-wrap gap-2">
-                      {content.categories.map((cat: GalleryCategory, i: number) => (
-                        <span
-                          key={i}
-                          className={`px-3 py-1 rounded-full text-xs ${
-                            i === 0
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-card text-muted-foreground'
-                          }`}
-                        >
-                          {cat.label}
-                        </span>
-                      ))}
-                    </div>
+                {(!content.categories || content.categories.length === 0) && (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <Tag className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No categories added yet</p>
+                    <button onClick={addNewCategory} className="mt-2 text-primary text-sm font-medium">
+                      + Add category
+                    </button>
                   </div>
                 )}
               </div>
@@ -307,9 +266,15 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
-      {/* Gallery Images */}
+      {/* Images */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('images')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('images')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('images')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('images') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -329,7 +294,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('images') && (
@@ -340,35 +305,6 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                {/* Grid Preview */}
-                {content.images && content.images.length > 0 && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                    <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                      Gallery Preview ({content.images.length} images)
-                    </p>
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-1 sm:gap-2">
-                      {content.images.slice(0, 12).map((img: GalleryImage, i: number) => (
-                        <div
-                          key={i}
-                          className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
-                          onClick={() => setPreviewImage(img.src)}
-                        >
-                          <img
-                            src={img.src?.startsWith('http') ? img.src : `/assets/${img.src}`}
-                            alt={img.alt}
-                            className="w-full h-full object-cover"
-                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/100'; }}
-                          />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Image List */}
                 {content.images?.map((image: GalleryImage, index: number) => (
                   <div
                     key={image.id || index}
@@ -377,28 +313,47 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                     {/* Image Header */}
                     <button
                       onClick={() => toggleImage(index)}
-                      className="w-full flex items-center justify-between p-2.5 sm:p-3 text-left hover:bg-secondary/50"
+                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
                     >
-                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                        {image.src && (
-                          <img
-                            src={image.src.startsWith('http') ? image.src : `/assets/${image.src}`}
-                            alt={image.alt}
-                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover flex-shrink-0"
-                            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48'; }}
-                          />
-                        )}
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
+                          {image.src ? (
+                            <img
+                              src={image.src.startsWith('http') ? image.src : `/assets/${image.src}`}
+                              alt={image.alt || ''}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Image className="w-5 h-5 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-sm text-foreground truncate">
-                            {image.title || 'Untitled'}
+                          <p className="font-medium text-foreground text-sm truncate">
+                            {image.title || 'Untitled Image'}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {image.category}
+                          <p className="text-xs text-muted-foreground truncate">
+                            {image.category || 'No category'}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                        {image.src && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewImage(image.src);
+                            }}
+                            className="p-1.5 sm:p-2 rounded-lg hover:bg-secondary text-muted-foreground"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -422,21 +377,21 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
+                          className="overflow-hidden border-t border-border"
                         >
-                          <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div className="space-y-1">
-                                <label className="text-xs text-muted-foreground">Title</label>
+                                <label className="text-xs text-muted-foreground">Image Source</label>
                                 <input
                                   type="text"
-                                  value={image.title || ''}
+                                  value={image.src || ''}
                                   onChange={(e) => {
                                     const newImages = [...(content.images || [])];
-                                    newImages[index] = { ...newImages[index], title: e.target.value };
+                                    newImages[index] = { ...newImages[index], src: e.target.value };
                                     handleUpdate('images', newImages);
                                   }}
-                                  placeholder="Engine Service"
+                                  placeholder="image.jpg or https://..."
                                   className={inputClass}
                                 />
                               </div>
@@ -444,7 +399,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                               <div className="space-y-1">
                                 <label className="text-xs text-muted-foreground">Category</label>
                                 <select
-                                  value={image.category || 'all'}
+                                  value={image.category || ''}
                                   onChange={(e) => {
                                     const newImages = [...(content.images || [])];
                                     newImages[index] = { ...newImages[index], category: e.target.value };
@@ -452,6 +407,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                                   }}
                                   className={inputClass}
                                 >
+                                  <option value="">Select category</option>
                                   {content.categories?.map((cat: GalleryCategory) => (
                                     <option key={cat.id} value={cat.id}>{cat.label}</option>
                                   ))}
@@ -460,16 +416,16 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                             </div>
 
                             <div className="space-y-1">
-                              <label className="text-xs text-muted-foreground">Image Source</label>
+                              <label className="text-xs text-muted-foreground">Title</label>
                               <input
                                 type="text"
-                                value={image.src || ''}
+                                value={image.title || ''}
                                 onChange={(e) => {
                                   const newImages = [...(content.images || [])];
-                                  newImages[index] = { ...newImages[index], src: e.target.value };
+                                  newImages[index] = { ...newImages[index], title: e.target.value };
                                   handleUpdate('images', newImages);
                                 }}
-                                placeholder="PeriodicService.jpg or https://..."
+                                placeholder="Engine Repair"
                                 className={inputClass}
                               />
                             </div>
@@ -527,7 +483,13 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
 
       {/* Stats */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('stats')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('stats')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('stats')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('stats') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -548,7 +510,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('stats') && (
@@ -616,24 +578,19 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                   </div>
                 ))}
 
-                {/* Stats Preview */}
-                {content.stats && content.stats.length > 0 && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                    <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                      Stats Preview
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                      {content.stats.map((stat: GalleryStat, i: number) => {
-                        const Icon = getIconComponent(stat.icon);
-                        return (
-                          <div key={i} className="text-center">
-                            <Icon className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-primary" />
-                            <p className="font-bold text-sm sm:text-base text-foreground">{stat.value}</p>
-                            <p className="text-[10px] sm:text-xs text-muted-foreground">{stat.label}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
+                {(!content.stats || content.stats.length === 0) && (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <BarChart3 className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No stats added yet</p>
+                    <button
+                      onClick={() => {
+                        const newStat: GalleryStat = { icon: 'Wrench', value: '500+', label: 'Services Done' };
+                        handleUpdate('stats', [newStat]);
+                      }}
+                      className="mt-2 text-primary text-sm font-medium"
+                    >
+                      + Add stat
+                    </button>
                   </div>
                 )}
               </div>

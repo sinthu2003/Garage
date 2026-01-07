@@ -98,21 +98,6 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-amber-500 flex items-center justify-center flex-shrink-0">
-          <Star className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-            Testimonials Editor
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Customer reviews and ratings
-          </p>
-        </div>
-      </div>
-
       {/* Section Header Content */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
@@ -167,36 +152,27 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                     />
                   </div>
                 </div>
-
-                {/* Preview */}
-                <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                  <p className="text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-                    Preview
-                  </p>
-                  <div className="inline-block px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium mb-2">
-                    {content.badge || 'Trusted by 50,000+ Owners'}
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                    {content.headline?.line1 || 'Loved by drivers,'}
-                    <br />
-                    <span className="text-primary">{content.headline?.highlight || 'Approved by mechanics.'}</span>
-                  </h3>
-                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Testimonial Items */}
+      {/* Testimonials List */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('items')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('items')}
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('items')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('items') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Quote className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Reviews</span>
+            <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Testimonials</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {content.items?.length || 0}
             </span>
@@ -210,7 +186,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('items') && (
@@ -222,42 +198,34 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 {content.items?.map((testimonial: TestimonialItem, index: number) => (
-                  <div
-                    key={testimonial.id || index}
-                    className="rounded-xl border overflow-hidden border-border bg-card"
-                  >
+                  <div key={testimonial.id || index} className="rounded-xl bg-secondary/50 overflow-hidden">
                     {/* Testimonial Header */}
                     <button
                       onClick={() => toggleItem(index)}
-                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
+                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left"
                     >
-                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                        <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-secondary flex-shrink-0">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block flex-shrink-0" />
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-secondary flex-shrink-0">
                           <User className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-foreground text-sm sm:text-base truncate">
+                          <p className="font-medium text-foreground text-sm truncate">
                             {testimonial.name || 'Customer Name'}
                           </p>
-                          <div className="flex items-center gap-2 text-xs sm:text-sm">
-                            <span className="text-muted-foreground truncate">
-                              {testimonial.location}
-                            </span>
-                            <span className="text-yellow-400 flex-shrink-0">
-                              {'★'.repeat(testimonial.rating || 5)}
-                            </span>
-                          </div>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {testimonial.service || 'Service'} • {testimonial.rating || 5}★
+                          </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             const newItems = content.items?.filter((_: TestimonialItem, i: number) => i !== index);
                             handleUpdate('items', newItems);
                           }}
-                          className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
+                          className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -276,8 +244,8 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                           exit={{ height: 0, opacity: 0 }}
                           className="overflow-hidden"
                         >
-                          <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                            {/* Customer Info */}
+                          <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border/50">
+                            {/* Name & Role */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div className="space-y-2">
                                 <label className={labelClass}>
@@ -292,7 +260,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                                     newItems[index] = { ...newItems[index], name: e.target.value };
                                     handleUpdate('items', newItems);
                                   }}
-                                  placeholder="Rajesh Kumar"
+                                  placeholder="John Doe"
                                   className={inputClass}
                                 />
                               </div>
@@ -300,7 +268,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                               <div className="space-y-2">
                                 <label className={labelClass}>
                                   <Briefcase className="w-4 h-4 inline mr-1" />
-                                  Profession / Role
+                                  Role/Profession
                                 </label>
                                 <input
                                   type="text"
@@ -314,7 +282,10 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                                   className={inputClass}
                                 />
                               </div>
+                            </div>
 
+                            {/* Location & Car */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div className="space-y-2">
                                 <label className={labelClass}>
                                   <MapPin className="w-4 h-4 inline mr-1" />
@@ -418,39 +389,6 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                                 placeholder="customer-car.jpg or https://..."
                                 className={inputClass}
                               />
-                            </div>
-
-                            {/* Preview Card */}
-                            <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                              <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                                Preview
-                              </p>
-                              <div className="p-3 sm:p-4 rounded-xl bg-card shadow-sm">
-                                <div className="flex items-start gap-3 mb-3">
-                                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center bg-secondary flex-shrink-0">
-                                    <User className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-foreground truncate">
-                                      {testimonial.name || 'Customer Name'}
-                                    </p>
-                                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                                      {testimonial.role} • {testimonial.location}
-                                    </p>
-                                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
-                                      <span className="text-yellow-400 text-xs sm:text-sm">
-                                        {'★'.repeat(testimonial.rating || 5)}
-                                      </span>
-                                      <span className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                                        {testimonial.carModel} • {testimonial.service}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <p className="text-xs sm:text-sm text-muted-foreground">
-                                  "{testimonial.content || 'Review content will appear here...'}"
-                                </p>
-                              </div>
                             </div>
                           </div>
                         </motion.div>

@@ -94,21 +94,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center flex-shrink-0">
-          <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-            FAQ Editor
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Frequently asked questions and contact cards
-          </p>
-        </div>
-      </div>
-
       {/* Section Header Content */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
@@ -174,21 +159,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
                     className={inputClass}
                   />
                 </div>
-
-                {/* Preview */}
-                <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                  <p className="text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-                    Preview
-                  </p>
-                  <div className="inline-block px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium mb-2">
-                    {content.badge || 'FAQ'}
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                    {content.headline?.line1 || 'Frequently Asked'}
-                    {' '}
-                    <span className="text-primary">{content.headline?.highlight || 'Questions'}</span>
-                  </h3>
-                </div>
               </div>
             </motion.div>
           )}
@@ -197,12 +167,18 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
 
       {/* Contact Cards */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('contactCards')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('contactCards')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('contactCards')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('contactCards') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Contact Cards</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {content.contactCards?.length || 0}
@@ -217,7 +193,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('contactCards') && (
@@ -229,32 +205,35 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 {content.contactCards?.map((card: FAQContactCard, index: number) => {
-                  const IconComponent = getContactIcon(card.type);
-
+                  const Icon = getContactIcon(card.type);
                   return (
-                    <div
-                      key={index}
-                      className="p-3 sm:p-4 rounded-xl border border-border bg-card"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                          card.type === 'phone' ? 'bg-blue-500/10' :
-                          card.type === 'whatsapp' ? 'bg-green-500/10' :
-                          'bg-purple-500/10'
-                        }`}>
-                          <IconComponent className={`w-5 h-5 ${
-                            card.type === 'phone' ? 'text-blue-500' :
-                            card.type === 'whatsapp' ? 'text-green-500' :
-                            'text-purple-500'
-                          }`} />
+                    <div key={index} className="p-3 sm:p-4 rounded-xl bg-secondary/50">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Icon className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-foreground">
+                            Contact #{index + 1}
+                          </span>
                         </div>
+                        <button
+                          onClick={() => {
+                            const newCards = content.contactCards?.filter((_: FAQContactCard, i: number) => i !== index);
+                            handleUpdate('contactCards', newCards);
+                          }}
+                          className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
 
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div className="space-y-2">
+                          <label className={labelClass}>Type</label>
                           <select
                             value={card.type || 'phone'}
                             onChange={(e) => {
                               const newCards = [...(content.contactCards || [])];
-                              newCards[index] = { ...newCards[index], type: e.target.value };
+                              newCards[index] = { ...newCards[index], type: e.target.value as 'phone' | 'whatsapp' | 'email' };
                               handleUpdate('contactCards', newCards);
                             }}
                             className={inputClass}
@@ -263,7 +242,10 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
                               <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
                           </select>
+                        </div>
 
+                        <div className="space-y-2">
+                          <label className={labelClass}>Label</label>
                           <input
                             type="text"
                             value={card.label || ''}
@@ -275,7 +257,10 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
                             placeholder="Call us at"
                             className={inputClass}
                           />
+                        </div>
 
+                        <div className="space-y-2">
+                          <label className={labelClass}>Display Value</label>
                           <input
                             type="text"
                             value={card.value || ''}
@@ -287,29 +272,21 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
                             placeholder="+91 98765 43210"
                             className={inputClass}
                           />
+                        </div>
 
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={card.href || ''}
-                              onChange={(e) => {
-                                const newCards = [...(content.contactCards || [])];
-                                newCards[index] = { ...newCards[index], href: e.target.value };
-                                handleUpdate('contactCards', newCards);
-                              }}
-                              placeholder="tel:+91..."
-                              className={`flex-1 ${inputClass}`}
-                            />
-                            <button
-                              onClick={() => {
-                                const newCards = content.contactCards?.filter((_: FAQContactCard, i: number) => i !== index);
-                                handleUpdate('contactCards', newCards);
-                              }}
-                              className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                        <div className="space-y-2">
+                          <label className={labelClass}>Link (href)</label>
+                          <input
+                            type="text"
+                            value={card.href || ''}
+                            onChange={(e) => {
+                              const newCards = [...(content.contactCards || [])];
+                              newCards[index] = { ...newCards[index], href: e.target.value };
+                              handleUpdate('contactCards', newCards);
+                            }}
+                            placeholder="tel:+919876543210"
+                            className={inputClass}
+                          />
                         </div>
                       </div>
                     </div>
@@ -325,32 +302,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
                     </button>
                   </div>
                 )}
-
-                {/* Contact Cards Preview */}
-                {content.contactCards && content.contactCards.length > 0 && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                    <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                      Preview
-                    </p>
-                    <div className="flex flex-wrap gap-2 sm:gap-3">
-                      {content.contactCards.map((card: FAQContactCard, i: number) => {
-                        const Icon = getContactIcon(card.type);
-                        const bgColor = card.type === 'phone' ? 'bg-blue-500' :
-                                       card.type === 'whatsapp' ? 'bg-green-500' : 'bg-purple-500';
-
-                        return (
-                          <div
-                            key={i}
-                            className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl ${bgColor} text-white`}
-                          >
-                            <Icon className="w-4 h-4" />
-                            <span className="text-xs sm:text-sm font-medium">{card.value}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
             </motion.div>
           )}
@@ -359,7 +310,13 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
 
       {/* FAQ Items */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('items')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('items')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('items')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('items') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -379,7 +336,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('items') && (
@@ -390,10 +347,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                <p className="text-xs text-muted-foreground">
-                  💡 Drag items to reorder (coming soon)
-                </p>
-
                 {content.items?.map((faq: FAQItem, index: number) => (
                   <div
                     key={index}

@@ -53,7 +53,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
   };
 
   // Theme-aware styling helpers using CSS variables
-  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
+  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
   const labelClass = `text-sm font-medium text-muted-foreground`;
 
@@ -69,21 +69,6 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-          <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-            Partners Editor
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Brand partners and trust badges
-          </p>
-        </div>
-      </div>
-
       {/* Section Header Content */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
@@ -149,24 +134,6 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                     className={inputClass}
                   />
                 </div>
-
-                {/* Preview */}
-                <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                  <p className="text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-                    Preview
-                  </p>
-                  <div className="inline-block px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-medium mb-2">
-                    {content.badge || 'Trusted Partners'}
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                    {content.headline?.text || 'We service'}
-                    {' '}
-                    <span className="text-primary">{content.headline?.highlight || 'all major brands'}</span>
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {content.description}
-                  </p>
-                </div>
               </div>
             </motion.div>
           )}
@@ -180,7 +147,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
             <motion.div animate={{ rotate: expandedSections.has('brandCount') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Hash className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            <Hash className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Brand Count Display</span>
           </div>
         </button>
@@ -216,21 +183,6 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                     />
                   </div>
                 </div>
-
-                {/* Preview */}
-                <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                  <p className="text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-                    Preview
-                  </p>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                    <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                      {content.brandCount || '35+'}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {content.brandCountLabel || 'Car Brands Serviced'}
-                    </div>
-                  </div>
-                </div>
               </div>
             </motion.div>
           )}
@@ -239,7 +191,13 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
 
       {/* Trust Badges */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('trustBadges')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('trustBadges')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('trustBadges')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('trustBadges') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -264,7 +222,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('trustBadges') && (
@@ -349,21 +307,6 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                           />
                         </div>
                       </div>
-
-                      {/* Badge Preview */}
-                      <div className="mt-3 p-3 rounded-lg flex items-center gap-3 bg-secondary">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center bg-card">
-                          <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm text-foreground truncate">
-                            {badge.title || 'Title'}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {badge.subtitle || 'Subtitle'}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   );
                 })}
@@ -381,34 +324,6 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                     >
                       + Add your first badge
                     </button>
-                  </div>
-                )}
-
-                {/* Badges Grid Preview */}
-                {content.trustBadges && content.trustBadges.length > 0 && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                    <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                      Grid Preview
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                      {content.trustBadges.map((badge: PartnerTrustBadge, i: number) => {
-                        const Icon = getIconComponent(badge.icon);
-                        return (
-                          <div
-                            key={i}
-                            className="p-2 sm:p-3 rounded-lg text-center bg-card"
-                          >
-                            <Icon className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-primary" />
-                            <p className="text-[10px] sm:text-xs font-medium truncate text-foreground">
-                              {badge.title}
-                            </p>
-                            <p className="text-[10px] sm:text-xs truncate text-muted-foreground">
-                              {badge.subtitle}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
                   </div>
                 )}
               </div>

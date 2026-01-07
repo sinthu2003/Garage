@@ -26,11 +26,19 @@ export interface SocialContent {
 }
 
 export interface SEOContent {
+  keywords: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogImage: string;
+  canonicalUrl: string;
+  indexable: boolean;
+  followLinks: boolean;
   title: string;
   description: string;
 }
 
 export interface GlobalContent {
+  navbar: any;
   brand: BrandContent;
   social: SocialContent;
   seo: SEOContent;
@@ -102,6 +110,14 @@ export interface BookingTrustBadges {
 }
 
 export interface BookingWidgetContent {
+  brands: never[];
+  carModels: {};
+  fuelTypes: { id: string; name: string; icon: string; color: string; }[];
+  cities: string[];
+  labels: any;
+  screens: any;
+  ctaText: string;
+  trustFooter: any;
   title: string;
   subtitle: string;
   steps: BookingSteps;
@@ -142,6 +158,7 @@ export interface FeaturesHeadline {
 }
 
 export interface MainFeature {
+  gradient: string;
   badge: string;
   title: string;
   description: string;
@@ -252,6 +269,8 @@ export interface BeforeAfterItem {
 }
 
 export interface BeforeAfterContent {
+  beforeLabel: string;
+  afterLabel: string;
   badge: string;
   headline: BeforeAfterHeadline;
   description: string;
@@ -390,6 +409,15 @@ export interface FooterLinks {
 }
 
 export interface FooterContent {
+  phone: string;
+  email: string;
+  workingHours: string;
+  social: any;
+  privacyUrl: string;
+  termsUrl: string;
+  logoUrl: string;
+  tagline: string;
+  brandName: string;
   description: string;
   links: FooterLinks;
   copyright: string;
@@ -406,6 +434,9 @@ export interface ServicesCTASection {
 }
 
 export interface ServicesPageContent {
+  categories: { id: string; label: string; icon: string; }[];
+  searchPlaceholder: string;
+  cta: any;
   title: string;
   description: string;
   ctaSection: ServicesCTASection;
@@ -417,6 +448,8 @@ export interface NotFoundQuickLink {
 }
 
 export interface NotFoundPageContent {
+  primaryButton: string;
+  secondaryButton: string;
   title: string;
   description: string;
   searchPlaceholder: string;

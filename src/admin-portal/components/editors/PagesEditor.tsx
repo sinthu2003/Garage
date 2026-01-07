@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  FileText,
   Type,
   Search,
   Link,
@@ -9,21 +8,33 @@ import {
   AlertTriangle,
   Wrench,
   Home,
-  ArrowRight,
+  ArrowLeft,
+  Phone,
+  Plus,
+  Trash2,
+ 
+  Filter,
 } from 'lucide-react';
 import { usePagesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 
 interface PagesEditorProps {
   isDarkMode: boolean;
+  onPageChange?: (page: 'services' | 'notFound') => void;
 }
 
-export const PagesEditor: React.FC<PagesEditorProps> = ({ isDarkMode }) => {
+export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
   const { updateField } = useContent();
   const content = usePagesContent();
+  const [activePage, setActivePage] = useState<'services' | 'notFound'>('services');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['services', 'notFound'])
+    new Set(['header', 'categories', 'cta', 'title', 'buttons', 'quickLinks'])
   );
+
+  // Call onPageChange on mount and when activePage changes
+  useEffect(() => {
+    onPageChange?.(activePage);
+  }, [activePage, onPageChange]);
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -39,420 +50,522 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ isDarkMode }) => {
     updateField('pages', path, value);
   };
 
-  // Styling helpers
-  const inputClass = `w-full px-4 py-3 rounded-xl text-sm transition-all ${
-    isDarkMode
-      ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-orange-500'
-      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-orange-500'
-  } border focus:outline-none focus:ring-2 focus:ring-orange-500/20`;
+  const handlePageChange = (page: 'services' | 'notFound') => {
+    setActivePage(page);
+  };
 
-  const labelClass = `text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`;
+  // Theme-aware styling helpers using CSS variables
+  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
-  const sectionClass = `rounded-xl border overflow-hidden ${
-    isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'
-  }`;
+  const labelClass = `text-sm font-medium text-muted-foreground`;
 
-  const sectionHeaderClass = `w-full flex items-center justify-between p-4 text-left transition-colors ${
-    isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-  }`;
+  const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
+
+  const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
+
+  // Default categories for Services page
+  const defaultCategories = [
+    { id: 'all', label: 'All', icon: 'Sparkles' },
+    { id: 'maintenance', label: 'Maintenance', icon: 'Wrench' },
+    { id: 'repair', label: 'Repairs', icon: 'Settings' },
+    { id: 'cosmetic', label: 'Cosmetic', icon: 'Paintbrush' },
+    { id: 'inspection', label: 'Inspection', icon: 'Gauge' },
+  ];
+
+  const categories = content.services?.categories || defaultCategories;
+
+  // Default quick links for 404 page
+  const defaultQuickLinks = [
+    { name: 'Services', href: '/services' },
+    { name: 'Pricing', href: '/#pricing' },
+    { name: 'About Us', href: '/#about' },
+    { name: 'Contact', href: '/#contact' },
+  ];
+
+  const quickLinks = content.notFound?.quickLinks || defaultQuickLinks;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-          <FileText className="w-6 h-6 text-white" />
-        </div>
-        <div>
-          <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            Pages Editor
-          </h2>
-          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Services page and 404 Not Found page content
-          </p>
-        </div>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Page Tabs */}
+      <div className="flex gap-2 p-1 bg-secondary/50 rounded-xl">
+        <button
+          onClick={() => handlePageChange('services')}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            activePage === 'services'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+          }`}
+        >
+          <Wrench className="w-4 h-4" />
+          Services Page
+        </button>
+        <button
+          onClick={() => handlePageChange('notFound')}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            activePage === 'notFound'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+          }`}
+        >
+          <AlertTriangle className="w-4 h-4" />
+          404 Page
+        </button>
       </div>
 
-      {/* Services Page */}
-      <div className={sectionClass}>
-        <button onClick={() => toggleSection('services')} className={sectionHeaderClass}>
-          <div className="flex items-center gap-3">
-            <motion.div animate={{ rotate: expandedSections.has('services') ? 90 : 0 }}>
-              <ChevronRight className="w-4 h-4" />
-            </motion.div>
-            <Wrench className="w-5 h-5 text-orange-500" />
-            <span className="font-medium">Services Page</span>
-            <span className={`px-2 py-0.5 rounded-full text-xs ${isDarkMode ? 'bg-orange-900/30 text-orange-400' : 'bg-orange-100 text-orange-700'}`}>
-              /services
-            </span>
-          </div>
-        </button>
+      <AnimatePresence mode="wait">
+        {/* ==================== SERVICES PAGE ==================== */}
+        {activePage === 'services' && (
+          <motion.div
+            key="services"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="space-y-4"
+          >
+            {/* Route indicator */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-secondary/50 rounded-lg">
+              <span className="text-xs text-muted-foreground">Route:</span>
+              <code className="text-xs font-mono text-primary">/services</code>
+            </div>
 
-        <AnimatePresence>
-          {expandedSections.has('services') && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className={`p-4 pt-0 space-y-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                {/* Page Header */}
-                <div className="space-y-4">
-                  <h4 className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Page Header
-                  </h4>
-                  
-                  <div className="space-y-2">
-                    <label className={labelClass}>Page Title</label>
-                    <input
-                      type="text"
-                      value={content.services?.title || ''}
-                      onChange={(e) => handleUpdate('services.title', e.target.value)}
-                      placeholder="Our Services"
-                      className={inputClass}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className={labelClass}>Page Description</label>
-                    <textarea
-                      value={content.services?.description || ''}
-                      onChange={(e) => handleUpdate('services.description', e.target.value)}
-                      placeholder="Comprehensive car care solutions for every need..."
-                      rows={2}
-                      className={inputClass}
-                    />
-                  </div>
+            {/* Page Header */}
+            <div className={sectionClass}>
+              <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <motion.div animate={{ rotate: expandedSections.has('header') ? 90 : 0 }}>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </motion.div>
+                  <Type className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+                  <span className="font-medium text-foreground text-sm sm:text-base">Page Header</span>
                 </div>
+              </button>
 
-                {/* CTA Section */}
-                <div className={`p-4 rounded-xl border ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
-                  <h4 className={`font-medium mb-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Bottom CTA Section
-                  </h4>
-
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className={labelClass}>CTA Title</label>
-                      <input
-                        type="text"
-                        value={content.services?.ctaSection?.title || ''}
-                        onChange={(e) => handleUpdate('services.ctaSection.title', e.target.value)}
-                        placeholder="Can't find what you're looking for?"
-                        className={inputClass}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className={labelClass}>CTA Description</label>
-                      <textarea
-                        value={content.services?.ctaSection?.description || ''}
-                        onChange={(e) => handleUpdate('services.ctaSection.description', e.target.value)}
-                        placeholder="Contact us for custom service packages..."
-                        rows={2}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+              <AnimatePresence>
+                {expandedSections.has('header') && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                       <div className="space-y-2">
-                        <label className={labelClass}>Primary Button</label>
+                        <label className={labelClass}>Page Title</label>
                         <input
                           type="text"
-                          value={content.services?.ctaSection?.primaryCta || ''}
-                          onChange={(e) => handleUpdate('services.ctaSection.primaryCta', e.target.value)}
-                          placeholder="Contact Us"
+                          value={content.services?.title || 'Our Services'}
+                          onChange={(e) => handleUpdate('services.title', e.target.value)}
+                          placeholder="Our Services"
                           className={inputClass}
                         />
                       </div>
+
                       <div className="space-y-2">
-                        <label className={labelClass}>Secondary Button</label>
+                        <label className={labelClass}>Page Description</label>
                         <input
                           type="text"
-                          value={content.services?.ctaSection?.secondaryCta || ''}
-                          onChange={(e) => handleUpdate('services.ctaSection.secondaryCta', e.target.value)}
-                          placeholder="Call Now"
+                          value={content.services?.description || 'Professional car care services at transparent prices'}
+                          onChange={(e) => handleUpdate('services.description', e.target.value)}
+                          placeholder="Professional car care services at transparent prices"
+                          className={inputClass}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className={labelClass}>
+                          <Search className="w-4 h-4 inline mr-1" />
+                          Search Placeholder
+                        </label>
+                        <input
+                          type="text"
+                          value={content.services?.searchPlaceholder || 'Search services...'}
+                          onChange={(e) => handleUpdate('services.searchPlaceholder', e.target.value)}
+                          placeholder="Search services..."
                           className={inputClass}
                         />
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-                {/* Preview */}
-                <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
-                  <p className={`text-xs uppercase tracking-wider mb-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                    Services Page Preview
-                  </p>
-                  
-                  {/* Page Header Preview */}
-                  <div className={`p-6 rounded-xl mb-4 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Wrench className="w-5 h-5 text-orange-500" />
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-orange-900/30 text-orange-400' : 'bg-orange-100 text-orange-700'}`}>
-                        /services
-                      </span>
+            {/* Category Filters */}
+            <div className={sectionClass}>
+              <button onClick={() => toggleSection('categories')} className={sectionHeaderClass}>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <motion.div animate={{ rotate: expandedSections.has('categories') ? 90 : 0 }}>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </motion.div>
+                  <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+                  <span className="font-medium text-foreground text-sm sm:text-base">Category Filters</span>
+                  <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
+                    {categories.length}
+                  </span>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpdate('services.categories', [
+                      ...categories,
+                      { id: `cat-${Date.now()}`, label: 'New Category', icon: 'Sparkles' }
+                    ]);
+                  }}
+                  className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </button>
+
+              <AnimatePresence>
+                {expandedSections.has('categories') && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border">
+                      {categories.map((cat: { id: string; label: string; icon: string }, index: number) => (
+                        <div key={cat.id} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={cat.label}
+                            onChange={(e) => {
+                              const newCats = [...categories];
+                              newCats[index] = { ...newCats[index], label: e.target.value };
+                              handleUpdate('services.categories', newCats);
+                            }}
+                            placeholder="Category Label"
+                            className={`flex-1 ${inputClass}`}
+                          />
+                          <select
+                            value={cat.icon}
+                            onChange={(e) => {
+                              const newCats = [...categories];
+                              newCats[index] = { ...newCats[index], icon: e.target.value };
+                              handleUpdate('services.categories', newCats);
+                            }}
+                            className={`w-32 ${inputClass}`}
+                          >
+                            <option value="Sparkles">✨ All</option>
+                            <option value="Wrench">🔧 Wrench</option>
+                            <option value="Settings">⚙️ Settings</option>
+                            <option value="Paintbrush">🎨 Paint</option>
+                            <option value="Gauge">📊 Gauge</option>
+                          </select>
+                          <button
+                            onClick={() => {
+                              const newCats = categories.filter((_: unknown, i: number) => i !== index);
+                              handleUpdate('services.categories', newCats);
+                            }}
+                            className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
+                            disabled={categories.length <= 1}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {content.services?.title || 'Our Services'}
-                    </h3>
-                    <p className={`mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {content.services?.description || 'Comprehensive car care solutions...'}
-                    </p>
-                  </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-                  {/* CTA Preview */}
-                  <div className={`p-6 rounded-xl ${isDarkMode ? 'bg-gradient-to-r from-orange-900/50 to-red-900/50' : 'bg-gradient-to-r from-orange-50 to-red-50'}`}>
-                    <h4 className={`text-lg font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {content.services?.ctaSection?.title || "Can't find what you're looking for?"}
-                    </h4>
-                    <p className={`mt-1 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                      {content.services?.ctaSection?.description || 'Contact us for custom service packages...'}
-                    </p>
-                    <div className="flex gap-3 mt-4">
-                      <button className="px-4 py-2 rounded-lg bg-orange-500 text-white text-sm font-medium">
-                        {content.services?.ctaSection?.primaryCta || 'Contact Us'}
-                      </button>
-                      <button className={`px-4 py-2 rounded-lg text-sm font-medium ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-gray-900'}`}>
-                        {content.services?.ctaSection?.secondaryCta || 'Call Now'}
-                      </button>
-                    </div>
-                  </div>
+            {/* CTA Section */}
+            <div className={sectionClass}>
+              <button onClick={() => toggleSection('cta')} className={sectionHeaderClass}>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <motion.div animate={{ rotate: expandedSections.has('cta') ? 90 : 0 }}>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </motion.div>
+                  <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                  <span className="font-medium text-foreground text-sm sm:text-base">Bottom CTA Section</span>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              </button>
 
-      {/* 404 Not Found Page */}
-      <div className={sectionClass}>
-        <button onClick={() => toggleSection('notFound')} className={sectionHeaderClass}>
-          <div className="flex items-center gap-3">
-            <motion.div animate={{ rotate: expandedSections.has('notFound') ? 90 : 0 }}>
-              <ChevronRight className="w-4 h-4" />
-            </motion.div>
-            <AlertTriangle className="w-5 h-5 text-red-500" />
-            <span className="font-medium">404 Not Found Page</span>
-            <span className={`px-2 py-0.5 rounded-full text-xs ${isDarkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700'}`}>
-              Error Page
-            </span>
-          </div>
-        </button>
-
-        <AnimatePresence>
-          {expandedSections.has('notFound') && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className={`p-4 pt-0 space-y-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                {/* Main Content */}
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className={labelClass}>
-                      <Type className="w-4 h-4 inline mr-1" />
-                      Error Title
-                    </label>
-                    <input
-                      type="text"
-                      value={content.notFound?.title || ''}
-                      onChange={(e) => handleUpdate('notFound.title', e.target.value)}
-                      placeholder="Page not found"
-                      className={inputClass}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className={labelClass}>Error Description</label>
-                    <textarea
-                      value={content.notFound?.description || ''}
-                      onChange={(e) => handleUpdate('notFound.description', e.target.value)}
-                      placeholder="Sorry, we couldn't find the page you're looking for..."
-                      rows={2}
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-
-                {/* Search */}
-                <div className="space-y-2">
-                  <label className={labelClass}>
-                    <Search className="w-4 h-4 inline mr-1" />
-                    Search Placeholder
-                  </label>
-                  <input
-                    type="text"
-                    value={content.notFound?.searchPlaceholder || ''}
-                    onChange={(e) => handleUpdate('notFound.searchPlaceholder', e.target.value)}
-                    placeholder="Search for services..."
-                    className={inputClass}
-                  />
-                </div>
-
-                {/* CTAs */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className={labelClass}>
-                      <Home className="w-4 h-4 inline mr-1" />
-                      Primary CTA
-                    </label>
-                    <input
-                      type="text"
-                      value={content.notFound?.primaryCta || ''}
-                      onChange={(e) => handleUpdate('notFound.primaryCta', e.target.value)}
-                      placeholder="Go to Homepage"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className={labelClass}>
-                      <ArrowRight className="w-4 h-4 inline mr-1" />
-                      Secondary CTA
-                    </label>
-                    <input
-                      type="text"
-                      value={content.notFound?.secondaryCta || ''}
-                      onChange={(e) => handleUpdate('notFound.secondaryCta', e.target.value)}
-                      placeholder="Contact Support"
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-
-                {/* Quick Links */}
-                <div className={`p-4 rounded-xl border ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      <Link className="w-4 h-4 inline mr-1" />
-                      Quick Links
-                    </h4>
-                    <button
-                      onClick={() => {
-                        const newLinks = [...(content.notFound?.quickLinks || []), { name: 'New Link', href: '/' }];
-                        handleUpdate('notFound.quickLinks', newLinks);
-                      }}
-                      className="text-sm text-orange-500 font-medium"
-                    >
-                      + Add Link
-                    </button>
-                  </div>
-
-                  <div className="space-y-2">
-                    {content.notFound?.quickLinks?.map((link: { name: string; href: string }, index: number) => (
-                      <div key={index} className="flex items-center gap-2">
+              <AnimatePresence>
+                {expandedSections.has('cta') && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                      <div className="space-y-2">
+                        <label className={labelClass}>CTA Title</label>
                         <input
                           type="text"
-                          value={link.name || ''}
-                          onChange={(e) => {
-                            const newLinks = [...(content.notFound?.quickLinks || [])];
-                            newLinks[index] = { ...newLinks[index], name: e.target.value };
-                            handleUpdate('notFound.quickLinks', newLinks);
-                          }}
-                          placeholder="Link Name"
-                          className={`flex-1 ${inputClass}`}
+                          value={content.services?.cta?.title || "Can't find what you're looking for?"}
+                          onChange={(e) => handleUpdate('services.cta.title', e.target.value)}
+                          placeholder="Can't find what you're looking for?"
+                          className={inputClass}
                         />
-                        <input
-                          type="text"
-                          value={link.href || ''}
-                          onChange={(e) => {
-                            const newLinks = [...(content.notFound?.quickLinks || [])];
-                            newLinks[index] = { ...newLinks[index], href: e.target.value };
-                            handleUpdate('notFound.quickLinks', newLinks);
-                          }}
-                          placeholder="/page"
-                          className={`w-32 ${inputClass}`}
-                        />
-                        <button
-                          onClick={() => {
-                            const newLinks = content.notFound?.quickLinks?.filter((_: unknown, i: number) => i !== index);
-                            handleUpdate('notFound.quickLinks', newLinks);
-                          }}
-                          className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        >
-                          ×
-                        </button>
                       </div>
-                    ))}
 
-                    {(!content.notFound?.quickLinks || content.notFound.quickLinks.length === 0) && (
-                      <p className={`text-center py-3 text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                        No quick links added
-                      </p>
-                    )}
-                  </div>
-                </div>
+                      <div className="space-y-2">
+                        <label className={labelClass}>CTA Description</label>
+                        <textarea
+                          value={content.services?.cta?.description || 'Contact us for custom service requirements. Our experts are ready to help with any car-related needs.'}
+                          onChange={(e) => handleUpdate('services.cta.description', e.target.value)}
+                          placeholder="Contact us for custom service requirements..."
+                          rows={2}
+                          className={inputClass}
+                        />
+                      </div>
 
-                {/* 404 Page Preview */}
-                <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
-                  <p className={`text-xs uppercase tracking-wider mb-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                    404 Page Preview
-                  </p>
-                  
-                  <div className={`p-8 rounded-xl text-center ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                    {/* 404 Graphic */}
-                    <div className="mb-6">
-                      <span className={`text-8xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent`}>
-                        404
-                      </span>
-                    </div>
-
-                    {/* Title */}
-                    <h3 className={`text-2xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {content.notFound?.title || 'Page not found'}
-                    </h3>
-
-                    {/* Description */}
-                    <p className={`mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {content.notFound?.description || "Sorry, we couldn't find the page you're looking for."}
-                    </p>
-
-                    {/* Search */}
-                    <div className={`flex items-center gap-2 p-3 rounded-xl mb-6 max-w-md mx-auto ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                      <Search className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                      <span className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                        {content.notFound?.searchPlaceholder || 'Search for services...'}
-                      </span>
-                    </div>
-
-                    {/* CTAs */}
-                    <div className="flex items-center justify-center gap-3 mb-6">
-                      <button className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-medium">
-                        {content.notFound?.primaryCta || 'Go to Homepage'}
-                      </button>
-                      <button className={`px-5 py-2.5 rounded-xl font-medium ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'}`}>
-                        {content.notFound?.secondaryCta || 'Contact Support'}
-                      </button>
-                    </div>
-
-                    {/* Quick Links */}
-                    {content.notFound?.quickLinks && content.notFound.quickLinks.length > 0 && (
-                      <div className={`pt-6 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                        <p className={`text-sm mb-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          Popular pages:
-                        </p>
-                        <div className="flex items-center justify-center gap-4">
-                          {content.notFound.quickLinks.map((link: { name: string; href: string }, i: number) => (
-                            <span
-                              key={i}
-                              className="text-orange-500 text-sm font-medium hover:underline cursor-pointer"
-                            >
-                              {link.name}
-                            </span>
-                          ))}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <label className={labelClass}>Primary Button</label>
+                          <input
+                            type="text"
+                            value={content.services?.cta?.primaryButton || 'Get Free Quote'}
+                            onChange={(e) => handleUpdate('services.cta.primaryButton', e.target.value)}
+                            placeholder="Get Free Quote"
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className={labelClass}>Phone Number</label>
+                          <input
+                            type="text"
+                            value={content.services?.cta?.phone || '+91 98765 43210'}
+                            onChange={(e) => handleUpdate('services.cta.phone', e.target.value)}
+                            placeholder="+91 98765 43210"
+                            className={inputClass}
+                          />
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ==================== 404 NOT FOUND PAGE ==================== */}
+        {activePage === 'notFound' && (
+          <motion.div
+            key="notFound"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-4"
+          >
+            {/* Route indicator */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-secondary/50 rounded-lg">
+              <span className="text-xs text-muted-foreground">Route:</span>
+              <code className="text-xs font-mono text-destructive">/* (any invalid URL)</code>
+            </div>
+
+            {/* Title & Description */}
+            <div className={sectionClass}>
+              <button onClick={() => toggleSection('title')} className={sectionHeaderClass}>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <motion.div animate={{ rotate: expandedSections.has('title') ? 90 : 0 }}>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </motion.div>
+                  <Type className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
+                  <span className="font-medium text-foreground text-sm sm:text-base">Title & Message</span>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              </button>
+
+              <AnimatePresence>
+                {expandedSections.has('title') && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                      <div className="space-y-2">
+                        <label className={labelClass}>Error Title</label>
+                        <input
+                          type="text"
+                          value={content.notFound?.title || 'Oops! Road Not Found'}
+                          onChange={(e) => handleUpdate('notFound.title', e.target.value)}
+                          placeholder="Oops! Road Not Found"
+                          className={inputClass}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className={labelClass}>Error Message</label>
+                        <textarea
+                          value={content.notFound?.description || "Looks like you've taken a wrong turn. The page you're looking for doesn't exist or has been moved."}
+                          onChange={(e) => handleUpdate('notFound.description', e.target.value)}
+                          placeholder="Looks like you've taken a wrong turn..."
+                          rows={2}
+                          className={inputClass}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className={labelClass}>
+                          <Search className="w-4 h-4 inline mr-1" />
+                          Search Placeholder
+                        </label>
+                        <input
+                          type="text"
+                          value={content.notFound?.searchPlaceholder || 'Search for services...'}
+                          onChange={(e) => handleUpdate('notFound.searchPlaceholder', e.target.value)}
+                          placeholder="Search for services..."
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Action Buttons */}
+            <div className={sectionClass}>
+              <button onClick={() => toggleSection('buttons')} className={sectionHeaderClass}>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <motion.div animate={{ rotate: expandedSections.has('buttons') ? 90 : 0 }}>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </motion.div>
+                  <Home className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+                  <span className="font-medium text-foreground text-sm sm:text-base">Action Buttons</span>
+                </div>
+              </button>
+
+              <AnimatePresence>
+                {expandedSections.has('buttons') && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <label className={labelClass}>
+                            <Home className="w-4 h-4 inline mr-1" />
+                            Primary Button
+                          </label>
+                          <input
+                            type="text"
+                            value={content.notFound?.primaryButton || 'Back to Home'}
+                            onChange={(e) => handleUpdate('notFound.primaryButton', e.target.value)}
+                            placeholder="Back to Home"
+                            className={inputClass}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className={labelClass}>
+                            <ArrowLeft className="w-4 h-4 inline mr-1" />
+                            Secondary Button
+                          </label>
+                          <input
+                            type="text"
+                            value={content.notFound?.secondaryButton || 'Go Back'}
+                            onChange={(e) => handleUpdate('notFound.secondaryButton', e.target.value)}
+                            placeholder="Go Back"
+                            className={inputClass}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Quick Links */}
+            <div className={sectionClass}>
+              <button onClick={() => toggleSection('quickLinks')} className={sectionHeaderClass}>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <motion.div animate={{ rotate: expandedSections.has('quickLinks') ? 90 : 0 }}>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </motion.div>
+                  <Link className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+                  <span className="font-medium text-foreground text-sm sm:text-base">Quick Links</span>
+                  <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
+                    {quickLinks.length}
+                  </span>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpdate('notFound.quickLinks', [
+                      ...quickLinks,
+                      { name: 'New Link', href: '/' }
+                    ]);
+                  }}
+                  className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </button>
+
+              <AnimatePresence>
+                {expandedSections.has('quickLinks') && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border">
+                      <p className="text-xs text-muted-foreground">
+                        Links shown at the bottom of the 404 page
+                      </p>
+                      
+                      {quickLinks.map((link: { name: string; href: string }, index: number) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={link.name}
+                            onChange={(e) => {
+                              const newLinks = [...quickLinks];
+                              newLinks[index] = { ...newLinks[index], name: e.target.value };
+                              handleUpdate('notFound.quickLinks', newLinks);
+                            }}
+                            placeholder="Link Name"
+                            className={`flex-1 ${inputClass}`}
+                          />
+                          <input
+                            type="text"
+                            value={link.href}
+                            onChange={(e) => {
+                              const newLinks = [...quickLinks];
+                              newLinks[index] = { ...newLinks[index], href: e.target.value };
+                              handleUpdate('notFound.quickLinks', newLinks);
+                            }}
+                            placeholder="/page or #section"
+                            className={`w-32 sm:w-40 ${inputClass}`}
+                          />
+                          <button
+                            onClick={() => {
+                              const newLinks = quickLinks.filter((_: unknown, i: number) => i !== index);
+                              handleUpdate('notFound.quickLinks', newLinks);
+                            }}
+                            className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+
+                      {quickLinks.length === 0 && (
+                        <p className="text-center py-4 text-sm text-muted-foreground">
+                          No quick links. <button onClick={() => handleUpdate('notFound.quickLinks', defaultQuickLinks)} className="text-primary">Add defaults</button>
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -68,7 +68,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
   };
 
   // Theme-aware styling helpers using CSS variables
-  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
+  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
   const labelClass = `text-sm font-medium text-muted-foreground`;
 
@@ -90,28 +90,9 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
   };
 
   // Get icon component by name
-  const getIconComponent = (iconName: string) => {
-    const iconOption = iconOptions.find(opt => opt.value === iconName);
-    return iconOption?.icon || CheckCircle;
-  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0">
-          <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-foreground truncate">
-            How It Works Editor
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Process steps with icons and descriptions
-          </p>
-        </div>
-      </div>
-
       {/* Section Header Content */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
@@ -166,60 +147,26 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                     />
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <label className={labelClass}>Description</label>
-                  <textarea
-                    value={content.description || ''}
-                    onChange={(e) => handleUpdate('description', e.target.value)}
-                    placeholder="We've simplified car maintenance so you can focus on what matters most."
-                    rows={2}
-                    className={inputClass}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className={labelClass}>CTA Button Text</label>
-                  <input
-                    type="text"
-                    value={content.cta || ''}
-                    onChange={(e) => handleUpdate('cta', e.target.value)}
-                    placeholder="Book Your Service Now"
-                    className={inputClass}
-                  />
-                </div>
-
-                {/* Preview */}
-                <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                  <p className="text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-                    Preview
-                  </p>
-                  <div className="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium mb-2">
-                    {content.badge || 'How It Works'}
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                    {content.headline?.line1 || 'Car service in'}
-                    {' '}
-                    <span className="text-primary">{content.headline?.highlight || '4 simple steps.'}</span>
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {content.description}
-                  </p>
-                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Process Steps */}
+      {/* Steps */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('steps')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('steps')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('steps')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('steps') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Hash className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
+            <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Process Steps</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {content.steps?.length || 0}
@@ -234,7 +181,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('steps') && (
@@ -246,8 +193,6 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 {content.steps?.map((step: HowItWorksStep, index: number) => {
-                  const IconComponent = getIconComponent(step.icon);
-
                   return (
                     <div
                       key={index}
@@ -258,22 +203,17 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                         onClick={() => toggleItem(index)}
                         className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
                       >
-                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
                           <div
-                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-sm flex-shrink-0"
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
                             style={{ backgroundColor: step.color || '#3B82F6' }}
                           >
                             {step.number || (index + 1).toString().padStart(2, '0')}
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-medium text-foreground text-sm sm:text-base truncate">
-                              {step.title || 'Step Title'}
-                            </p>
-                            <p className="text-xs sm:text-sm text-muted-foreground">
-                              Step {index + 1}
-                            </p>
-                          </div>
+                          <span className="font-medium text-foreground text-sm sm:text-base truncate">
+                            {step.title || 'New Step'}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                           <button
@@ -417,40 +357,6 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                                   />
                                 </div>
                               </div>
-
-                              {/* Preview Card */}
-                              <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                                <p className="text-xs uppercase tracking-wider mb-3 text-muted-foreground">
-                                  Preview
-                                </p>
-                                <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
-                                  <div
-                                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0"
-                                    style={{ backgroundColor: step.color || '#3B82F6' }}
-                                  >
-                                    {step.number || (index + 1).toString().padStart(2, '0')}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: step.color }} />
-                                      <h4 className="font-bold text-foreground text-sm sm:text-base truncate">
-                                        {step.title || 'Step Title'}
-                                      </h4>
-                                    </div>
-                                    <p className="text-xs sm:text-sm text-muted-foreground">
-                                      {step.description || 'Step description...'}
-                                    </p>
-                                  </div>
-                                  {step.image && (
-                                    <img
-                                      src={step.image.startsWith('http') ? step.image : `/assets/${step.image}`}
-                                      alt={step.title}
-                                      className="w-full sm:w-20 h-16 rounded-lg object-cover"
-                                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                                    />
-                                  )}
-                                </div>
-                              </div>
                             </div>
                           </motion.div>
                         )}
@@ -466,35 +372,6 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                     <button onClick={addNewStep} className="mt-2 text-primary text-sm font-medium">
                       + Add your first step
                     </button>
-                  </div>
-                )}
-
-                {/* Timeline Preview */}
-                {content.steps && content.steps.length > 0 && (
-                  <div className="p-3 sm:p-4 rounded-xl bg-secondary">
-                    <p className="text-xs uppercase tracking-wider mb-4 text-muted-foreground">
-                      Timeline Preview
-                    </p>
-                    <div className="flex items-center justify-between overflow-x-auto pb-2 -mx-1 px-1">
-                      {content.steps.map((step: HowItWorksStep, i: number) => (
-                        <React.Fragment key={i}>
-                          <div className="flex flex-col items-center flex-shrink-0">
-                            <div
-                              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold"
-                              style={{ backgroundColor: step.color }}
-                            >
-                              {step.number}
-                            </div>
-                            <p className="text-[10px] sm:text-xs mt-1 text-center max-w-[60px] sm:max-w-[80px] truncate text-muted-foreground">
-                              {step.title}
-                            </p>
-                          </div>
-                          {i < (content.steps?.length || 0) - 1 && (
-                            <div className="flex-1 h-0.5 mx-1 sm:mx-2 bg-border min-w-[20px]" />
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>
