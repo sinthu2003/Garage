@@ -9,137 +9,30 @@ import {
   Car,
   Sparkles
 } from 'lucide-react';
+import { useContent } from '../../admin-portal';
 
-// Import local assets
-import PeriodicServiceImg from '../../assets/PeriodicService.jpg';
-import WeServiceImg from '../../assets/WeService.jpg';
-import CarInspection2Img from '../../assets/CarInspection2.jpg';
-import InteriorDetailingImg from '../../assets/toyota-fortuner-interior-deep-clean-after.png';
-import BrakeServiceImg from '../../assets/WheelCare1.jpg';
-import ServiceBayImg from '../../assets/CarInspection1.jpg';
-import ExpertDiagnosticsImg from '../../assets/CarInspection.jpg';
-import ACServiceImg from '../../assets/ACService.jpg';
-import WheelAlignmentImg from '../../assets/WheelCare2.jpg';
-import FullServiceImg from '../../assets/honda-city-full-car-detailing-after.png';
-import ExpertTeamImg from '../../assets/expert-mechanics.png';
-import PaintBoothImg from '../../assets/Denting1.jpg';
-
-// Gallery categories
-const categories = [
-  { id: 'all', label: 'All' },
-  { id: 'workshop', label: 'Our Workshop' },
-  { id: 'service', label: 'Service in Action' },
-  { id: 'before-after', label: 'Before & After' },
-  { id: 'team', label: 'Our Team' },
-];
-
-// Gallery images - Car service related (high-quality relevant images)
-const galleryImages = [
-  {
-    id: 1,
-    src: PeriodicServiceImg,
-    alt: 'Mechanic servicing car engine',
-    category: 'service',
-    title: 'Engine Service',
-    description: 'Expert engine diagnostics and repair'
-  },
-  {
-    id: 2,
-    src: WeServiceImg,
-    alt: 'Car on hydraulic lift',
-    category: 'workshop',
-    title: 'Modern Workshop',
-    description: 'State-of-the-art equipment'
-  },
-  {
-    id: 3,
-    src: CarInspection2Img,
-    alt: 'Car undercarriage inspection',
-    category: 'service',
-    title: 'Undercarriage Check',
-    description: 'Complete chassis inspection'
-  },
-  {
-    id: 4,
-    src: InteriorDetailingImg,
-    alt: 'Car interior detailing',
-    category: 'before-after',
-    title: 'Interior Detailing',
-    description: 'Deep cleaning & sanitization'
-  },
-  {
-    id: 5,
-    src: BrakeServiceImg,
-    alt: 'Brake disc repair',
-    category: 'service',
-    title: 'Brake Service',
-    description: 'Brake pad & disc replacement'
-  },
-  {
-    id: 6,
-    src: ServiceBayImg,
-    alt: 'Car workshop interior',
-    category: 'workshop',
-    title: 'Service Bay',
-    description: 'Multiple service bays available'
-  },
-  {
-    id: 7,
-    src: ExpertDiagnosticsImg,
-    alt: 'Mechanic with diagnostic tool',
-    category: 'team',
-    title: 'Expert Diagnostics',
-    description: 'Computer-aided troubleshooting'
-  },
-  {
-    id: 8,
-    src: ACServiceImg,
-    alt: 'Car AC service',
-    category: 'service',
-    title: 'AC Service',
-    description: 'Gas refill & cooling check'
-  },
-  {
-    id: 9,
-    src: WheelAlignmentImg,
-    alt: 'Wheel alignment machine',
-    category: 'service',
-    title: 'Wheel Alignment',
-    description: 'Precision laser alignment'
-  },
-  {
-    id: 10,
-    src: FullServiceImg,
-    alt: 'Polished car after service',
-    category: 'before-after',
-    title: 'After Full Service',
-    description: 'Sparkling clean delivery'
-  },
-  {
-    id: 11,
-    src: ExpertTeamImg,
-    alt: 'Mechanic team',
-    category: 'team',
-    title: 'Our Expert Team',
-    description: 'Certified professionals'
-  },
-  {
-    id: 12,
-    src: PaintBoothImg,
-    alt: 'Car painting booth',
-    category: 'workshop',
-    title: 'Paint Booth',
-    description: 'Dust-free painting environment'
-  },
-];
+// Icon mapping for stats
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Wrench,
+  Car,
+  Camera,
+  Sparkles,
+};
 
 export const GallerySection = () => {
   const [activeCategory, setActiveCategory] = useState('all');
-  const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  const [selectedImage, setSelectedImage] = useState<number | string | null>(null);
   const sectionRef = useRef(null);
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-50px" });
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  // Get content from context
+  const { content } = useContent();
+  const galleryContent = content.gallery;
+  const categories = galleryContent.categories;
+  const galleryImages = galleryContent.images;
+  const stats = galleryContent.stats;
 
   const filteredImages = activeCategory === 'all'
     ? galleryImages
@@ -207,11 +100,11 @@ export const GallerySection = () => {
             <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }}>
               <Camera className="w-4 h-4" />
             </motion.div>
-            Our Gallery
+            {galleryContent.badge}
           </motion.span>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight mb-4 sm:mb-6">
-            {"See our ".split('').map((char, i) => (
+            {galleryContent.headline.line1.split('').map((char, i) => (
               <motion.span
                 key={i}
                 initial={{ opacity: 0, y: 50 }}
@@ -221,13 +114,14 @@ export const GallerySection = () => {
                 {char}
               </motion.span>
             ))}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">
-              {"work in action".split('').map((char, i) => (
+            {' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+              {galleryContent.headline.highlight.split('').map((char, i) => (
                 <motion.span
                   key={i}
                   initial={{ opacity: 0, y: 50, rotate: -10 }}
                   animate={isHeaderInView ? { opacity: 1, y: 0, rotate: 0 } : { opacity: 0, y: 50, rotate: -10 }}
-                  transition={{ delay: 0.3 + i * 0.03, type: "spring" }}
+                  transition={{ delay: 0.3 + i * 0.05, type: "spring" }}
                 >
                   {char}
                 </motion.span>
@@ -239,17 +133,17 @@ export const GallerySection = () => {
             className="text-gray-500 text-base sm:text-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.5 }}
           >
-            Take a look at our state-of-the-art workshop and expert mechanics delivering quality service
+            {galleryContent.description}
           </motion.p>
 
           {/* Animated Underline */}
           <motion.div
-            className="mt-6 mx-auto h-1 rounded-full bg-gradient-to-r from-primary to-primary"
+            className="mt-6 mx-auto h-1 rounded-full bg-gradient-to-r from-primary to-primary/60"
             initial={{ width: 0 }}
             animate={isHeaderInView ? { width: 120 } : { width: 0 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
           />
         </motion.div>
 
@@ -308,6 +202,11 @@ export const GallerySection = () => {
                     whileInView={{ scale: 1 }}
                     whileHover={{ scale: 1.1 }}
                     transition={{ duration: 0.6 }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null;
+                      target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect fill="%23f3f4f6" width="400" height="300"/><text fill="%239ca3af" font-family="Arial" font-size="14" x="50%" y="50%" text-anchor="middle" dy=".3em">Image not available</text></svg>';
+                    }}
                   />
 
                   {/* Overlay */}
@@ -349,38 +248,37 @@ export const GallerySection = () => {
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           transition={{ delay: 0.8 }}
         >
-          {[
-            { icon: Wrench, value: '500+', label: 'Expert Mechanics' },
-            { icon: Car, value: '50,000+', label: 'Cars Serviced' },
-            { icon: Camera, value: '10+', label: 'Service Centers' },
-            { icon: Sparkles, value: '4.8★', label: 'Customer Rating' },
-          ].map((stat, idx) => (
-            <motion.div
-              key={idx}
-              className="text-center p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-lg transition-all"
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.9 }}
-              transition={{ delay: 0.9 + idx * 0.1, type: "spring" }}
-              whileHover={{ scale: 1.05, y: -5 }}
-            >
+          {stats.map((stat, idx) => {
+            const IconComponent = iconMap[stat.icon] || Sparkles;
+            
+            return (
               <motion.div
-                className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 flex items-center justify-center"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.5 }}
+                key={idx}
+                className="text-center p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-lg transition-all"
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.9 }}
+                transition={{ delay: 0.9 + idx * 0.1, type: "spring" }}
+                whileHover={{ scale: 1.05, y: -5 }}
               >
-                <stat.icon className="w-6 h-6 text-primary" />
+                <motion.div
+                  className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 flex items-center justify-center"
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <IconComponent className="w-6 h-6 text-primary" />
+                </motion.div>
+                <motion.p
+                  className="text-2xl sm:text-3xl font-bold text-gray-900"
+                  initial={{ scale: 0 }}
+                  animate={isInView ? { scale: 1 } : { scale: 0 }}
+                  transition={{ delay: 1 + idx * 0.1, type: "spring" }}
+                >
+                  {stat.value}
+                </motion.p>
+                <p className="text-gray-500 text-sm">{stat.label}</p>
               </motion.div>
-              <motion.p
-                className="text-2xl sm:text-3xl font-bold text-gray-900"
-                initial={{ scale: 0 }}
-                animate={isInView ? { scale: 1 } : { scale: 0 }}
-                transition={{ delay: 1 + idx * 0.1, type: "spring" }}
-              >
-                {stat.value}
-              </motion.p>
-              <p className="text-gray-500 text-sm">{stat.label}</p>
-            </motion.div>
-          ))}
+            );
+          })}
         </motion.div>
       </div>
 

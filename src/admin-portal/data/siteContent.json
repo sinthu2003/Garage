@@ -1,7 +1,8 @@
 {
   "meta": {
-    "version": "1.0.0",
-    "lastModified": "2025-01-06T00:00:00.000Z"
+    "version": "2.0.0",
+    "lastModified": "2025-01-07T00:00:00.000Z",
+    "description": "Unified content source for Admin Panel and User-Facing UI"
   },
   "global": {
     "brand": {
@@ -10,7 +11,9 @@
       "phone": "+91 98765 43210",
       "email": "support@addaxautomotive.in",
       "address": "Coimbatore, Tamil Nadu",
-      "workingHours": "Mon-Sun: 8AM - 8PM"
+      "workingHours": "Mon-Sun: 8AM - 8PM",
+      "logo": "../assets/Logo.jpg",
+      "logoUrl": "../assets/Logo.jpg"
     },
     "social": {
       "facebook": "https://facebook.com/addaxautomotive",
@@ -20,69 +23,79 @@
     },
     "seo": {
       "title": "Addax Automotive - Premium Car Service at Your Doorstep",
-      "description": "India's leading car service network offering quality repairs, maintenance & detailing at transparent prices with doorstep convenience. Save up to 40%!"
+      "description": "India's leading car service network offering quality repairs, maintenance & detailing at transparent prices with doorstep convenience. Save up to 40%!",
+      "keywords": "car service, car repair, doorstep service, car maintenance, Coimbatore",
+      "ogTitle": "Addax Automotive - Premium Car Service",
+      "ogDescription": "Save up to 40% on car service with doorstep convenience",
+      "ogImage": "../assets/Logo.jpg",
+      "canonicalUrl": "https://addaxautomotive.in",
+      "indexable": true,
+      "followLinks": true
+    },
+    "navbar": {
+      "links": [
+        { "label": "Services", "href": "/services", "isRoute": true },
+        { "label": "How It Works", "href": "#how-it-works", "isRoute": false },
+        { "label": "Pricing", "href": "#pricing", "isRoute": false },
+        { "label": "Reviews", "href": "#testimonials", "isRoute": false },
+        { "label": "FAQ", "href": "#faq", "isRoute": false }
+      ],
+      "ctaText": "Book Service"
     }
   },
   "hero": {
-    "badge": "Trusted by 50,000+ Car Owners",
+    "badge": "#1 Car Service in Coimbatore",
     "headline": {
-      "line1": "Premium Car Service",
-      "line2": "at Your Doorstep",
-      "highlight": "Save 40%"
+      "line1": "Premium Car",
+      "line2": "Service at",
+      "highlight": "Your Doorstep."
     },
-    "subheadline": "Experience hassle-free car maintenance with certified mechanics, genuine parts, and transparent pricing. We come to you!",
+    "subheadline": "Experience transparent pricing, real-time tracking, and savings up to 40% compared to authorized service centers.",
     "savings": {
       "percentage": "40%",
       "text": "vs dealership prices"
     },
     "cta": {
-      "primary": "Book Free Inspection",
-      "secondary": "Watch How It Works",
-      "videoUrl": "https://youtube.com/watch?v=example"
+      "primary": "Get Free Quote",
+      "secondary": "Watch Video",
+      "videoUrl": "https://www.youtube.com/@ADDAXAUTOMOTIVE"
     },
-    "backgroundImage": "hero-bg.jpg",
+    "backgroundImage": "https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
     "stats": [
       {
-        "icon": "Users",
-        "label": "Happy Customers",
-        "value": "50000",
-        "suffix": "+"
+        "icon": "ShieldCheck",
+        "label": "Warranty",
+        "value": 6,
+        "suffix": " Months"
       },
       {
-        "icon": "Star",
-        "label": "Average Rating",
-        "value": "4.8",
-        "suffix": "/5"
+        "icon": "Zap",
+        "label": "Avg Savings",
+        "value": 4500,
+        "prefix": "₹"
       },
       {
-        "icon": "MapPin",
-        "label": "Cities Served",
-        "value": "25",
-        "suffix": "+"
-      },
-      {
-        "icon": "Wrench",
-        "label": "Services Completed",
-        "value": "100000",
+        "icon": "Award",
+        "label": "Customers",
+        "value": 50000,
         "suffix": "+"
       }
     ],
     "scrollingBrands": [
       { "name": "Maruti Suzuki" },
       { "name": "Hyundai" },
-      { "name": "Tata" },
-      { "name": "Mahindra" },
       { "name": "Honda" },
+      { "name": "Tata" },
       { "name": "Toyota" },
+      { "name": "Mahindra" },
       { "name": "Kia" },
-      { "name": "MG" },
-      { "name": "Skoda" },
-      { "name": "Volkswagen" }
+      { "name": "MG" }
     ]
   },
   "bookingWidget": {
     "title": "Book Your Service",
     "subtitle": "Get instant quote in 60 seconds",
+    "ctaText": "Check Prices",
     "steps": {
       "location": {
         "title": "Select Your City",
@@ -99,53 +112,173 @@
       "fuel": {
         "title": "Select Fuel Type",
         "subtitle": "Choose your car's fuel type"
+      },
+      "phone": {
+        "title": "Mobile Number",
+        "placeholder": "Enter your mobile number"
       }
     },
     "trustBadges": {
       "rating": "4.8/5",
       "services": "50,000+"
-    }
+    },
+    "trustFooter": {
+      "rating": "4.8/5",
+      "servicesCount": "50,000+"
+    },
+    "labels": {
+      "city": "City",
+      "brand": "Brand",
+      "model": "Model",
+      "fuel": "Fuel Type"
+    },
+    "screens": {
+      "main": "main",
+      "city": "city",
+      "brand": "brand",
+      "model": "model",
+      "fuel": "fuel"
+    },
+    "cities": [
+      "Coimbatore", "Chennai", "Bangalore", "Hyderabad", "Mumbai",
+      "Delhi", "Pune", "Kolkata", "Ahmedabad", "Jaipur",
+      "Lucknow", "Kochi", "Chandigarh", "Indore", "Nagpur"
+    ],
+    "brands": [
+      { "id": "maruti", "name": "Maruti Suzuki", "logo": "https://www.carlogos.org/car-logos/suzuki-logo.png", "urlName": "maruti-suzuki" },
+      { "id": "hyundai", "name": "Hyundai", "logo": "https://www.carlogos.org/car-logos/hyundai-logo.png", "urlName": "hyundai" },
+      { "id": "honda", "name": "Honda", "logo": "https://www.carlogos.org/car-logos/honda-logo.png", "urlName": "honda" },
+      { "id": "tata", "name": "Tata", "logo": "https://www.carlogos.org/car-logos/tata-logo.png", "urlName": "tata" },
+      { "id": "toyota", "name": "Toyota", "logo": "https://www.carlogos.org/car-logos/toyota-logo.png", "urlName": "toyota" },
+      { "id": "mahindra", "name": "Mahindra", "logo": "https://www.carlogos.org/car-logos/mahindra-logo.png", "urlName": "mahindra" },
+      { "id": "kia", "name": "Kia", "logo": "https://www.carlogos.org/car-logos/kia-logo.png", "urlName": "kia" },
+      { "id": "mg", "name": "MG", "logo": "https://www.carlogos.org/car-logos/mg-logo.png", "urlName": "mg" },
+      { "id": "volkswagen", "name": "Volkswagen", "logo": "https://www.carlogos.org/car-logos/volkswagen-logo.png", "urlName": "volkswagen" },
+      { "id": "skoda", "name": "Skoda", "logo": "https://www.carlogos.org/car-logos/skoda-logo.png", "urlName": "skoda" },
+      { "id": "renault", "name": "Renault", "logo": "https://www.carlogos.org/car-logos/renault-logo.png", "urlName": "renault" },
+      { "id": "nissan", "name": "Nissan", "logo": "https://www.carlogos.org/car-logos/nissan-logo.png", "urlName": "nissan" },
+      { "id": "ford", "name": "Ford", "logo": "https://www.carlogos.org/car-logos/ford-logo.png", "urlName": "ford" },
+      { "id": "chevrolet", "name": "Chevrolet", "logo": "https://www.carlogos.org/car-logos/chevrolet-logo.png", "urlName": "chevrolet" },
+      { "id": "bmw", "name": "BMW", "logo": "https://www.carlogos.org/car-logos/bmw-logo.png", "urlName": "bmw" },
+      { "id": "audi", "name": "Audi", "logo": "https://www.carlogos.org/car-logos/audi-logo.png", "urlName": "audi" },
+      { "id": "mercedes", "name": "Mercedes-Benz", "logo": "https://www.carlogos.org/car-logos/mercedes-benz-logo.png", "urlName": "mercedes-benz" },
+      { "id": "jeep", "name": "Jeep", "logo": "https://www.carlogos.org/car-logos/jeep-logo.png", "urlName": "jeep" },
+      { "id": "volvo", "name": "Volvo", "logo": "https://www.carlogos.org/car-logos/volvo-logo.png", "urlName": "volvo" },
+      { "id": "lexus", "name": "Lexus", "logo": "https://www.carlogos.org/car-logos/lexus-logo.png", "urlName": "lexus" },
+      { "id": "porsche", "name": "Porsche", "logo": "https://www.carlogos.org/car-logos/porsche-logo.png", "urlName": "porsche" },
+      { "id": "jaguar", "name": "Jaguar", "logo": "https://www.carlogos.org/car-logos/jaguar-logo.png", "urlName": "jaguar" },
+      { "id": "landrover", "name": "Land Rover", "logo": "https://www.carlogos.org/car-logos/land-rover-logo.png", "urlName": "land-rover" },
+      { "id": "mitsubishi", "name": "Mitsubishi", "logo": "https://www.carlogos.org/car-logos/mitsubishi-logo.png", "urlName": "mitsubishi" }
+    ],
+    "carModels": {
+      "maruti": [
+        { "name": "Swift", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/159099/swift-exterior-right-front-three-quarter-31.png?isig=0&q=80" },
+        { "name": "Baleno", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/102663/baleno-exterior-right-front-three-quarter-69.png?isig=0&q=80" },
+        { "name": "Alto K10", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/127563/alto-k10-exterior-right-front-three-quarter-63.png?isig=0&q=80" },
+        { "name": "Wagon R", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/112947/wagon-r-exterior-right-front-three-quarter-6.png?isig=0&q=80" },
+        { "name": "Dzire", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/170173/dzire-exterior-right-front-three-quarter-27.png?isig=0&q=80" },
+        { "name": "Vitara Brezza", "type": "SUV", "image": "https://imgd.aeplcdn.com/664x374/n/cw/ec/39028/marutisuzuki-vitara-brezza-right-front-three-quarter3.jpeg?q=80" },
+        { "name": "Ertiga", "type": "MPV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/115777/ertiga-exterior-right-front-three-quarter-10.png?isig=0&q=80" },
+        { "name": "Ciaz", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/48542/ciaz-exterior-right-front-three-quarter-2.png?isig=0&q=80" },
+        { "name": "Grand Vitara", "type": "SUV", "image": "https://imgd.aeplcdn.com/664x374/n/cw/ec/123185/grand-vitara-exterior-right-front-three-quarter-5.png?isig=0&q=80" },
+        { "name": "Fronx", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/130591/fronx-exterior-right-front-three-quarter-109.png?isig=0&q=80" },
+        { "name": "Jimny", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/45299/jimny-exterior-right-front-three-quarter-23.png?isig=0&q=80" }
+      ],
+      "hyundai": [
+        { "name": "Creta", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/106815/creta-exterior-right-front-three-quarter-6.png?isig=0&q=80" },
+        { "name": "i20", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/150603/i20-exterior-right-front-three-quarter-13.png?isig=0&q=80" },
+        { "name": "Venue", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/197163/venue-exterior-right-front-three-quarter-38.png?isig=0&q=80" },
+        { "name": "Verna", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/121943/verna-exterior-right-front-three-quarter-103.png?isig=0&q=80" },
+        { "name": "Grand i10 Nios", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/136183/grand-i10-nios-exterior-right-front-three-quarter-17.png?isig=0&q=80" },
+        { "name": "Aura", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/139133/aura-exterior-right-front-three-quarter-9.png?isig=0&q=80" },
+        { "name": "Tucson", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/106821/tucson-exterior-right-front-three-quarter-8.png?isig=0&q=80" },
+        { "name": "Alcazar", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/157825/alcazar-exterior-right-front-three-quarter-24.png?isig=0&q=80" },
+        { "name": "Exter", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/144851/exter-exterior-right-front-three-quarter-64.png?isig=0&q=80" }
+      ],
+      "honda": [
+        { "name": "City", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/134287/city-exterior-right-front-three-quarter-2.png?isig=0&q=80" },
+        { "name": "Amaze", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/184377/amaze-exterior-right-front-three-quarter-5.png?isig=0&q=80" },
+        { "name": "Elevate", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/142515/elevate-exterior-right-front-three-quarter-29.png?isig=0&q=80" }
+      ],
+      "tata": [
+        { "name": "Nexon", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/141867/nexon-exterior-right-front-three-quarter-79.png?isig=0&q=80" },
+        { "name": "Punch", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/39015/punch-exterior-right-front-three-quarter-58.png?isig=0&q=80" },
+        { "name": "Altroz", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/199863/altroz-exterior-right-front-three-quarter-13.png?isig=0&q=80" },
+        { "name": "Harrier", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/139139/harrier-exterior-right-front-three-quarter-7.png?isig=0&q=80" },
+        { "name": "Safari", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/138895/safari-exterior-right-front-three-quarter-40.png?isig=0&q=80" },
+        { "name": "Tiago", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/39345/tiago-exterior-right-front-three-quarter-33.png?isig=0&q=80" }
+      ],
+      "toyota": [
+        { "name": "Innova Crysta", "type": "MPV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/140809/innova-crysta-exterior-right-front-three-quarter-2.png?isig=0&q=80" },
+        { "name": "Fortuner", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/44709/fortuner-exterior-right-front-three-quarter-18.png?isig=0&q=80" },
+        { "name": "Glanza", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/112839/glanza-exterior-right-front-three-quarter-8.png?isig=0&q=80" },
+        { "name": "Urban Cruiser Hyryder", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/112975/urban-cruiser-hyryder-exterior-right-front-three-quarter-20.png?isig=0&q=80" }
+      ],
+      "mahindra": [
+        { "name": "Thar", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/40087/thar-exterior-right-front-three-quarter-76.png?isig=0&q=80" },
+        { "name": "XUV700", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/42355/xuv700-exterior-right-front-three-quarter-73.png?isig=0&q=80" },
+        { "name": "Scorpio N", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/107545/scorpio-n-exterior-right-front-three-quarter-3.png?isig=0&q=80" },
+        { "name": "XUV300", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/144631/xuv300-exterior-right-front-three-quarter-22.png?isig=0&q=80" },
+        { "name": "Bolero", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/46492/bolero-exterior-right-front-three-quarter-2.png?isig=0&q=80" }
+      ],
+      "kia": [
+        { "name": "Seltos", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/174323/seltos-exterior-right-front-three-quarter-36.png?isig=0&q=80" },
+        { "name": "Sonet", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/141115/sonet-exterior-right-front-three-quarter-32.png?isig=0&q=80" },
+        { "name": "Carens", "type": "MPV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/143865/carens-exterior-right-front-three-quarter-29.png?isig=0&q=80" }
+      ],
+      "mg": [
+        { "name": "Hector", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/130583/hector-exterior-right-front-three-quarter-74.png?isig=0&q=80" },
+        { "name": "Astor", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/115119/astor-exterior-right-front-three-quarter-21.png?isig=0&q=80" },
+        { "name": "ZS EV", "type": "Electric", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/121903/zs-ev-exterior-right-front-three-quarter-2.png?isig=0&q=80" }
+      ]
+    },
+    "fuelTypes": [
+      { "id": "petrol", "name": "Petrol", "icon": "⛽", "color": "#EF4444" },
+      { "id": "diesel", "name": "Diesel", "icon": "🛢️", "color": "#3B82F6" },
+      { "id": "cng", "name": "CNG", "icon": "💨", "color": "#10B981" },
+      { "id": "electric", "name": "Electric", "icon": "⚡", "color": "#8B5CF6" }
+    ]
   },
   "howItWorks": {
-    "badge": "Simple Process",
+    "badge": "How It Works",
     "headline": {
       "line1": "Car service in",
       "highlight": "4 simple steps."
     },
-    "description": "We've simplified car maintenance so you can focus on what matters most. From booking to completion, we handle everything.",
+    "description": "We've simplified car maintenance so you can focus on what matters most.",
     "cta": "Book Your Service Now",
     "steps": [
       {
         "number": "01",
         "icon": "MapPin",
         "title": "Select Location",
-        "description": "Choose your city and preferred service location - home, office, or our workshop.",
-        "color": "#EF4444",
-        "image": "step-location.jpg"
+        "description": "Choose your city and preferred service location. We cover all major cities.",
+        "color": "#FF5733",
+        "image": "../assets/SelectLocation.jpg"
       },
       {
         "number": "02",
         "icon": "Calendar",
-        "title": "Book Appointment",
-        "description": "Pick a convenient date and time slot that fits your schedule.",
+        "title": "Book a Slot",
+        "description": "Pick a convenient date and time. Free doorstep pickup available.",
         "color": "#3B82F6",
-        "image": "step-booking.jpg"
+        "image": "../assets/BookaSlot.jpg"
       },
       {
         "number": "03",
         "icon": "Wrench",
         "title": "We Service",
-        "description": "Our certified mechanics arrive with all tools and genuine parts to service your car.",
-        "color": "#8B5CF6",
-        "image": "step-service.jpg"
+        "description": "Expert mechanics work on your car with real-time progress updates.",
+        "color": "#10B981",
+        "image": "../assets/WeService.jpg"
       },
       {
         "number": "04",
         "icon": "CheckCircle",
-        "title": "Happy Driving",
-        "description": "Get your car back in perfect condition with detailed service report and warranty.",
-        "color": "#10B981",
-        "image": "step-complete.jpg"
+        "title": "Car Delivered",
+        "description": "Your car delivered back to you, sanitized and sparkling clean.",
+        "color": "#8B5CF6",
+        "image": "../assets/Cardelivered.jpg"
       }
     ]
   },
@@ -155,173 +288,242 @@
       "line1": "Built for",
       "highlight": "modern car owners."
     },
-    "description": "We've reimagined car service with technology, transparency, and trust at its core.",
+    "description": "We've reimagined car service with technology, transparency, and trust.",
     "mainFeature": {
+      "gradient": "from-gray-900 to-gray-800",
       "badge": "Premium Quality",
       "title": "State-of-the-art Workshop with Modern Equipment",
-      "description": "Our workshops are equipped with the latest diagnostic tools and equipment to ensure your car gets the best care possible.",
-      "image": "workshop.jpg",
+      "description": "Our workshops are equipped with the latest diagnostic tools and equipment to ensure your car receives the best possible care.",
+      "image": "../assets/CarInspection.jpg",
       "highlights": [
         "Advanced Diagnostics",
         "Genuine Parts",
-        "Certified Mechanics"
+        "Trained Technicians"
       ]
     },
     "items": [
       {
         "icon": "Shield",
         "title": "6-Month Warranty",
-        "description": "All services come with comprehensive warranty coverage for your peace of mind.",
+        "description": "Comprehensive warranty coverage on all parts and labor for your peace of mind.",
         "color": "#3B82F6",
-        "image": ""
+        "image": "../assets/6-month-warranty.png"
       },
       {
         "icon": "BadgePercent",
-        "title": "Save Up to 40%",
-        "description": "Get dealership quality service at 40% lower prices with complete transparency.",
+        "title": "Save up to 40%",
+        "description": "Get the same quality service at prices much lower than authorized centers.",
         "color": "#10B981",
-        "image": ""
+        "image": "../assets/save-up-to-40-percent.png"
       },
       {
         "icon": "Clock",
-        "title": "Doorstep Service",
-        "description": "We come to your home or office. No more waiting at service centers.",
-        "color": "#F59E0B",
-        "image": ""
-      },
-      {
-        "icon": "Smartphone",
-        "title": "Live Tracking",
-        "description": "Track your service in real-time with photos and updates at every step.",
-        "color": "#8B5CF6",
-        "image": ""
-      },
-      {
-        "icon": "Award",
-        "title": "Certified Mechanics",
-        "description": "All our mechanics are trained and certified with years of experience.",
-        "color": "#EC4899",
-        "image": ""
+        "title": "Quick Turnaround",
+        "description": "Most services completed within the same day. No more long waiting times.",
+        "color": "#FF5733",
+        "image": "../assets/quick-turnaround-service.png"
       },
       {
         "icon": "MapPin",
-        "title": "25+ Cities",
-        "description": "Available across major cities in India with consistent quality service.",
-        "color": "#EF4444",
-        "image": ""
+        "title": "Free Pickup & Drop",
+        "description": "Doorstep service with complimentary pickup and delivery at your convenience.",
+        "color": "#8B5CF6",
+        "image": "../assets/free-pickup-and-drop.png"
+      },
+      {
+        "icon": "Smartphone",
+        "title": "Real-time Updates",
+        "description": "Track your service progress with live updates, photos, and notifications.",
+        "color": "#EC4899",
+        "image": "../assets/real-time-service-updates.png"
+      },
+      {
+        "icon": "Award",
+        "title": "Expert Mechanics",
+        "description": "500+ certified professionals with years of experience across all brands.",
+        "color": "#F59E0B",
+        "image": "../assets/expert-mechanics.png"
       }
     ]
   },
   "services": {
     "badge": "Our Services",
     "headline": {
-      "line1": "Complete car care",
-      "highlight": "solutions."
+      "line1": "Everything your",
+      "highlight": "car needs."
     },
-    "description": "From routine maintenance to complex repairs, we've got your car covered.",
+    "description": "From routine maintenance to complex repairs, our expert mechanics deliver quality service at transparent prices.",
     "viewAllCta": "View All Services",
     "items": [
       {
-        "id": 1,
+        "id": "1",
         "title": "Periodic Service",
-        "description": "Complete car checkup with oil change, filter replacement, and 40+ point inspection.",
+        "description": "Complete car service including oil change, filter replacement, and 40+ checkpoints.",
+        "icon": "Settings",
         "price": 2999,
-        "originalPrice": 4999,
-        "image": "periodic-service.jpg",
+        "originalPrice": 4500,
+        "image": "../assets/PeriodicService.jpg",
         "features": [
-          "Engine Oil Change",
-          "Oil Filter Replacement",
-          "Air Filter Cleaning",
-          "40+ Point Checkup",
-          "Brake Inspection"
+          "Engine oil replacement",
+          "Oil filter replacement",
+          "Air filter cleaning",
+          "AC filter cleaning",
+          "Brake inspection",
+          "40+ checkpoints"
+        ],
+        "includes": [
+          "Engine Oil (4L)",
+          "Oil Filter",
+          "Labor Charges",
+          "Free Pickup & Drop"
+        ],
+        "process": [
+          { "title": "Booking", "description": "Schedule your service online" },
+          { "title": "Pickup", "description": "We collect your car from your location" },
+          { "title": "Inspection", "description": "40+ point checkup performed" },
+          { "title": "Service", "description": "Oil change and filter replacement" },
+          { "title": "Delivery", "description": "Car delivered sanitized and clean" }
+        ],
+        "faqs": [
+          { "question": "How long does periodic service take?", "answer": "Typically 4-5 hours depending on your car model." },
+          { "question": "What oil brands do you use?", "answer": "We use OEM recommended oils from brands like Castrol, Shell, and Mobil." }
         ],
         "duration": "4-5 hours",
-        "warranty": "1 Month / 1000 Km"
+        "warranty": "1 Month / 1000 Km",
+        "category": "maintenance"
       },
       {
-        "id": 2,
+        "id": "2",
         "title": "AC Service & Repair",
-        "description": "Complete AC system checkup, gas top-up, and cooling coil cleaning.",
+        "description": "Complete AC diagnostics, gas top-up, and cooling system check.",
+        "icon": "Snowflake",
         "price": 1499,
-        "originalPrice": 2499,
-        "image": "ac-service.jpg",
+        "originalPrice": 2200,
+        "image": "../assets/ACService.jpg",
         "features": [
-          "AC Gas Top-up",
-          "Cooling Coil Cleaning",
-          "Compressor Check",
-          "Vent Cleaning",
-          "Performance Test"
+          "AC gas top-up",
+          "Cooling coil cleaning",
+          "Blower motor check",
+          "Condenser cleaning",
+          "Thermostat check"
         ],
         "duration": "2-3 hours",
-        "warranty": "1 Month"
+        "warranty": "1 Month",
+        "category": "ac"
       },
       {
-        "id": 3,
+        "id": "3",
         "title": "Denting & Painting",
-        "description": "Professional dent removal and paint restoration with color matching.",
+        "description": "Professional body repair with color matching technology.",
+        "icon": "Paintbrush",
         "price": 3999,
-        "originalPrice": 6999,
-        "image": "denting-painting.jpg",
+        "originalPrice": 6000,
+        "image": "../assets/Denting.jpg",
         "features": [
-          "Dent Removal",
-          "Scratch Repair",
-          "Color Matching",
-          "Clear Coat Application",
-          "Paint Protection"
+          "Dent removal",
+          "Color matching",
+          "Anti-rust treatment",
+          "Paint protection",
+          "1 year warranty"
         ],
         "duration": "2-3 days",
-        "warranty": "6 Months"
+        "warranty": "6 Months",
+        "category": "body"
       },
       {
-        "id": 4,
-        "title": "Battery Replacement",
-        "description": "Genuine battery replacement with old battery pickup and warranty.",
-        "price": 3499,
-        "originalPrice": 4999,
-        "image": "battery-service.jpg",
+        "id": "4",
+        "title": "Car Inspection",
+        "description": "Comprehensive 150+ point inspection for complete peace of mind.",
+        "icon": "Search",
+        "price": 499,
+        "originalPrice": 800,
+        "image": "../assets/CarInspection.jpg",
         "features": [
-          "Battery Health Check",
-          "Genuine Battery",
-          "Old Battery Pickup",
-          "Terminal Cleaning",
-          "Charging System Check"
-        ],
-        "duration": "30 minutes",
-        "warranty": "2-3 Years"
-      },
-      {
-        "id": 5,
-        "title": "Car Detailing",
-        "description": "Premium interior and exterior detailing with ceramic coating.",
-        "price": 4999,
-        "originalPrice": 7999,
-        "image": "car-detailing.jpg",
-        "features": [
-          "Exterior Wash & Polish",
-          "Interior Deep Clean",
-          "Dashboard Treatment",
-          "Tyre Dressing",
-          "Glass Cleaning"
-        ],
-        "duration": "5-6 hours",
-        "warranty": "15 Days"
-      },
-      {
-        "id": 6,
-        "title": "Wheel Care",
-        "description": "Complete wheel alignment, balancing, and tyre rotation service.",
-        "price": 999,
-        "originalPrice": 1999,
-        "image": "wheel-care.jpg",
-        "features": [
-          "Wheel Alignment",
-          "Wheel Balancing",
-          "Tyre Rotation",
-          "Tyre Pressure Check",
-          "Suspension Inspection"
+          "150+ point check",
+          "Engine diagnostics",
+          "Detailed report",
+          "Expert consultation",
+          "Free re-inspection"
         ],
         "duration": "1-2 hours",
-        "warranty": "1 Month"
+        "warranty": "N/A",
+        "category": "inspection"
+      },
+      {
+        "id": "5",
+        "title": "Wheel Care",
+        "description": "Complete wheel alignment, balancing, and tire care.",
+        "icon": "Circle",
+        "price": 699,
+        "originalPrice": 1200,
+        "image": "../assets/Wheelcare.jpg",
+        "features": [
+          "Wheel alignment",
+          "Wheel balancing",
+          "Tire rotation",
+          "Pressure check",
+          "Valve replacement"
+        ],
+        "duration": "1-2 hours",
+        "warranty": "1 Month",
+        "category": "wheels"
+      },
+      {
+        "id": "6",
+        "title": "Battery Service",
+        "description": "Battery testing, replacement, and electrical system check.",
+        "icon": "Battery",
+        "price": 399,
+        "originalPrice": 600,
+        "image": "../assets/BatteryService.jpg",
+        "features": [
+          "Battery testing",
+          "Terminal cleaning",
+          "Charging system check",
+          "Free installation",
+          "2 year warranty"
+        ],
+        "duration": "30 minutes",
+        "warranty": "2 Years",
+        "category": "electrical"
+      },
+      {
+        "id": "7",
+        "title": "Clutch & Body",
+        "description": "Complete clutch assembly replacement and repair.",
+        "icon": "Cog",
+        "price": 5999,
+        "originalPrice": 9000,
+        "image": "../assets/ClutchBody1.jpg",
+        "features": [
+          "Clutch plate replacement",
+          "Pressure plate",
+          "Release bearing",
+          "Flywheel machining",
+          "6 month warranty"
+        ],
+        "duration": "1-2 days",
+        "warranty": "6 Months",
+        "category": "transmission"
+      },
+      {
+        "id": "8",
+        "title": "Insurance Claims",
+        "description": "Hassle-free insurance claim processing and repairs.",
+        "icon": "Shield",
+        "price": 0,
+        "originalPrice": 0,
+        "image": "../assets/InsuranceClaims.jpg",
+        "features": [
+          "Claim assistance",
+          "Surveyor coordination",
+          "Paperwork handling",
+          "Direct settlement",
+          "Pickup & drop"
+        ],
+        "duration": "Varies",
+        "warranty": "As per insurance",
+        "category": "insurance"
       }
     ]
   },
@@ -332,50 +534,49 @@
       "line2": "pricing.",
       "muted": "No surprises."
     },
-    "description": "We operate centrally to minimize overheads and pass the savings directly to you. Compare and see the difference!",
-    "cta": "Book Now & Save",
+    "description": "We operate centrally to minimize overheads and pass the savings directly to you. Compare our prices with authorized service centers.",
+    "cta": "Book Now",
     "highlights": [
-      "No hidden charges",
-      "Genuine spare parts",
-      "Skilled mechanics",
-      "Service warranty"
+      "Upfront quotes before service",
+      "No hidden charges ever",
+      "Price match guarantee"
     ],
     "featureImage": {
       "subtitle": "Why pay more?",
       "title": "Same Quality,",
       "highlight": "Better Price.",
-      "image": "pricing-feature.jpg"
+      "image": "../assets/WeService.jpg"
     },
     "items": [
       {
-        "service": "Periodic Service",
-        "market": 4999,
-        "ours": 2999
+        "service": "Car Inspection",
+        "market": 800,
+        "ours": 499,
+        "image": "../assets/CarInspection.jpg"
       },
       {
-        "service": "AC Service",
-        "market": 2499,
-        "ours": 1499
+        "service": "General Service",
+        "market": 4500,
+        "ours": 2999,
+        "image": "../assets/PeriodicService.jpg"
       },
       {
-        "service": "Front Brake Pads",
-        "market": 3500,
-        "ours": 2100
+        "service": "AC Gas Top-up",
+        "market": 2200,
+        "ours": 1499,
+        "image": "../assets/ACService.jpg"
       },
       {
-        "service": "Battery (65 AH)",
-        "market": 7500,
-        "ours": 5500
+        "service": "Wheel Alignment",
+        "market": 1200,
+        "ours": 699,
+        "image": "../assets/WheelCare2.jpg"
       },
       {
-        "service": "Clutch Set",
-        "market": 12000,
-        "ours": 8500
-      },
-      {
-        "service": "Full Body Paint",
-        "market": 35000,
-        "ours": 22000
+        "service": "Brake Pads",
+        "market": 2500,
+        "ours": 1800,
+        "image": "../assets/WheelCare1.jpg"
       }
     ],
     "savingsCard": {
@@ -392,36 +593,38 @@
     "description": "Drag the slider to see the incredible transformations we deliver. Real results from real customers.",
     "cta": "Get Your Car Transformed",
     "selectLabel": "Select Transformation",
+    "beforeLabel": "BEFORE",
+    "afterLabel": "AFTER",
     "items": [
       {
         "id": 1,
         "title": "Denting & Painting",
         "car": "Hyundai Creta",
-        "beforeImage": "creta-before.jpg",
-        "afterImage": "creta-after.jpg",
-        "description": "Complete bumper repair and full body paint restoration after accident damage.",
-        "time": "3 Days",
-        "savings": "₹12,000"
+        "beforeImage": "../assets/hyundai-creta-denting-painting-before.png",
+        "afterImage": "../assets/hyundai-creta-denting-painting-after.png",
+        "description": "Complete bumper repair and full body paint restoration with color matching",
+        "time": "2 Days",
+        "savings": "₹8,000"
       },
       {
         "id": 2,
-        "title": "Interior Detailing",
+        "title": "Full Car Detailing",
         "car": "Honda City",
-        "beforeImage": "city-interior-before.jpg",
-        "afterImage": "city-interior-after.jpg",
-        "description": "Deep interior cleaning, leather conditioning, and dashboard restoration.",
+        "beforeImage": "../assets/honda-city-full-car-detailing-before.png",
+        "afterImage": "../assets/honda-city-full-car-detailing-after.png",
+        "description": "Deep exterior polish, ceramic coating and paint protection applied",
         "time": "1 Day",
-        "savings": "₹3,000"
+        "savings": "₹3,500"
       },
       {
         "id": 3,
-        "title": "Headlight Restoration",
-        "car": "Maruti Swift",
-        "beforeImage": "swift-lights-before.jpg",
-        "afterImage": "swift-lights-after.jpg",
-        "description": "UV damaged headlights restored to crystal clear condition.",
-        "time": "2 Hours",
-        "savings": "₹5,000"
+        "title": "Interior Deep Clean",
+        "car": "Toyota Fortuner",
+        "beforeImage": "../assets/toyota-fortuner-interior-deep-clean-before.png",
+        "afterImage": "../assets/toyota-fortuner-interior-deep-clean-after.png",
+        "description": "Complete interior steam cleaning, leather conditioning and sanitization",
+        "time": "4 Hours",
+        "savings": "₹2,000"
       }
     ]
   },
@@ -438,43 +641,43 @@
         "role": "Business Owner",
         "location": "Coimbatore",
         "carModel": "Hyundai Creta",
-        "service": "Periodic Service",
+        "service": "Denting & Painting",
         "rating": 5,
-        "content": "Exceptional service quality! The mechanic arrived on time, was very professional, and completed the service at my doorstep. Saved me a trip to the service center and got better pricing too.",
-        "image": ""
+        "content": "My Creta had a bad dent on the rear door. Carage restored it to factory finish! The color matching is perfect and the paint quality is amazing. Highly recommended.",
+        "image": "../assets/hyundai-creta-denting-painting-after.png"
       },
       {
         "id": 2,
-        "name": "Priya Sharma",
-        "role": "IT Professional",
+        "name": "Priya Sundaram",
+        "role": "Software Engineer",
         "location": "Chennai",
-        "carModel": "Honda City",
-        "service": "AC Repair",
+        "carModel": "Maruti Swift",
+        "service": "Body Repairs",
         "rating": 5,
-        "content": "My AC wasn't cooling properly for months. Addax fixed it in just 2 hours at my office parking. The real-time updates on my phone were really helpful. Highly recommended!",
-        "image": ""
+        "content": "Had a nasty scratch on the bumper. Their paint matching technology is incredible. You literally cannot tell there was a dent. Highly recommended for body work!",
+        "image": "../assets/Denting1.jpg"
       },
       {
         "id": 3,
-        "name": "Mohammed Farhan",
+        "name": "Arun Vijay",
         "role": "Doctor",
         "location": "Bangalore",
-        "carModel": "Toyota Innova",
-        "service": "Denting & Painting",
+        "carModel": "Honda City",
+        "service": "Premium Detailing",
         "rating": 5,
-        "content": "Had a minor accident and the bumper was badly damaged. Addax picked up my car, fixed it perfectly, and delivered it back. The paint matching was flawless!",
-        "image": ""
+        "content": "Opted for their full car detailing package. The results are stunning - the interior smells fresh and the exterior shine is better than when I bought it.",
+        "image": "../assets/honda-city-full-car-detailing-after.png"
       },
       {
         "id": 4,
         "name": "Sneha Reddy",
-        "role": "Teacher",
+        "role": "Architect",
         "location": "Hyderabad",
-        "carModel": "Maruti Swift",
-        "service": "Car Detailing",
+        "carModel": "Tata Nexon",
+        "service": "Periodic Service",
         "rating": 5,
-        "content": "My 5-year-old Swift looks brand new after their detailing service! The interior deep cleaning was thorough and the exterior polish is just amazing. Worth every rupee!",
-        "image": ""
+        "content": "Very transparent pricing. No hidden charges at the end. The mechanic explained everything clearly before starting the work. Best service app in India.",
+        "image": "../assets/PeriodicService2.jpg"
       }
     ]
   },
@@ -487,65 +690,114 @@
     "description": "Take a look at our state-of-the-art facilities and the quality of work we deliver.",
     "categories": [
       { "id": "all", "label": "All" },
-      { "id": "workshop", "label": "Workshop" },
-      { "id": "service", "label": "Service" },
-      { "id": "detailing", "label": "Detailing" },
-      { "id": "repair", "label": "Repair" }
+      { "id": "workshop", "label": "Our Workshop" },
+      { "id": "service", "label": "Service in Action" },
+      { "id": "before-after", "label": "Before & After" },
+      { "id": "team", "label": "Our Team" }
     ],
     "images": [
       {
         "id": 1,
-        "src": "gallery-1.jpg",
-        "alt": "Modern workshop",
-        "category": "workshop",
-        "title": "State-of-the-art Workshop",
-        "description": "Our fully equipped workshop"
+        "src": "../assets/PeriodicService.jpg",
+        "alt": "Mechanic servicing car engine",
+        "category": "service",
+        "title": "Engine Service",
+        "description": "Expert engine diagnostics and repair"
       },
       {
         "id": 2,
-        "src": "gallery-2.jpg",
-        "alt": "Engine service",
-        "category": "service",
-        "title": "Engine Service",
-        "description": "Expert engine diagnostics"
+        "src": "../assets/WeService.jpg",
+        "alt": "Car on hydraulic lift",
+        "category": "workshop",
+        "title": "Modern Workshop",
+        "description": "State-of-the-art equipment"
       },
       {
         "id": 3,
-        "src": "gallery-3.jpg",
-        "alt": "Car detailing",
-        "category": "detailing",
-        "title": "Premium Detailing",
-        "description": "Showroom finish detailing"
+        "src": "../assets/CarInspection2.jpg",
+        "alt": "Car undercarriage inspection",
+        "category": "service",
+        "title": "Undercarriage Check",
+        "description": "Complete chassis inspection"
       },
       {
         "id": 4,
-        "src": "gallery-4.jpg",
-        "alt": "Paint work",
-        "category": "repair",
-        "title": "Paint Restoration",
-        "description": "Professional paint booth"
+        "src": "../assets/toyota-fortuner-interior-deep-clean-after.png",
+        "alt": "Car interior detailing",
+        "category": "before-after",
+        "title": "Interior Detailing",
+        "description": "Deep cleaning & sanitization"
       },
       {
         "id": 5,
-        "src": "gallery-5.jpg",
-        "alt": "AC repair",
+        "src": "../assets/WheelCare1.jpg",
+        "alt": "Brake disc repair",
         "category": "service",
-        "title": "AC Service",
-        "description": "Complete AC solutions"
+        "title": "Brake Service",
+        "description": "Brake pad & disc replacement"
       },
       {
         "id": 6,
-        "src": "gallery-6.jpg",
-        "alt": "Interior cleaning",
-        "category": "detailing",
-        "title": "Interior Deep Clean",
-        "description": "Thorough interior restoration"
+        "src": "../assets/CarInspection1.jpg",
+        "alt": "Car workshop interior",
+        "category": "workshop",
+        "title": "Service Bay",
+        "description": "Multiple service bays available"
+      },
+      {
+        "id": 7,
+        "src": "../assets/CarInspection.jpg",
+        "alt": "Mechanic with diagnostic tool",
+        "category": "team",
+        "title": "Expert Diagnostics",
+        "description": "Computer-aided troubleshooting"
+      },
+      {
+        "id": 8,
+        "src": "../assets/ACService.jpg",
+        "alt": "Car AC service",
+        "category": "service",
+        "title": "AC Service",
+        "description": "Gas refill & cooling check"
+      },
+      {
+        "id": 9,
+        "src": "../assets/WheelCare2.jpg",
+        "alt": "Wheel alignment machine",
+        "category": "service",
+        "title": "Wheel Alignment",
+        "description": "Precision laser alignment"
+      },
+      {
+        "id": 10,
+        "src": "../assets/honda-city-full-car-detailing-after.png",
+        "alt": "Polished car after service",
+        "category": "before-after",
+        "title": "After Full Service",
+        "description": "Sparkling clean delivery"
+      },
+      {
+        "id": 11,
+        "src": "../assets/expert-mechanics.png",
+        "alt": "Mechanic team",
+        "category": "team",
+        "title": "Our Expert Team",
+        "description": "Certified professionals"
+      },
+      {
+        "id": 12,
+        "src": "../assets/Denting1.jpg",
+        "alt": "Car painting booth",
+        "category": "workshop",
+        "title": "Paint Booth",
+        "description": "Dust-free painting environment"
       }
     ],
     "stats": [
       { "icon": "Wrench", "value": "500+", "label": "Expert Mechanics" },
-      { "icon": "Car", "value": "100K+", "label": "Cars Serviced" },
-      { "icon": "Sparkles", "value": "50K+", "label": "Happy Customers" }
+      { "icon": "Car", "value": "50,000+", "label": "Cars Serviced" },
+      { "icon": "Camera", "value": "10+", "label": "Service Centers" },
+      { "icon": "Sparkles", "value": "4.8★", "label": "Customer Rating" }
     ]
   },
   "partners": {
@@ -554,25 +806,50 @@
       "text": "We service",
       "highlight": "all major brands"
     },
-    "description": "Expert mechanics trained for all car makes and models. From hatchbacks to luxury sedans, we've got you covered.",
+    "description": "Expert mechanics trained for all car makes and models - from budget hatchbacks to luxury supercars",
     "brandCount": "35+",
     "brandCountLabel": "Car Brands Serviced",
+    "brands": [
+      { "name": "Maruti Suzuki", "logo": "https://www.carlogos.org/car-logos/suzuki-logo.png" },
+      { "name": "Tata", "logo": "https://www.carlogos.org/car-logos/tata-logo.png" },
+      { "name": "Mahindra", "logo": "https://www.carlogos.org/car-logos/mahindra-logo.png" },
+      { "name": "Hyundai", "logo": "https://www.carlogos.org/car-logos/hyundai-logo.png" },
+      { "name": "Kia", "logo": "https://www.carlogos.org/car-logos/kia-logo.png" },
+      { "name": "Toyota", "logo": "https://www.carlogos.org/car-logos/toyota-logo.png" },
+      { "name": "Honda", "logo": "https://www.carlogos.org/car-logos/honda-logo.png" },
+      { "name": "Nissan", "logo": "https://www.carlogos.org/car-logos/nissan-logo.png" },
+      { "name": "Isuzu", "logo": "https://www.carlogos.org/car-logos/isuzu-logo.png" },
+      { "name": "Volkswagen", "logo": "https://www.carlogos.org/car-logos/volkswagen-logo.png" },
+      { "name": "Skoda", "logo": "https://www.carlogos.org/car-logos/skoda-logo.png" },
+      { "name": "Renault", "logo": "https://www.carlogos.org/car-logos/renault-logo.png" },
+      { "name": "Citroen", "logo": "https://www.carlogos.org/car-logos/citroen-logo.png" },
+      { "name": "Jeep", "logo": "https://www.carlogos.org/car-logos/jeep-logo.png" },
+      { "name": "MG", "logo": "https://www.carlogos.org/car-logos/mg-logo.png" },
+      { "name": "BYD", "logo": "https://www.carlogos.org/car-logos/byd-logo.png" },
+      { "name": "BMW", "logo": "https://www.carlogos.org/car-logos/bmw-logo.png" },
+      { "name": "Mercedes-Benz", "logo": "https://www.carlogos.org/car-logos/mercedes-benz-logo.png" },
+      { "name": "Audi", "logo": "https://www.carlogos.org/car-logos/audi-logo.png" },
+      { "name": "Porsche", "logo": "https://www.carlogos.org/car-logos/porsche-logo.png" },
+      { "name": "Jaguar", "logo": "https://www.carlogos.org/car-logos/jaguar-logo.png" },
+      { "name": "Land Rover", "logo": "https://www.carlogos.org/car-logos/land-rover-logo.png" },
+      { "name": "Mini", "logo": "https://www.carlogos.org/car-logos/mini-logo.png" },
+      { "name": "Bentley", "logo": "https://www.carlogos.org/car-logos/bentley-logo.png" },
+      { "name": "Rolls-Royce", "logo": "https://www.carlogos.org/car-logos/rolls-royce-logo.png" },
+      { "name": "Aston Martin", "logo": "https://www.carlogos.org/car-logos/aston-martin-logo.png" },
+      { "name": "McLaren", "logo": "https://www.carlogos.org/car-logos/mclaren-logo.png" },
+      { "name": "Lotus", "logo": "https://www.carlogos.org/car-logos/lotus-logo.png" },
+      { "name": "Volvo", "logo": "https://www.carlogos.org/car-logos/volvo-logo.png" },
+      { "name": "Lexus", "logo": "https://www.carlogos.org/car-logos/lexus-logo.png" },
+      { "name": "Lamborghini", "logo": "https://www.carlogos.org/car-logos/lamborghini-logo.png" },
+      { "name": "Ferrari", "logo": "https://www.carlogos.org/car-logos/ferrari-logo.png" },
+      { "name": "Maserati", "logo": "https://www.carlogos.org/car-logos/maserati-logo.png" },
+      { "name": "Force Motors", "logo": "https://www.carlogos.org/car-logos/force-logo.png" }
+    ],
     "trustBadges": [
-      {
-        "icon": "Shield",
-        "title": "Genuine Parts",
-        "subtitle": "OEM Quality"
-      },
-      {
-        "icon": "Award",
-        "title": "Certified",
-        "subtitle": "Mechanics"
-      },
-      {
-        "icon": "Sparkles",
-        "title": "ISO",
-        "subtitle": "9001:2015"
-      }
+      { "icon": "Shield", "title": "ISO Certified", "subtitle": "9001:2015" },
+      { "icon": "Award", "title": "Best Service", "subtitle": "Award 2024" },
+      { "icon": "Car", "title": "All Brands", "subtitle": "Covered" },
+      { "icon": "Sparkles", "title": "4.8 Rating", "subtitle": "Google Reviews" }
     ]
   },
   "faq": {
@@ -581,7 +858,7 @@
       "line1": "Frequently Asked",
       "highlight": "Questions"
     },
-    "description": "Everything you need to know about our car service. Can't find the answer? Contact us!",
+    "description": "Everything you need to know about our car service. Can't find your answer? Contact us.",
     "contactCards": [
       {
         "type": "phone",
@@ -591,78 +868,103 @@
       },
       {
         "type": "whatsapp",
-        "label": "WhatsApp us",
-        "value": "+91 98765 43210",
+        "label": "Chat with us",
+        "value": "WhatsApp Support",
         "href": "https://wa.me/919876543210"
       }
     ],
     "items": [
       {
         "question": "How does doorstep car service work?",
-        "answer": "Our certified mechanics come to your location (home or office) with all necessary tools and equipment. You can track the service in real-time through our app, and we send photos and updates at every step."
+        "answer": "Simply book a service through our app or website. Our mechanic will arrive at your location with all tools and equipment. After service completion, pay online or cash."
       },
       {
-        "question": "What areas do you service?",
-        "answer": "We currently operate in 25+ major cities across India including Bangalore, Chennai, Hyderabad, Mumbai, Delhi, Coimbatore, and more. Enter your pincode on our booking page to check availability in your area."
+        "question": "What warranty do you provide?",
+        "answer": "We provide 6-month/10,000 km warranty on all services and parts. Any defects in workmanship or parts are fixed free of charge."
       },
       {
-        "question": "Do you provide warranty on services?",
-        "answer": "Yes! All our services come with warranty coverage ranging from 1 month to 6 months depending on the service type. We also provide warranty on parts replaced during service."
+        "question": "Are your mechanics certified?",
+        "answer": "Yes! All mechanics are trained and certified with 5+ years average experience. They undergo background checks and continuous training."
       },
       {
-        "question": "How do I pay for the service?",
-        "answer": "We accept all major payment methods including UPI, credit/debit cards, net banking, and cash. Payment is collected only after service completion and your approval."
+        "question": "Do you use genuine spare parts?",
+        "answer": "We source parts directly from authorized dealers and OEM suppliers. Every part comes with documentation and warranty."
       },
       {
-        "question": "What if I'm not satisfied with the service?",
-        "answer": "Customer satisfaction is our priority. If you're not happy with any aspect of our service, we offer free re-service or full refund. Just contact our support team within 7 days."
+        "question": "Can I track my service in real-time?",
+        "answer": "Yes! Get real-time updates with photos and videos of service progress. Chat directly with your mechanic through our app."
       },
       {
-        "question": "Do you use genuine parts?",
-        "answer": "We use only genuine OEM or OEM-equivalent parts for all replacements. Before any part replacement, we share photos and get your approval along with transparent pricing."
+        "question": "How much can I save compared to authorized centers?",
+        "answer": "Save 30-40% on average compared to authorized service centers while maintaining the same quality standards."
       }
     ]
   },
   "footer": {
-    "description": "India's leading car service network offering quality repairs, maintenance & detailing at transparent prices with doorstep convenience.",
+    "brandName": "Addax",
+    "tagline": "Automotive",
+    "logoUrl": "../assets/Logo.jpg",
+    "description": "India's leading car service network offering quality repairs at transparent prices with doorstep convenience.",
+    "phone": "+91 98765 43210",
+    "email": "support@addaxautomotive.in",
+    "workingHours": "Mon-Sun: 8AM - 8PM",
+    "social": {
+      "facebook": "https://facebook.com/addaxautomotive",
+      "twitter": "https://twitter.com/addaxautomotive",
+      "instagram": "https://instagram.com/addaxautomotive",
+      "youtube": "https://youtube.com/@ADDAXAUTOMOTIVE"
+    },
     "links": {
       "services": [
-        { "name": "Periodic Service", "href": "/services#periodic" },
-        { "name": "AC Service", "href": "/services#ac" },
-        { "name": "Denting & Painting", "href": "/services#denting" },
-        { "name": "Car Detailing", "href": "/services#detailing" },
-        { "name": "Battery Replacement", "href": "/services#battery" },
-        { "name": "Wheel Care", "href": "/services#wheel" }
+        { "name": "Periodic Service", "href": "#services" },
+        { "name": "AC Service & Repair", "href": "#services" },
+        { "name": "Denting & Painting", "href": "#services" },
+        { "name": "Car Inspection", "href": "#services" },
+        { "name": "Wheel Care", "href": "#services" },
+        { "name": "Battery Service", "href": "#services" }
       ],
       "company": [
-        { "name": "About Us", "href": "/about" },
-        { "name": "Careers", "href": "/careers" },
-        { "name": "Blog", "href": "/blog" },
-        { "name": "Partner With Us", "href": "/partner" }
+        { "name": "About Us", "href": "#" },
+        { "name": "Careers", "href": "#" },
+        { "name": "Blog", "href": "#" },
+        { "name": "Press", "href": "#" },
+        { "name": "Partners", "href": "#" }
       ],
       "support": [
-        { "name": "Contact Us", "href": "/contact" },
-        { "name": "FAQs", "href": "/#faq" },
-        { "name": "Privacy Policy", "href": "/privacy" },
-        { "name": "Terms of Service", "href": "/terms" }
+        { "name": "Help Center", "href": "#" },
+        { "name": "Contact Us", "href": "#" },
+        { "name": "FAQs", "href": "#faq" },
+        { "name": "Warranty Policy", "href": "#" },
+        { "name": "Privacy Policy", "href": "#" },
+        { "name": "Terms of Service", "href": "#" }
       ],
       "cities": [
-        "Coimbatore",
-        "Chennai",
-        "Bangalore",
-        "Hyderabad",
-        "Mumbai",
-        "Delhi",
-        "Pune",
-        "Kolkata"
+        "Coimbatore", "Chennai", "Bangalore", "Hyderabad", "Mumbai", "Delhi", "Pune", "Kolkata"
       ]
     },
-    "copyright": "© {year} Addax Automotive. All rights reserved."
+    "copyright": "© {year} Addax Automotive. All rights reserved.",
+    "privacyUrl": "/privacy",
+    "termsUrl": "/terms"
   },
   "pages": {
     "services": {
       "title": "Our Services",
       "description": "Comprehensive car care solutions for every need. From routine maintenance to complex repairs, our certified mechanics deliver quality service at your doorstep.",
+      "searchPlaceholder": "Search services...",
+      "categories": [
+        { "id": "all", "label": "All Services", "icon": "Grid" },
+        { "id": "maintenance", "label": "Maintenance", "icon": "Settings" },
+        { "id": "ac", "label": "AC Service", "icon": "Snowflake" },
+        { "id": "body", "label": "Body Work", "icon": "Paintbrush" },
+        { "id": "wheels", "label": "Wheels & Tyres", "icon": "Circle" },
+        { "id": "electrical", "label": "Electrical", "icon": "Battery" }
+      ],
+      "cta": {
+        "title": "Can't find what you're looking for?",
+        "description": "Contact us for custom service packages or any specific requirements.",
+        "primaryCta": "Contact Us",
+        "secondaryCta": "Call Now"
+      },
       "ctaSection": {
         "title": "Can't find what you're looking for?",
         "description": "Contact us for custom service packages or any specific requirements. We're here to help!",
@@ -675,7 +977,9 @@
       "description": "Sorry, we couldn't find the page you're looking for. It might have been moved or doesn't exist.",
       "searchPlaceholder": "Search for services...",
       "primaryCta": "Go to Homepage",
+      "primaryButton": "Go to Homepage",
       "secondaryCta": "Contact Support",
+      "secondaryButton": "Contact Support",
       "quickLinks": [
         { "name": "Services", "href": "/services" },
         { "name": "Pricing", "href": "/#pricing" },
@@ -683,5 +987,28 @@
         { "name": "Contact", "href": "/contact" }
       ]
     }
-  }
+  },
+  "workshops": [
+    {
+      "id": "1",
+      "name": "AutoFix Premium Garage",
+      "address": "123, Avinashi Road, Peelamedu, Coimbatore",
+      "rating": 4.8,
+      "amenities": ["AC Waiting Room", "Free Wi-Fi", "Coffee"]
+    },
+    {
+      "id": "2",
+      "name": "CarCare Experts",
+      "address": "45, Trichy Road, Ramanathapuram, Coimbatore",
+      "rating": 4.5,
+      "amenities": ["Pick & Drop", "Genuine Parts"]
+    },
+    {
+      "id": "3",
+      "name": "Mechanic Pro Hub",
+      "address": "88, Mettupalayam Road, RS Puram, Coimbatore",
+      "rating": 4.9,
+      "amenities": ["Certified Mechanics", "Card Payment", "Washroom"]
+    }
+  ]
 }

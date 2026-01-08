@@ -2,7 +2,20 @@ import { motion, animate } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { BookingWidget } from './BookingWidget';
-import { ShieldCheck, Zap, Award, Play, Wrench, Car } from 'lucide-react';
+import { ShieldCheck, Zap, Award, Play, Wrench, Car, Users, Star, MapPin } from 'lucide-react';
+import { useContent } from '../../admin-portal';
+
+// Icon mapping for dynamic icon rendering
+const iconMap: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number; size?: number }>> = {
+  ShieldCheck,
+  Zap,
+  Award,
+  Users,
+  Star,
+  MapPin,
+  Wrench,
+  Car,
+};
 
 // Animated counter component
 const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
@@ -22,6 +35,8 @@ const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: nu
 
 export const Hero = () => {
   const location = useLocation();
+  const { content } = useContent();
+  const heroContent = content.hero;
 
   // Handle scroll to booking when coming from another page
   useEffect(() => {
@@ -78,7 +93,7 @@ export const Hero = () => {
         transition={{ duration: 1.5, ease: "easeOut" }}
       >
         <img 
-          src="https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+          src={heroContent.backgroundImage}
           alt="Professional Car Service Garage"
           className="w-full h-full object-cover"
         />
@@ -143,7 +158,7 @@ export const Hero = () => {
                   animate={{ opacity: [1, 0.5, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
-                #1 Car Service in Coimbatore
+                {heroContent.badge}
               </span>
             </motion.div>
             
@@ -152,12 +167,12 @@ export const Hero = () => {
               variants={itemVariants} 
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.1] tracking-tight"
             >
-              Premium Car
+              {heroContent.headline.line1}
               <br />
-              Service at
+              {heroContent.headline.line2}
               <br />
               <span className="text-primary">
-                Your Doorstep.
+                {heroContent.headline.highlight}
               </span>
             </motion.h1>
             
@@ -166,8 +181,14 @@ export const Hero = () => {
               variants={itemVariants} 
               className="text-base sm:text-lg md:text-xl text-gray-300 max-w-lg mx-auto lg:mx-0 leading-relaxed"
             >
-              Experience transparent pricing, real-time tracking, and savings up to 
-              <span className="text-primary font-semibold"> 40%</span> compared to authorized service centers.
+              {heroContent.subheadline.split(heroContent.savings.percentage).map((part, index, array) => (
+                <span key={index}>
+                  {part}
+                  {index < array.length - 1 && (
+                    <span className="text-primary font-semibold"> {heroContent.savings.percentage}</span>
+                  )}
+                </span>
+              ))}
             </motion.p>
 
             {/* CTA Buttons */}
@@ -178,15 +199,15 @@ export const Hero = () => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
               >
-                Get Free Quote
+                {heroContent.cta.primary}
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </motion.button>
               
-              {/* UPDATED: Watch Video Button is now a Link */}
+              {/* Watch Video Button */}
               <motion.a 
-                href="https://www.youtube.com/@ADDAXAUTOMOTIVE"
+                href={heroContent.cta.videoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-center justify-center gap-2 px-5 sm:px-6 py-3 sm:py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold rounded-full hover:bg-white/20 transition-all duration-300 text-sm sm:text-base cursor-pointer"
@@ -194,39 +215,38 @@ export const Hero = () => {
                 whileTap={{ scale: 0.98 }}
               >
                 <Play className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" />
-                Watch Video
+                {heroContent.cta.secondary}
               </motion.a>
             </motion.div>
 
-            {/* Trust Badges */}
+            {/* Trust Badges - Dynamic from content */}
             <motion.div 
               variants={itemVariants} 
               className="flex flex-wrap gap-4 sm:gap-6 lg:gap-10 pt-6 sm:pt-8 border-t border-white/10 justify-center lg:justify-start"
             >
-              {[
-                { icon: ShieldCheck, label: "Warranty", value: 6, suffix: " Months" },
-                { icon: Zap, label: "Avg Savings", prefix: "₹", value: 4500 },
-                { icon: Award, label: "Customers", value: 50000, suffix: "+" },
-              ].map((item, idx) => (
-                <motion.div 
-                  key={idx} 
-                  className="flex items-center gap-2 sm:gap-3"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 + idx * 0.1, duration: 0.5 }}
-                  whileHover={{ y: -3 }}
-                >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                    <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" strokeWidth={1.5} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{item.label}</p>
-                    <p className="text-sm sm:text-lg font-bold text-white">
-                      {item.prefix || ''}<AnimatedCounter value={item.value} />{item.suffix || ''}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
+              {heroContent.stats.map((stat, idx) => {
+                const IconComponent = iconMap[stat.icon] || Award;
+                return (
+                  <motion.div 
+                    key={idx} 
+                    className="flex items-center gap-2 sm:gap-3"
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 + idx * 0.1, duration: 0.5 }}
+                    whileHover={{ y: -3 }}
+                  >
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-primary" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{stat.label}</p>
+                      <p className="text-sm sm:text-lg font-bold text-white">
+                        {stat.prefix || ''}<AnimatedCounter value={stat.value} />{stat.suffix || ''}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </motion.div>
           </motion.div>
 
@@ -242,7 +262,7 @@ export const Hero = () => {
         </div>
       </div>
 
-      {/* Scrolling Brand Logos */}
+      {/* Scrolling Brand Logos - Dynamic from content */}
       <motion.div 
         className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/90 to-transparent py-4 sm:py-6"
         initial={{ opacity: 0 }}
@@ -257,12 +277,12 @@ export const Hero = () => {
           >
             {[...Array(2)].map((_, setIdx) => (
               <div key={setIdx} className="flex gap-8 sm:gap-12 items-center">
-                {['Maruti Suzuki', 'Hyundai', 'Honda', 'Tata', 'Toyota', 'Mahindra', 'Kia', 'MG'].map((brand) => (
+                {heroContent.scrollingBrands.map((brand) => (
                   <span 
-                    key={brand} 
+                    key={brand.name} 
                     className="text-gray-500 font-semibold text-sm sm:text-lg whitespace-nowrap hover:text-white transition-colors duration-300"
                   >
-                    {brand}
+                    {brand.name}
                   </span>
                 ))}
               </div>

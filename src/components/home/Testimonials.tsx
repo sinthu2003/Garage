@@ -1,64 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
-
-// Enhanced data with CAR IMAGES instead of user photos
-import CretaAfterImg from '../../assets/hyundai-creta-denting-painting-after.png';
-import SwiftDentingImg from '../../assets/Denting1.jpg';
-import CityDetailingImg from '../../assets/honda-city-full-car-detailing-after.png';
-import NexonServiceImg from '../../assets/PeriodicService2.jpg';
-import BgImage from '../../assets/CarInspection.jpg';
-
-const testimonials = [
-  {
-    id: 1,
-    name: "Rajesh Kumar",
-    role: "Business Owner",
-    location: "Coimbatore",
-    image: CretaAfterImg,
-    carModel: "Hyundai Creta",
-    service: "Denting & Painting",
-    rating: 5,
-    content: "My Creta had a bad dent on the rear door. Carage restored it to factory finish! The color matching is perfect and the paint quality is amazing. Highly recommended."
-  },
-  {
-    id: 2,
-    name: "Priya Sundaram",
-    role: "Software Engineer",
-    location: "Chennai",
-    image: SwiftDentingImg,
-    carModel: "Maruti Swift",
-    service: "Body Repairs",
-    rating: 5,
-    content: "Had a nasty scratch on the bumper. Their paint matching technology is incredible. You literally cannot tell there was a dent. Highly recommended for body work!"
-  },
-  {
-    id: 3,
-    name: "Arun Vijay",
-    role: "Doctor",
-    location: "Bangalore",
-    image: CityDetailingImg,
-    carModel: "Honda City",
-    service: "Premium Detailing",
-    rating: 5,
-    content: "Opted for their full car detailing package. The results are stunning - the interior smells fresh and the exterior shine is better than when I bought it."
-  },
-  {
-    id: 4,
-    name: "Sneha Reddy",
-    role: "Architect",
-    location: "Hyderabad",
-    image: NexonServiceImg,
-    carModel: "Tata Nexon",
-    service: "Periodic Service",
-    rating: 5,
-    content: "Very transparent pricing. No hidden charges at the end. The mechanic explained everything clearly before starting the work. Best service app in India."
-  }
-];
-
+import { useContent } from '../../admin-portal';
 export const Testimonials = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+
+  // Get content from context
+  const { content } = useContent();
+  const testimonialsContent = content.testimonials;
+  const testimonials = testimonialsContent.items;
 
   // Auto-advance carousel
   useEffect(() => {
@@ -104,12 +55,15 @@ export const Testimonials = () => {
     setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
 
+  // Get background image from first testimonial or use a default
+  const bgImage = testimonials[0]?.image || '/assets/CarInspection.jpg';
+
   return (
     <section id="testimonials" className="py-24 relative overflow-hidden bg-gray-900">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img
-          src={BgImage}
+          src={bgImage}
           alt="Happy Driver Background"
           className="w-full h-full object-cover opacity-20"
         />
@@ -133,14 +87,14 @@ export const Testimonials = () => {
               ))}
             </div>
             <span className="text-primary text-xs font-bold uppercase tracking-wider">
-              Trusted by 50,000+ Owners
+              {testimonialsContent.badge}
             </span>
           </div>
 
           <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-            Loved by drivers,
+            {testimonialsContent.headline.line1}
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
-              Approved by mechanics.
+              {testimonialsContent.headline.highlight}
             </span>
           </h2>
         </motion.div>
@@ -162,11 +116,17 @@ export const Testimonials = () => {
                 {/* Left: Image Side (Desktop) */}
                 <div className="md:w-2/5 relative h-64 md:h-auto overflow-hidden bg-gray-900">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-black/20 z-10 mix-blend-overlay" />
-                  <img
-                    src={testimonials[currentIndex].image}
-                    alt={`${testimonials[currentIndex].carModel} - ${testimonials[currentIndex].name}`}
-                    className="w-full h-full object-cover transform scale-105 transition-transform duration-1000 hover:scale-110"
-                  />
+                  {testimonials[currentIndex].image ? (
+                    <img
+                      src={testimonials[currentIndex].image}
+                      alt={`${testimonials[currentIndex].carModel} - ${testimonials[currentIndex].name}`}
+                      className="w-full h-full object-cover transform scale-105 transition-transform duration-1000 hover:scale-110"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/30 to-gray-800 flex items-center justify-center">
+                      <span className="text-6xl">🚗</span>
+                    </div>
+                  )}
                   {/* Image Overlay */}
                   <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-20 text-white">
                     <div className="inline-block px-3 py-1 bg-primary rounded-full text-xs font-bold mb-2 shadow-sm text-primary-foreground">
@@ -204,6 +164,12 @@ export const Testimonials = () => {
                         <span className="text-lg">🔧</span>
                         <span className="font-semibold">{testimonials[currentIndex].service}</span>
                       </div>
+                      {testimonials[currentIndex].role && (
+                        <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg">
+                          <span className="text-lg">👤</span>
+                          <span className="font-semibold">{testimonials[currentIndex].role}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -226,7 +192,7 @@ export const Testimonials = () => {
           </button>
         </div>
 
-        {/* Bottom Stats */}
+        {/* Bottom Dots */}
         <div className="mt-16 flex justify-center gap-2">
           {testimonials.map((_, i) => (
             <button

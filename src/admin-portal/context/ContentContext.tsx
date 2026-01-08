@@ -6,65 +6,126 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import type { SiteContent } from '../types/content.types';
+import type { SiteContent, ContentContextValue } from '../types/content.types';
 import defaultContent from '../data/siteContent.json';
 
-// History entry for undo/redo
+// ============================================
+// IMAGE RESOLUTION LOGIC (NEW)
+// ============================================
+
+// 1. Import all images using Vite's glob import
+// Note: We use '../../assets' because this file is in src/admin-portal/context
+const imageModules = import.meta.glob('../../assets/**/*.{png,jpg,jpeg,svg,webp}', { eager: true });
+
+/**
+ * 2. Helper to resolve a single path string to a built image URL
+ */
+const resolvePath = (path: string): string => {
+  if (!path || typeof path !== 'string') return path;
+  
+  // Only try to resolve paths that look like relative asset paths from the JSON
+  if (path.startsWith('../assets/')) {
+    // The JSON has "../assets/Logo.jpg", but relative to THIS file, it is "../../assets/Logo.jpg"
+    // We strip "../assets/" and prepend "../../assets/"
+    const filename = path.replace('../assets/', '');
+    const localPath = `../../assets/${filename}`;
+
+    const module = imageModules[localPath] as { default: string } | undefined;
+    if (module && module.default) {
+      return module.default;
+    }
+    // If not found, fallback to the original path (or you could return a placeholder)
+    console.warn(`Could not resolve image: ${path}`);
+  }
+  
+  return path;
+};
+
+/**
+ * 3. Deeply traverse the content object and resolve all image strings
+ */
+const resolveContentImages = <T,>(content: T): T => {
+  if (typeof content === 'string') {
+    // Try to resolve if it's a string
+    return resolvePath(content) as unknown as T;
+  }
+  
+  if (Array.isArray(content)) {
+    return content.map(item => resolveContentImages(item)) as unknown as T;
+  }
+  
+  if (content !== null && typeof content === 'object') {
+    const result: any = {};
+    for (const key in content) {
+      if (Object.prototype.hasOwnProperty.call(content, key)) {
+        result[key] = resolveContentImages((content as any)[key]);
+      }
+    }
+    return result;
+  }
+  
+  return content;
+};
+
+
+// ============================================
+// TYPES
+// ============================================
+
 interface HistoryEntry {
   content: SiteContent;
   timestamp: number;
+  action?: string;
 }
 
-// Context value interface
-interface ContentContextValue {
-  content: SiteContent;
-  updateField: (section: string, path: string, value: unknown) => void;
-  updateSection: (section: string, value: unknown) => void;
-  undo: () => void;
-  redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
-  resetContent: () => void;
-  exportContent: () => string;
-  importContent: (jsonString: string) => boolean;
-  hasUnsavedChanges: boolean;
-  lastSaved: Date | null;
+interface ContentProviderProps {
+  children: React.ReactNode;
+  initialContent?: SiteContent;
+  storageKey?: string;
+  enablePersistence?: boolean;
 }
 
-// Create context
-const ContentContext = createContext<ContentContextValue | undefined>(undefined);
+// ============================================
+// CONSTANTS
+// ============================================
 
-// Storage key
-const STORAGE_KEY = 'addax-cms-content';
+const DEFAULT_STORAGE_KEY = 'addax-cms-content';
 const HISTORY_LIMIT = 50;
+const SAVE_DEBOUNCE_MS = 500;
 
-// Helper: Deep set value in object by path
-// Typed as 'any' inputs to handle Interfaces lacking index signatures
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+const deepClone = <T,>(obj: T): T => {
+  return JSON.parse(JSON.stringify(obj));
+};
+
 const setNestedValue = (obj: any, path: string, value: unknown): any => {
-  const result = JSON.parse(JSON.stringify(obj)); // Deep clone
+  const result = deepClone(obj);
   const keys = path.split('.');
   let current = result;
 
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i];
-    if (!(key in current)) {
+    if (/^\d+$/.test(keys[i + 1])) {
+      if (!Array.isArray(current[key])) {
+        current[key] = [];
+      }
+    } else if (!(key in current) || current[key] === null) {
       current[key] = {};
     }
     current = current[key];
   }
 
-  current[keys[keys.length - 1]] = value;
+  const finalKey = keys[keys.length - 1];
+  current[finalKey] = value;
   return result;
 };
 
-// Provider component
-interface ContentProviderProps {
-  children: React.ReactNode;
-  initialContent?: SiteContent;
-}
-
-// Deep merge helper - using 'any' to avoid "Index signature missing" errors on Interfaces
 const deepMerge = <T,>(target: T, source: any): T => {
+  if (!source) return target;
+  
   const result = { ...target } as any;
 
   for (const key of Object.keys(source)) {
@@ -88,208 +149,225 @@ const deepMerge = <T,>(target: T, source: any): T => {
   return result as T;
 };
 
+const generateHash = (content: SiteContent): string => {
+  return JSON.stringify(content);
+};
+
+// ============================================
+// CONTEXT
+// ============================================
+
+const ContentContext = createContext<ContentContextValue | undefined>(undefined);
+
+// ============================================
+// PROVIDER COMPONENT
+// ============================================
+
 export const ContentProvider: React.FC<ContentProviderProps> = ({
   children,
   initialContent,
+  storageKey = DEFAULT_STORAGE_KEY,
+  enablePersistence = true,
 }) => {
-  // Load initial content from localStorage or use default
+  // ----------------------------------------
+  // Load initial content
+  // ----------------------------------------
   const loadInitialContent = useCallback((): SiteContent => {
-    if (initialContent) return initialContent;
+    let loadedData: SiteContent = defaultContent as SiteContent;
 
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Merge with default to ensure all fields exist
-        return deepMerge(defaultContent as SiteContent, parsed);
+    // If initial content is provided via props, use it
+    if (initialContent) {
+      loadedData = deepClone(initialContent);
+    } 
+    // Otherwise try localStorage
+    else if (enablePersistence && typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          loadedData = deepMerge(defaultContent as SiteContent, parsed);
+        }
+      } catch (error) {
+        console.error('Error loading content from localStorage:', error);
       }
-    } catch (error) {
-      console.error('Error loading content from localStorage:', error);
     }
 
-    return defaultContent as SiteContent;
-  }, [initialContent]);
+    // IMPORTANT: Resolve images before returning
+    // This ensures that whether data comes from JSON or LocalStorage, 
+    // relative paths are converted to vite-processed URLs.
+    return resolveContentImages(loadedData);
+  }, [initialContent, storageKey, enablePersistence]);
 
+  // ----------------------------------------
+  // State
+  // ----------------------------------------
   const [content, setContent] = useState<SiteContent>(() => loadInitialContent());
+  
+  // We only add to history AFTER resolving images
   const [history, setHistory] = useState<HistoryEntry[]>(() => [
-    { content: loadInitialContent(), timestamp: Date.now() },
+    { content: loadInitialContent(), timestamp: Date.now(), action: 'initial' },
   ]);
+  
   const [historyIndex, setHistoryIndex] = useState(0);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [initialContentHash, setInitialContentHash] = useState<string>('');
+  const [initialHash, setInitialHash] = useState<string>('');
 
-  // Calculate content hash for change detection
-  const getContentHash = useCallback((c: SiteContent): string => {
-    return JSON.stringify(c);
-  }, []);
-
-  // Initialize hash on mount
   useEffect(() => {
-    setInitialContentHash(getContentHash(loadInitialContent()));
-  }, [getContentHash, loadInitialContent]);
+    setInitialHash(generateHash(loadInitialContent()));
+  }, [loadInitialContent]);
 
-  // Check for unsaved changes
   const hasUnsavedChanges = useMemo(() => {
-    return getContentHash(content) !== initialContentHash;
-  }, [content, initialContentHash, getContentHash]);
+    return generateHash(content) !== initialHash;
+  }, [content, initialHash]);
 
-  // Save to localStorage with debounce
+  // ----------------------------------------
+  // Auto-save
+  // ----------------------------------------
   useEffect(() => {
+    if (!enablePersistence || typeof window === 'undefined') return;
+
     const saveTimer = setTimeout(() => {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(content));
+        localStorage.setItem(storageKey, JSON.stringify(content));
         setLastSaved(new Date());
       } catch (error) {
         console.error('Error saving content to localStorage:', error);
       }
-    }, 500);
+    }, SAVE_DEBOUNCE_MS);
 
     return () => clearTimeout(saveTimer);
-  }, [content]);
+  }, [content, storageKey, enablePersistence]);
 
+  // ----------------------------------------
   // Add to history
-  const addToHistory = useCallback((newContent: SiteContent) => {
-    setHistory((prev) => {
-      // Remove any future history if we're not at the end
-      const newHistory = prev.slice(0, historyIndex + 1);
-
-      // Add new entry
-      newHistory.push({
-        content: JSON.parse(JSON.stringify(newContent)),
-        timestamp: Date.now(),
-      });
-
-      // Limit history size
-      if (newHistory.length > HISTORY_LIMIT) {
-        newHistory.shift();
+  // ----------------------------------------
+  const addToHistory = useCallback(
+    (newContent: SiteContent, action?: string) => {
+      setHistory((prev) => {
+        const newHistory = prev.slice(0, historyIndex + 1);
+        newHistory.push({
+          content: deepClone(newContent),
+          timestamp: Date.now(),
+          action,
+        });
+        if (newHistory.length > HISTORY_LIMIT) {
+          return newHistory.slice(-HISTORY_LIMIT);
+        }
         return newHistory;
-      }
+      });
+      setHistoryIndex((prev) => Math.min(prev + 1, HISTORY_LIMIT - 1));
+    },
+    [historyIndex]
+  );
 
-      return newHistory;
-    });
-
-    setHistoryIndex((prev) => Math.min(prev + 1, HISTORY_LIMIT - 1));
-  }, [historyIndex]);
-
-  // Update a specific field by path
+  // ----------------------------------------
+  // Content Updates
+  // ----------------------------------------
   const updateField = useCallback(
     (section: string, path: string, value: unknown) => {
       setContent((prev) => {
-        // Use assertion as keyof SiteContent to access property
         const sectionKey = section as keyof SiteContent;
         const sectionContent = prev[sectionKey];
-        
+
         if (!sectionContent || typeof sectionContent !== 'object') {
           console.error(`Section "${section}" not found or is not an object`);
           return prev;
         }
 
-        const updatedSection = setNestedValue(
-          sectionContent,
-          path,
-          value
-        );
-
+        const updatedSection = setNestedValue(sectionContent, path, value);
         const newContent: SiteContent = {
           ...prev,
           [sectionKey]: updatedSection,
-          meta: {
-            ...prev.meta,
-            lastModified: new Date().toISOString(),
-          },
+          meta: { ...prev.meta, lastModified: new Date().toISOString() },
         };
-
-        // Add to history (debounced)
-        addToHistory(newContent);
-
+        addToHistory(newContent, `Update ${section}.${path}`);
         return newContent;
       });
     },
     [addToHistory]
   );
 
-  // Update entire section
   const updateSection = useCallback(
     (section: string, value: unknown) => {
       setContent((prev) => {
         const sectionKey = section as keyof SiteContent;
         const newContent: SiteContent = {
           ...prev,
-          [sectionKey]: value as any, // Cast to any/correct type
-          meta: {
-            ...prev.meta,
-            lastModified: new Date().toISOString(),
-          },
+          [sectionKey]: value as any,
+          meta: { ...prev.meta, lastModified: new Date().toISOString() },
         };
-
-        addToHistory(newContent);
-
+        addToHistory(newContent, `Update ${section}`);
         return newContent;
       });
     },
     [addToHistory]
   );
 
-  // Undo
+  // ----------------------------------------
+  // Undo / Redo / Reset
+  // ----------------------------------------
   const undo = useCallback(() => {
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
       setHistoryIndex(newIndex);
-      setContent(JSON.parse(JSON.stringify(history[newIndex].content)));
+      setContent(deepClone(history[newIndex].content));
     }
   }, [history, historyIndex]);
 
-  // Redo
   const redo = useCallback(() => {
     if (historyIndex < history.length - 1) {
       const newIndex = historyIndex + 1;
       setHistoryIndex(newIndex);
-      setContent(JSON.parse(JSON.stringify(history[newIndex].content)));
+      setContent(deepClone(history[newIndex].content));
     }
   }, [history, historyIndex]);
 
-  // Can undo/redo
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
-  // Reset to default content
   const resetContent = useCallback(() => {
-    const resetData = defaultContent as SiteContent;
-    setContent(resetData);
-    setHistory([{ content: resetData, timestamp: Date.now() }]);
+    // Reset to default JSON, but make sure to resolve images again
+    const resetData = resolveContentImages(defaultContent as SiteContent);
+    setContent(deepClone(resetData));
+    setHistory([{ content: deepClone(resetData), timestamp: Date.now(), action: 'reset' }]);
     setHistoryIndex(0);
-    localStorage.removeItem(STORAGE_KEY);
-  }, []);
+    
+    if (enablePersistence && typeof window !== 'undefined') {
+      localStorage.removeItem(storageKey);
+    }
+  }, [storageKey, enablePersistence]);
 
-  // Export content as JSON string
   const exportContent = useCallback((): string => {
     return JSON.stringify(content, null, 2);
   }, [content]);
 
-  // Import content from JSON string
-  const importContent = useCallback((jsonString: string): boolean => {
-    try {
-      const parsed = JSON.parse(jsonString);
+  const importContent = useCallback(
+    (jsonString: string): boolean => {
+      try {
+        const parsed = JSON.parse(jsonString);
+        if (!parsed || typeof parsed !== 'object') {
+          throw new Error('Invalid content structure');
+        }
+        // Merge and then resolve images
+        const mergedContent = deepMerge(defaultContent as SiteContent, parsed);
+        const resolvedMerged = resolveContentImages(mergedContent);
 
-      // Validate basic structure
-      if (!parsed || typeof parsed !== 'object') {
-        throw new Error('Invalid content structure');
+        setContent(resolvedMerged);
+        addToHistory(resolvedMerged, 'import');
+        setInitialHash(generateHash(resolvedMerged));
+
+        return true;
+      } catch (error) {
+        console.error('Error importing content:', error);
+        return false;
       }
+    },
+    [addToHistory]
+  );
 
-      // Merge with default to ensure all required fields
-      const mergedContent = deepMerge(defaultContent as SiteContent, parsed);
-
-      setContent(mergedContent);
-      addToHistory(mergedContent);
-
-      return true;
-    } catch (error) {
-      console.error('Error importing content:', error);
-      return false;
-    }
-  }, [addToHistory]);
-
+  // ----------------------------------------
   // Context value
+  // ----------------------------------------
   const contextValue = useMemo<ContentContextValue>(
     () => ({
       content,
@@ -328,17 +406,71 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   );
 };
 
-// Custom hook to use content context
+// ============================================
+// CUSTOM HOOKS (Unchanged)
+// ============================================
+
 export const useContent = (): ContentContextValue => {
   const context = useContext(ContentContext);
-
   if (context === undefined) {
     throw new Error('useContent must be used within a ContentProvider');
   }
-
   return context;
 };
 
-// Export context for advanced usage
+export const useSectionContent = <K extends keyof SiteContent>(
+  section: K
+): SiteContent[K] => {
+  const { content } = useContent();
+  return content[section];
+};
+
+export const useBrand = () => {
+  const { content } = useContent();
+  return content.global.brand;
+};
+
+export const useServices = () => {
+  const { content } = useContent();
+  return content.services.items;
+};
+
+export const useService = (idOrSlug: string | number) => {
+  const services = useServices();
+  return services.find((service) => {
+    if (service.id === idOrSlug || service.id === String(idOrSlug)) {
+      return true;
+    }
+    const slug = service.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+    return slug === idOrSlug;
+  });
+};
+
+export const useTestimonials = () => {
+  const { content } = useContent();
+  return content.testimonials.items;
+};
+
+export const useFAQs = () => {
+  const { content } = useContent();
+  return content.faq.items;
+};
+
+export const useBookingData = () => {
+  const { content } = useContent();
+  return content.bookingWidget;
+};
+
+export const useGallery = () => {
+  const { content } = useContent();
+  return content.gallery;
+};
+
+export const usePartners = () => {
+  const { content } = useContent();
+  return content.partners;
+};
+
 export { ContentContext };
-export type { ContentContextValue, ContentProviderProps };
+export type { ContentProviderProps };
+export type { ContentContextValue } from '../types/content.types';

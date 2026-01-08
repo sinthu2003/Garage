@@ -2,15 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Phone, ChevronRight } from 'lucide-react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import Logo from '../../assets/Logo.jpg';
-
-const navLinks = [
-  { label: 'Services', href: '/services', isRoute: true },
-  { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'Reviews', href: '#testimonials' },
-  { label: 'FAQ', href: '#faq' },
-];
+import { useContent } from '../../admin-portal';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -18,6 +10,20 @@ export const Navbar = () => {
   const [activeSection, setActiveSection] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Get content from context
+  const { content } = useContent();
+  const brand = content.global.brand;
+  const navbarContent = content.global.navbar;
+  
+  // Get nav links from content or use defaults
+  const navLinks = navbarContent?.links || [
+    { label: 'Services', href: '/services', isRoute: true },
+    { label: 'How It Works', href: '#how-it-works' },
+    { label: 'Pricing', href: '#pricing' },
+    { label: 'Reviews', href: '#testimonials' },
+    { label: 'FAQ', href: '#faq' },
+  ];
 
   const isHomePage = location.pathname === '/';
   const showSolidBackground = !isHomePage || isScrolled;
@@ -45,7 +51,7 @@ export const Navbar = () => {
 
       // Only track sections on homepage
       if (isHomePage) {
-        const sections = navLinks.filter(link => !link.isRoute).map(link => link.href.replace('#', ''));
+        const sections = navLinks.filter((link: { isRoute?: boolean; href: string }) => !link.isRoute).map((link: { href: string }) => link.href.replace('#', ''));
         const scrollPosition = window.scrollY + 100;
 
         let foundSection = '';
@@ -69,7 +75,7 @@ export const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isHomePage]);
+  }, [isHomePage, navLinks]);
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>, href: string) => {
     if (href.startsWith('/')) {
@@ -127,6 +133,13 @@ export const Navbar = () => {
     }
   };
 
+  // Get logo URL
+  const logoUrl = brand?.logo || brand?.logoUrl || '/assets/Logo.jpg';
+  const brandName = brand?.name || 'Addax';
+  const brandTagline = brand?.tagline || 'Automotive';
+  const phoneNumber = brand?.phone || '+91 98765 43210';
+  const ctaText = navbarContent?.ctaText || 'Book Service';
+
   return (
     <>
       {/* Main Navbar */}
@@ -155,25 +168,25 @@ export const Navbar = () => {
               className="flex items-center gap-2.5"
             >
               <img 
-                src={Logo} 
-                alt="Addax Automotive" 
+                src={logoUrl} 
+                alt={brandName} 
                 className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-contain"
               />
               <div className="flex flex-col">
                 <span className={`text-lg sm:text-xl font-bold tracking-tight leading-tight transition-colors ${
                   showSolidBackground ? 'text-gray-900' : 'text-white'
                 }`}>
-                  Addax
+                  {brandName}
                 </span>
                 <span className="text-[10px] sm:text-xs font-semibold tracking-wider uppercase text-primary">
-                  Automotive
+                  {brandTagline}
                 </span>
               </div>
             </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
-              {navLinks.map((link) => {
+              {navLinks.map((link: { label: string; href: string; isRoute?: boolean }) => {
                 const isActive = link.isRoute 
                   ? location.pathname.startsWith(link.href)
                   : activeSection === link.href.replace('#', '');
@@ -218,20 +231,20 @@ export const Navbar = () => {
             {/* Right Actions */}
             <div className="flex items-center gap-3 sm:gap-4">
               <a 
-                href="tel:+919876543210" 
+                href={`tel:${phoneNumber.replace(/\s/g, '')}`}
                 className={`hidden md:flex items-center gap-2 text-sm font-medium transition-colors ${
                   showSolidBackground ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
                 }`}
               >
                 <Phone className="w-4 h-4" />
-                <span>+91 98765 43210</span>
+                <span>{phoneNumber}</span>
               </a>
 
               <Link 
                 to="/services"
                 className="hidden sm:flex items-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 bg-primary text-white text-sm font-semibold rounded-full hover:bg-red-600 transition-all"
               >
-                Book Service
+                {ctaText}
               </Link>
 
               {/* Mobile Menu Toggle */}
@@ -281,13 +294,13 @@ export const Navbar = () => {
                   className="flex items-center gap-2"
                 >
                   <img 
-                    src={Logo} 
-                    alt="Addax" 
+                    src={logoUrl} 
+                    alt={brandName} 
                     className="w-9 h-9 rounded-lg object-contain"
                   />
                   <div className="flex flex-col">
-                    <span className="text-base font-bold text-gray-900 leading-tight">Addax</span>
-                    <span className="text-[9px] font-semibold text-primary tracking-wider uppercase">Automotive</span>
+                    <span className="text-base font-bold text-gray-900 leading-tight">{brandName}</span>
+                    <span className="text-[9px] font-semibold text-primary tracking-wider uppercase">{brandTagline}</span>
                   </div>
                 </Link>
                 <button
@@ -302,7 +315,7 @@ export const Navbar = () => {
               {/* Navigation Links */}
               <div className="flex-1 overflow-y-auto p-4">
                 <nav className="space-y-1">
-                  {navLinks.map((link, idx) => {
+                  {navLinks.map((link: { label: string; href: string; isRoute?: boolean }, idx: number) => {
                     const isActive = link.isRoute 
                       ? location.pathname.startsWith(link.href)
                       : activeSection === link.href.replace('#', '');
@@ -356,18 +369,18 @@ export const Navbar = () => {
               {/* Footer */}
               <div className="p-4 border-t border-gray-100 bg-gray-50">
                 <a 
-                  href="tel:+919876543210" 
+                  href={`tel:${phoneNumber.replace(/\s/g, '')}`}
                   className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   <Phone className="w-5 h-5" />
-                  <span className="font-medium">+91 98765 43210</span>
+                  <span className="font-medium">{phoneNumber}</span>
                 </a>
                 <Link 
                   to="/services"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block w-full py-3.5 bg-primary text-white font-semibold rounded-xl hover:bg-red-600 transition-colors text-center mt-2"
                 >
-                  Book Service Now
+                  {ctaText}
                 </Link>
               </div>
             </motion.div>

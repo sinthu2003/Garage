@@ -1,9 +1,17 @@
 // ============================================
+// UNIFIED CONTENT TYPES FOR ADMIN & USER UI
+// Version: 2.0.0
+// ============================================
+
+import type { ReactNode } from 'react';
+
+// ============================================
 // META
 // ============================================
 export interface MetaContent {
   version: string;
   lastModified: string;
+  description?: string;
 }
 
 // ============================================
@@ -15,7 +23,9 @@ export interface BrandContent {
   phone: string;
   email: string;
   address: string;
-  workingHours: string;
+  workingHours?: string;
+  logo?: string;
+  logoUrl?: string;
 }
 
 export interface SocialContent {
@@ -26,22 +36,43 @@ export interface SocialContent {
 }
 
 export interface SEOContent {
-  keywords: string;
-  ogTitle: string;
-  ogDescription: string;
-  ogImage: string;
-  canonicalUrl: string;
-  indexable: boolean;
-  followLinks: boolean;
   title: string;
   description: string;
+  keywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  canonicalUrl?: string;
+  indexable?: boolean;
+  followLinks?: boolean;
+}
+
+export interface NavbarLink {
+  label: string;
+  href: string;
+  isRoute?: boolean;
+  hasDropdown?: boolean;
+}
+
+export interface NavbarContent {
+  links: NavbarLink[];
+  ctaText: string;
+  // Additional fields used by NavbarEditor
+  brandName?: string;
+  tagline?: string;
+  logoUrl?: string;
+  phone?: string;
+  ctaTextMobile?: string;
+  ctaLink?: string;
+  transparentOnHome?: boolean;
+  showPhoneDesktop?: boolean;
 }
 
 export interface GlobalContent {
-  navbar: any;
   brand: BrandContent;
   social: SocialContent;
   seo: SEOContent;
+  navbar: NavbarContent;
 }
 
 // ============================================
@@ -67,7 +98,7 @@ export interface HeroSavings {
 export interface HeroStat {
   icon: string;
   label: string;
-  value: string;
+  value: number;
   prefix?: string;
   suffix?: string;
 }
@@ -98,6 +129,7 @@ export interface BookingStep {
 }
 
 export interface BookingSteps {
+  phone?: BookingStep;
   location: BookingStep;
   brand: BookingStep;
   model: BookingStep;
@@ -109,19 +141,59 @@ export interface BookingTrustBadges {
   services: string;
 }
 
+export interface BookingTrustFooter {
+  rating: string;
+  servicesCount: string;
+}
+
+export interface BookingLabels {
+  city: string;
+  brand: string;
+  model: string;
+  fuel: string;
+}
+
+export interface BookingScreens {
+  main: string;
+  city: string;
+  brand: string;
+  model: string;
+  fuel: string;
+}
+
+export interface CarBrand {
+  id: string;
+  name: string;
+  logo: string;
+  urlName: string;
+}
+
+export interface CarModel {
+  name: string;
+  type: string;
+  image: string;
+}
+
+export interface FuelType {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+}
+
 export interface BookingWidgetContent {
-  brands: never[];
-  carModels: {};
-  fuelTypes: { id: string; name: string; icon: string; color: string; }[];
-  cities: string[];
-  labels: any;
-  screens: any;
-  ctaText: string;
-  trustFooter: any;
   title: string;
   subtitle: string;
+  ctaText: string;
   steps: BookingSteps;
   trustBadges: BookingTrustBadges;
+  trustFooter?: BookingTrustFooter;
+  labels?: BookingLabels;
+  screens?: BookingScreens;
+  cities: string[];
+  brands: CarBrand[];
+  carModels: Record<string, CarModel[]>;
+  fuelTypes: FuelType[];
 }
 
 // ============================================
@@ -158,7 +230,7 @@ export interface FeaturesHeadline {
 }
 
 export interface MainFeature {
-  gradient: string;
+  gradient?: string;
   badge: string;
   title: string;
   description: string;
@@ -186,21 +258,41 @@ export interface FeaturesContent {
 // SERVICES
 // ============================================
 export interface ServicesHeadline {
+  text?: string | ReactNode;
   line1?: string;
   highlight?: string;
+}
+
+export interface ServiceProcessStep {
+  title: string;
+  description: string;
+}
+
+export interface ServiceFAQ {
+  question: string;
+  answer: string;
 }
 
 export interface ServiceItem {
   id: number | string;
   title: string;
   description: string;
+  icon?: string;
   price: number;
   originalPrice: number;
   image: string;
+  gallery?: string[];
   features: string[];
+  includes?: string[];
+  process?: ServiceProcessStep[];
+  faqs?: ServiceFAQ[];
   duration: string;
   warranty: string;
+  category?: string;
 }
+
+// Alias for backward compatibility with data.ts
+export interface Service extends ServiceItem {}
 
 export interface ServicesContent {
   badge: string;
@@ -269,13 +361,13 @@ export interface BeforeAfterItem {
 }
 
 export interface BeforeAfterContent {
-  beforeLabel: string;
-  afterLabel: string;
   badge: string;
   headline: BeforeAfterHeadline;
   description: string;
   cta: string;
   selectLabel: string;
+  beforeLabel: string;
+  afterLabel: string;
   items: BeforeAfterItem[];
 }
 
@@ -297,6 +389,16 @@ export interface TestimonialItem {
   rating: number;
   content: string;
   image?: string;
+}
+
+// Alias for backward compatibility with data.ts
+export interface Testimonial {
+  id: string;
+  user: string;
+  role: string;
+  content: string;
+  rating: number;
+  carDetails: string;
 }
 
 export interface TestimonialsContent {
@@ -350,6 +452,11 @@ export interface PartnersHeadline {
   highlight: string;
 }
 
+export interface PartnerBrand {
+  name: string;
+  logo: string;
+}
+
 export interface PartnerTrustBadge {
   icon: string;
   title: string;
@@ -362,6 +469,7 @@ export interface PartnersContent {
   description: string;
   brandCount: string;
   brandCountLabel: string;
+  brands?: PartnerBrand[];
   trustBadges: PartnerTrustBadge[];
 }
 
@@ -397,30 +505,49 @@ export interface FAQContent {
 // FOOTER
 // ============================================
 export interface FooterLink {
-  name: string;
+  name?: string;
+  label?: string;
   href: string;
 }
 
+export interface FooterLinkSection {
+  title: string;
+  items: FooterLink[];
+}
+
 export interface FooterLinks {
-  services: FooterLink[];
-  company: FooterLink[];
-  support: FooterLink[];
-  cities: string[];
+  services?: FooterLink[];
+  company?: FooterLink[];
+  support?: FooterLink[];
+  sections?: FooterLinkSection[];
+  cities?: string[];
+  citiesTitle?: string;
+}
+
+export interface FooterCopyright {
+  text: string;
+  links: FooterLink[];
+}
+
+export interface FooterMadeWith {
+  text: string;
+  suffix: string;
 }
 
 export interface FooterContent {
-  phone: string;
-  email: string;
-  workingHours: string;
-  social: any;
-  privacyUrl: string;
-  termsUrl: string;
-  logoUrl: string;
-  tagline: string;
-  brandName: string;
-  description: string;
+  brandName?: string;
+  tagline?: string;
+  logoUrl?: string;
+  description?: string;
+  phone?: string;
+  email?: string;
+  workingHours?: string;
+  social?: SocialContent;
   links: FooterLinks;
-  copyright: string;
+  copyright: FooterCopyright | string;
+  madeWith?: FooterMadeWith;
+  privacyUrl?: string;
+  termsUrl?: string;
 }
 
 // ============================================
@@ -433,12 +560,27 @@ export interface ServicesCTASection {
   secondaryCta: string;
 }
 
-export interface ServicesPageContent {
-  categories: { id: string; label: string; icon: string; }[];
-  searchPlaceholder: string;
-  cta: any;
+export interface ServicesCategory {
+  id: string;
+  label: string;
+  icon: string;
+}
+
+export interface ServicesPageCTA {
   title: string;
   description: string;
+  primaryCta: string;
+  secondaryCta: string;
+  primaryButton?: string;
+  phone?: string;
+}
+
+export interface ServicesPageContent {
+  title: string;
+  description: string;
+  searchPlaceholder: string;
+  categories: ServicesCategory[];
+  cta: ServicesPageCTA;
   ctaSection: ServicesCTASection;
 }
 
@@ -448,19 +590,44 @@ export interface NotFoundQuickLink {
 }
 
 export interface NotFoundPageContent {
-  primaryButton: string;
-  secondaryButton: string;
   title: string;
   description: string;
   searchPlaceholder: string;
   primaryCta: string;
+  primaryButton: string;
   secondaryCta: string;
+  secondaryButton: string;
   quickLinks: NotFoundQuickLink[];
 }
 
 export interface PagesContent {
   services: ServicesPageContent;
   notFound: NotFoundPageContent;
+}
+
+// ============================================
+// CONTACT (Optional)
+// ============================================
+export interface ContactHeadline {
+  text: string;
+  highlight: string;
+}
+
+export interface ContactContent {
+  badge?: string;
+  headline?: ContactHeadline;
+  description?: string;
+}
+
+// ============================================
+// WORKSHOPS (from data.ts)
+// ============================================
+export interface Workshop {
+  id: string;
+  name: string;
+  address: string;
+  rating: number;
+  amenities: string[];
 }
 
 // ============================================
@@ -482,35 +649,89 @@ export interface SiteContent {
   faq: FAQContent;
   footer: FooterContent;
   pages: PagesContent;
-}
-export interface ServiceProcessStep {
-  title: string;
-  description: string;
-}
-
-export interface ServiceFAQ {
-  question: string;
-  answer: string;
+  navbar?: NavbarContent;
+  contact?: ContactContent;
+  workshops?: Workshop[];
 }
 
-export interface ServiceItem {
-  id: number | string;
-  title: string;
-  description: string;
-  price: number;
-  originalPrice: number;
-  image: string;
-  gallery?: string[];          // Added
-  features: string[];
-  includes?: string[];         // Added
-  process?: ServiceProcessStep[]; // Added
-  faqs?: ServiceFAQ[];         // Added
-  duration: string;
-  warranty: string;
+// ============================================
+// UTILITY TYPES
+// ============================================
+
+// Type for section keys
+export type SectionKey = keyof SiteContent;
+
+// Type for getting content of a specific section
+export type SectionContent<K extends SectionKey> = SiteContent[K];
+
+// Partial update types for admin panel
+export type PartialSiteContent = {
+  [K in keyof SiteContent]?: Partial<SiteContent[K]>;
+};
+
+// ============================================
+// IMAGE MAPPING TYPES
+// ============================================
+export interface ImageAssetMapping {
+  key: string;
+  path: string;
+  fallback?: string;
 }
+
+// ============================================
+// CONTENT CONTEXT TYPES
+// ============================================
+export interface ContentContextValue {
+  content: SiteContent;
+  updateField: (section: string, path: string, value: unknown) => void;
+  updateSection: (section: string, value: unknown) => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  resetContent: () => void;
+  exportContent: () => string;
+  importContent: (jsonString: string) => boolean;
+  hasUnsavedChanges: boolean;
+  lastSaved: Date | null;
+}
+
+// ============================================
+// HELPER TYPE GUARDS
+// ============================================
+export const isServiceItem = (item: unknown): item is ServiceItem => {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    'id' in item &&
+    'title' in item &&
+    'price' in item
+  );
+};
+
+export const isTestimonialItem = (item: unknown): item is TestimonialItem => {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    'id' in item &&
+    'name' in item &&
+    'rating' in item
+  );
+};
+
+export const isGalleryImage = (item: unknown): item is GalleryImage => {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    'id' in item &&
+    'src' in item &&
+    'category' in item
+  );
+};
+
 // ============================================
 // EXPORT ALL TYPES
 // ============================================
 export type {
-  // Can add type aliases here if needed
+  // Re-export for convenience
 };

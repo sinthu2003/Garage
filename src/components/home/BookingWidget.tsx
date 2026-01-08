@@ -11,304 +11,24 @@ import {
   Sparkles,
   CheckCircle2
 } from 'lucide-react';
-
-// Brand data with logos from carlogos.org
-const brands = [
-  { id: 'maruti', name: 'Maruti Suzuki', logo: 'https://www.carlogos.org/car-logos/suzuki-logo.png', urlName: 'maruti-suzuki' },
-  { id: 'hyundai', name: 'Hyundai', logo: 'https://www.carlogos.org/car-logos/hyundai-logo.png', urlName: 'hyundai' },
-  { id: 'honda', name: 'Honda', logo: 'https://www.carlogos.org/car-logos/honda-logo.png', urlName: 'honda' },
-  { id: 'tata', name: 'Tata', logo: 'https://www.carlogos.org/car-logos/tata-logo.png', urlName: 'tata' },
-  { id: 'toyota', name: 'Toyota', logo: 'https://www.carlogos.org/car-logos/toyota-logo.png', urlName: 'toyota' },
-  { id: 'mahindra', name: 'Mahindra', logo: 'https://www.carlogos.org/car-logos/mahindra-logo.png', urlName: 'mahindra' },
-  { id: 'kia', name: 'Kia', logo: 'https://www.carlogos.org/car-logos/kia-logo.png', urlName: 'kia' },
-  { id: 'mg', name: 'MG', logo: 'https://www.carlogos.org/car-logos/mg-logo.png', urlName: 'mg' },
-  { id: 'volkswagen', name: 'Volkswagen', logo: 'https://www.carlogos.org/car-logos/volkswagen-logo.png', urlName: 'volkswagen' },
-  { id: 'skoda', name: 'Skoda', logo: 'https://www.carlogos.org/car-logos/skoda-logo.png', urlName: 'skoda' },
-  { id: 'renault', name: 'Renault', logo: 'https://www.carlogos.org/car-logos/renault-logo.png', urlName: 'renault' },
-  { id: 'nissan', name: 'Nissan', logo: 'https://www.carlogos.org/car-logos/nissan-logo.png', urlName: 'nissan' },
-  { id: 'ford', name: 'Ford', logo: 'https://www.carlogos.org/car-logos/ford-logo.png', urlName: 'ford' },
-  { id: 'chevrolet', name: 'Chevrolet', logo: 'https://www.carlogos.org/car-logos/chevrolet-logo.png', urlName: 'chevrolet' },
-  { id: 'bmw', name: 'BMW', logo: 'https://www.carlogos.org/car-logos/bmw-logo.png', urlName: 'bmw' },
-  { id: 'audi', name: 'Audi', logo: 'https://www.carlogos.org/car-logos/audi-logo.png', urlName: 'audi' },
-  { id: 'mercedes', name: 'Mercedes-Benz', logo: 'https://www.carlogos.org/car-logos/mercedes-benz-logo.png', urlName: 'mercedes-benz' },
-  { id: 'jeep', name: 'Jeep', logo: 'https://www.carlogos.org/car-logos/jeep-logo.png', urlName: 'jeep' },
-  { id: 'volvo', name: 'Volvo', logo: 'https://www.carlogos.org/car-logos/volvo-logo.png', urlName: 'volvo' },
-  { id: 'lexus', name: 'Lexus', logo: 'https://www.carlogos.org/car-logos/lexus-logo.png', urlName: 'lexus' },
-  { id: 'porsche', name: 'Porsche', logo: 'https://www.carlogos.org/car-logos/porsche-logo.png', urlName: 'porsche' },
-  { id: 'jaguar', name: 'Jaguar', logo: 'https://www.carlogos.org/car-logos/jaguar-logo.png', urlName: 'jaguar' },
-  { id: 'landrover', name: 'Land Rover', logo: 'https://www.carlogos.org/car-logos/land-rover-logo.png', urlName: 'land-rover' },
-  { id: 'mitsubishi', name: 'Mitsubishi', logo: 'https://www.carlogos.org/car-logos/mitsubishi-logo.png', urlName: 'mitsubishi' },
-];
-
-// Car models by brand with images from carlogos.org
-const carModels: Record<string, { name: string; type: string; image: string }[]> = {
-  maruti: [
-    { name: 'Swift', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/159099/swift-exterior-right-front-three-quarter-31.png?isig=0&q=80' },
-    { name: 'Baleno', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/102663/baleno-exterior-right-front-three-quarter-69.png?isig=0&q=80' },
-    { name: 'Alto K10', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/127563/alto-k10-exterior-right-front-three-quarter-63.png?isig=0&q=80' },
-    { name: 'Wagon R', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/112947/wagon-r-exterior-right-front-three-quarter-6.png?isig=0&q=80' },
-    { name: 'Dzire', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/170173/dzire-exterior-right-front-three-quarter-27.png?isig=0&q=80' },
-    { name: 'Vitara Brezza', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/39028/marutisuzuki-vitara-brezza-right-front-three-quarter3.jpeg?q=80' },
-    { name: 'Ertiga', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/115777/ertiga-exterior-right-front-three-quarter-10.png?isig=0&q=80' },
-    { name: 'Ciaz', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/48542/ciaz-exterior-right-front-three-quarter-2.png?isig=0&q=80' },
-    { name: 'S-Cross', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/46482/s-cross-petrol-exterior-right-front-three-quarter.jpeg?q=80' },
-    { name: 'Ignis', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/142921/ignis-exterior-right-front-three-quarter-16.png?isig=0&q=80' },
-    { name: 'Celerio', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/53695/celerio-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'XL6', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/115601/xl6-exterior-right-front-three-quarter-13.png?isig=0&q=80' },
-    { name: 'Grand Vitara', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/123185/grand-vitara-exterior-right-front-three-quarter-5.png?isig=0&q=80' },
-    { name: 'Fronx', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/130591/fronx-exterior-right-front-three-quarter-109.png?isig=0&q=80' },
-    { name: 'Jimny', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/45299/jimny-exterior-right-front-three-quarter-23.png?isig=0&q=80' },
-    { name: 'Invicto', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/147201/invicto-exterior-right-front-three-quarter-68.png?isig=0&q=80' },
-    { name: 'Victoris', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/194921/victoris-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'Brezza', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/107543/brezza-exterior-right-front-three-quarter-9.png?isig=0&q=80' },
-    { name: 'S-Presso', type: 'Mini SUV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/126463/s-presso-exterior-right-front-three-quarter-5.png?isig=0&q=80' },
-    { name: 'Eeco', type: 'Van', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/135523/eeco-exterior-right-front-three-quarter-3.png?isig=0&q=80' }
-    
-  ],
-  hyundai: [
-    { name: 'Creta', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/106815/creta-exterior-right-front-three-quarter-6.png?isig=0&q=80' },
-    { name: 'Creta N Line', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/168697/creta-n-line-exterior-right-front-three-quarter-26.png?isig=0&q=80' },
-    { name: 'i20', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/150603/i20-exterior-right-front-three-quarter-13.png?isig=0&q=80' },
-    { name: 'Venue', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/197163/venue-exterior-right-front-three-quarter-38.png?isig=0&q=80' },
-    { name: 'Verna', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/121943/verna-exterior-right-front-three-quarter-103.png?isig=0&q=80' },
-    { name: 'Grand i10 Nios', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/136183/grand-i10-nios-exterior-right-front-three-quarter-17.png?isig=0&q=80' },
-    { name: 'Aura', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/139133/aura-exterior-right-front-three-quarter-9.png?isig=0&q=80' },
-    { name: 'Tucson', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/106821/tucson-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'Alcazar', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/157825/alcazar-exterior-right-front-three-quarter-24.png?isig=0&q=80' },
-    { name: 'Exter', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/144851/exter-exterior-right-front-three-quarter-64.png?isig=0&q=80' },
-    { name: 'Ioniq 5', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/110289/ioniq-5-exterior-right-front-three-quarter-96.png?isig=0&q=80' },
-    { name: 'Kona Electric', type: 'Electric', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/29580/kona-electric-exterior-right-front-three-quarter-162254.jpeg?isig=0&wm=1&q=80' },
-    { name: 'Venue N Line', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/210466/new-venue-n-line-exterior-right-front-three-quarter-11.png?isig=0&q=80' },
-    { name: 'i20 N Line', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/158139/i20-n-line-exterior-right-front-three-quarter-16.png?isig=0&q=80' },
-  ],
-  honda: [
-    { name: 'City', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/134287/city-exterior-right-front-three-quarter-2.png?isig=0&q=80' },
-    { name: 'Amaze', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/184377/amaze-exterior-right-front-three-quarter-5.png?isig=0&q=80' },
-    { name: 'Elevate', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/142515/elevate-exterior-right-front-three-quarter-29.png?isig=0&q=80' },
-    { name: 'WR-V', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/134113/wr-v-exterior-left-front-three-quarter-5.png?isig=0&q=80' },
-    { name: 'Jazz', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/46891/jazz-exterior-right-front-three-quarter.jpeg?q=80' },
-    { name: 'Civic', type: 'Sedan', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/27074/civic-exterior-right-front-three-quarter-148156.jpeg?q=80' },
-    { name: 'CR-V', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/34457/cr-v-exterior-right-front-three-quarter.jpeg?q=80' },
-    { name: 'BR-V', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/cw/ec/19810/Honda-BRV-Exterior-119023.jpg?wm=0&q=80' },
-  ],
-  tata: [
-    { name: 'Nexon', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/141867/nexon-exterior-right-front-three-quarter-79.png?isig=0&q=80' },
-    { name: 'Punch', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/39015/punch-exterior-right-front-three-quarter-58.png?isig=0&q=80' },
-    { name: 'Altroz', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/199863/altroz-exterior-right-front-three-quarter-13.png?isig=0&q=80' },
-    { name: 'Harrier', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/139139/harrier-exterior-right-front-three-quarter-7.png?isig=0&q=80' },
-    { name: 'Safari', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/138895/safari-exterior-right-front-three-quarter-40.png?isig=0&q=80' },
-    { name: 'Tiago', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/39345/tiago-exterior-right-front-three-quarter-33.png?isig=0&q=80' },
-    { name: 'Tigor', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/41160/tigor-exterior-right-front-three-quarter-23.png?isig=0&q=80' },
-    { name: 'Nexon EV', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/149123/nexon-ev-exterior-right-front-three-quarter-80.png?isig=0&q=80' },
-    { name: 'Tiago EV', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/40453/tiago-ev-exterior-right-front-three-quarter-15.png?isig=0&q=80' },
-    { name: 'Curvv', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/139651/curvv-exterior-right-front-three-quarter-16.png?isig=0&q=80' },
-  ],
-  toyota: [
-    { name: 'Innova Crysta', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/140809/innova-crysta-exterior-right-front-three-quarter-3.png?isig=0&q=80' },
-    { name: 'Innova Hycross', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/115025/innova-hycross-exterior-right-front-three-quarter-74.png?isig=0&q=80' },
-    { name: 'Fortuner', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/44709/fortuner-exterior-right-front-three-quarter-28.png?isig=0&q=80' },
-    { name: 'Fortuner Legender', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/137767/fortuner-legender-exterior-right-front-three-quarter-5.png?isig=0&q=80' },
-    { name: 'Glanza', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/112839/glanza-exterior-right-front-three-quarter-6.png?isig=0&q=80' },
-    { name: 'Urban Cruiser Hyryder', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/124027/hyryder-exterior-right-front-three-quarter-74.png?isig=0&q=80' },
-    { name: 'Urban Cruiser Taisor', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/132427/taisor-exterior-right-front-three-quarter-41.png?isig=0&q=80' },
-    { name: 'Vellfire', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/154483/vellfire-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: 'Hilux', type: 'Pickup', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/109265/hilux-exterior-right-front-three-quarter-44.png?isig=0&q=80' },
-    { name: 'Yaris', type: 'Sedan', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/32943/yaris-exterior-right-front-three-quarter-2.jpeg?q=80' },
-    { name: 'Rumion', type: 'MPV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/105799/rumion-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'Camry', type: 'Sedan', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/192443/camry-exterior-right-front-three-quarter-15.png?isig=0&q=80' },
-    { name: 'Corolla Altis', type: 'Sedan', image: 'https://imgd.aeplcdn.com/664x374/cw/ec/26588/Toyota-Corolla-Altis-Exterior-92974.jpg?wm=0&q=80' },
-    { name: 'Land Cruiser', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/139739/land-cruiser-exterior-right-front-three-quarter-3.png?isig=0&q=80' }
-  ],
-  mahindra: [
-    { name: 'XUV700', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/42355/xuv700-exterior-right-front-three-quarter-2.png?isig=0&q=80' },
-    { name: 'Thar', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/204996/thar-2025-exterior-right-front-three-quarter-5.png?isig=0&q=80' },
-    { name: 'Scorpio N', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/40432/scorpio-n-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: 'Scorpio Classic', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/128413/scorpio-exterior-right-front-three-quarter-2.png?isig=0&q=80' },
-    { name: 'XUV300', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/26918/xuv300-exterior-right-front-three-quarter-148709.jpeg?isig=0&q=80' },
-    { name: 'XUV400 EV', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/45278/xuv400-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'Bolero', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/210987/bolero-exterior-right-front-three-quarter-3.png?isig=0&q=80' },
-    { name: 'Bolero Neo', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/210989/bolero-neo-exterior-right-front-three-quarter-3.png?isig=0&q=80' },
-    { name: 'Marazzo', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/49114/marazzo-exterior-right-front-three-quarter-2.png?isig=0&q=80' },
-    { name: 'BE 6', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/131825/be-6-exterior-right-front-three-quarter-6.png?isig=0&q=80' },
-    { name: 'XEV 9S', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/212003/xev9s-exterior-right-front-three-quarter-11.png?isig=0&q=80' },
-    { name: 'XEV 9e', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/130595/xev-9e-exterior-right-front-three-quarter-2.png?isig=0&q=80' },
-    { name: 'Thar Roxx', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/124839/thar-roxx-exterior-right-front-three-quarter-2.png?isig=0&q=80' },
-    { name: 'KUV100 NXT', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/21497/kuv100-nxt-exterior-right-front-three-quarter-64047.jpeg?q=80' },
-    { name: 'TUV300', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/cw/ec/39470/Mahindra-TUV300-Right-Front-Three-Quarter-155763.jpg?wm=0&q=80' },
-    { name: 'XUV 3XO', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/156405/xuv-3xo-exterior-right-front-three-quarter-33.png?isig=0&q=80' },
-  ],
-  kia: [
-    { name: 'Seltos', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/192817/new-seltos-exterior-right-front-three-quarter-48.jpeg?isig=0&q=80' },
-    { name: 'Sonet', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/174423/sonet-exterior-right-front-three-quarter-12.png?isig=0&q=80' },
-    { name: 'Carens', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/174325/carens-exterior-right-front-three-quarter-9.png?isig=0&q=80' },
-    { name: 'Carens Clavis', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/195199/carens-clavis-exterior-right-front-three-quarter-3.png?isig=0&q=80' },
-    { name: 'Carnival', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/138947/carnival-exterior-right-front-three-quarter-20.png?isig=0&q=80' },
-    { name: 'EV6', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/186465/ev6-exterior-right-front-three-quarter-3.png?isig=0&q=80' },
-    { name: 'EV9', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/144485/ev9-exterior-right-front-three-quarter-6.png?isig=0&q=80' },
-  ],
-  mg: [
-    { name: 'Hector', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/212881/hector-facelift-exterior-right-front-three-quarter.png?isig=0&q=80' },
-    { name: 'Hector Plus', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/214253/hector-plus-exterior-right-front-three-quarter.png?isig=0&q=80' },
-    { name: 'Astor', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/51940/astor-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'ZS EV', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/110437/zs-ev-exterior-right-front-three-quarter-70.png?isig=0&q=80' },
-    { name: 'Gloster', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/129689/gloster-exterior-right-front-three-quarter-5.png?isig=0&q=80' },
-    { name: 'Comet EV', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/125193/comet-ev-exterior-right-front-three-quarter-31.png?isig=0&q=80' },
-  ],
-  volkswagen: [
-    { name: 'Polo', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/29628/polo-exterior-right-front-three-quarter-2.jpeg?q=80' },
-    { name: 'Virtus', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/144681/virtus-exterior-right-front-three-quarter-11.png?isig=0&q=80' },
-    { name: 'Taigun', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/144689/taigun-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'Tiguan R-Line', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/198751/tiguan-r-line-exterior-right-front-three-quarter-10.png?isig=0&q=80' },
-    { name: 'Golf GTI', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/198749/golf-gti-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-  ],
-  skoda: [
-    { name: 'Kushaq', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/175993/kushaq-exterior-right-front-three-quarter-2.avif?isig=0&q=80' },
-    { name: 'Slavia', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/175951/slavia-exterior-right-front-three-quarter-10.png?isig=0&q=80' },
-    { name: 'Kodiaq', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/158729/kodiaq-exterior-right-front-three-quarter-14.png?isig=0&q=80' },
-    { name: 'Superb', type: 'Sedan', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/158937/superb-exterior-right-front-three-quarter-6.jpeg?isig=0&q=80' },
-    { name: 'Octavia RS', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/204968/octaviars-exterior-right-front-three-quarter-2.jpeg?isig=0&q=80' },
-    { name: 'kylaq', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/171777/kylaq-exterior-right-front-three-quarter-10.png?isig=0&q=80' },
-  ],
-  renault: [
-    { name: 'Kwid', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/141125/kwid-exterior-right-front-three-quarter-38.png?isig=0&q=80' },
-    { name: 'Triber', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/199767/triber-exterior-right-front-three-quarter-26.png?isig=0&q=80' },
-    { name: 'Kiger', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/208550/kiger-exterior-right-front-three-quarter-30.png?isig=0&q=80' },
-    { name: 'Duster', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/163801/new-duster-exterior-right-front-three-quarter-5.png?isig=0&q=80' },
-  ],
-  nissan: [
-    { name: 'Magnite', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/173325/magnite-exterior-right-front-three-quarter-27.png?isig=0&q=80' },
-    { name: 'Kicks', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/cw/ec/32596/Nissan-Kicks-Right-Front-Three-Quarter-159680.jpg?wm=0&q=80' },
-    { name: 'X-Trail', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/133165/x-trail-exterior-right-front-three-quarter-28.png?isig=0&q=80' },
-  ],
-  ford: [
-    { name: 'EcoSport', type: 'SUV', image: 'https://imgd.aeplcdn.com/370x208/cw/ec/31676/Ford-EcoSport-New-Right-Front-Three-Quarter-111783.jpg?wm=0' },
-    { name: 'Endeavour', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/37640/endeavour-exterior-right-front-three-quarter-149473.jpeg?q=80' },
-    { name: 'Figo', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/370x208/cw/cars/discontinued/ford/figo-2010-2012.jpg' },
-    { name: 'Aspire', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/35583/aspire-exterior-right-front-three-quarter-2.jpeg?q=80' },
-    { name: 'Freestyle', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/32698/freestyle-exterior-right-front-three-quarter-2.jpeg?q=80' },
-  ],
-  chevrolet: [
-    { name: 'Beat', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/cw/ec/21745/Chevrolet-Beat-Right-Front-Three-Quarter-81148.jpg?wm=0&q=80' },
-    { name: 'Cruze', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/cw/ec/22891/Chevrolet-Cruze-Right-Front-Three-Quarter-73032.jpg?wm=0&q=80' },
-    { name: 'Spark', type: 'Hatchback', image: 'https://imgd.aeplcdn.com/227x128/cw/cars/chevrolet/spark.jpg?q=80' },
-    { name: 'Tavera', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/ec/89/7A/9793/img/m/Chevrolet-Tavera-Right-Front-Three-Quarter-49908_ol.jpg?t=123011560&t=123011560&q=80' },
-    { name: 'Enjoy', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/ec/65/A5/10311/img/m/Chevrolet-Enjoy-Right-Front-Three-Quarter-49907_ol.jpg?t=122622283&t=122622283&q=80' },
-  ],
-  bmw: [
-    { name: '2 Series Gran Coupe', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/205930/2-series-gran-coupe-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: '3 Series LWB', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/198567/3-series-exterior-right-front-three-quarter-10.png?isig=0&q=80' },
-    { name: '5 Series', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/175183/5-series-exterior-right-front-three-quarter-95.png?isig=0&q=80' },
-    { name: '7 Series', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/132513/7-series-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: 'X1', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/140591/x1-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'X3', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/179903/x3-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'X5', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/152681/x5-exterior-right-front-three-quarter-7.png?isig=0&q=80' },
-    { name: 'X7', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/136217/x7-exterior-right-front-three-quarter-10.png?isig=0&q=80' },
-    { name: 'iX LWB', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/196035/ix1-lwb-exterior-right-front-three-quarter-2.png?isig=0&q=80' },
-    { name: 'i4', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/109123/i4-exterior-right-front-three-quarter-2.png?isig=0&q=80' },
-    { name: 'i7', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/137875/i7-exterior-right-front-three-quarter-9.png?isig=0&q=80' },
-  ],
-  audi: [
-    { name: 'A4', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/51909/a4-exterior-right-front-three-quarter-2.jpeg?q=80' },
-    { name: 'A6', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/39472/a6-exterior-right-front-three-quarter-2.jpeg?isig=0&q=80' },
-    { name: 'A8 L', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/124141/a8-l-exterior-right-front-three-quarter-4.jpeg?isig=0&q=80' },
-    { name: 'Q3', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/28379/q3-exterior-right-front-three-quarter-93481.jpeg?isig=0&q=80' },
-    { name: 'Q5', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/53591/q5-exterior-right-front-three-quarter-36.jpeg?isig=0&q=80' },
-    { name: 'Q7', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/192279/q7-exterior-right-front-three-quarter.jpeg?isig=0&q=80' },
-    { name: 'Q8', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/184519/q8-facelift-exterior-right-front-three-quarter-4.jpeg?isig=0&q=80' },
-    { name: 'e-tron', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/39048/e-tron-exterior-right-front-three-quarter-3.jpeg?isig=0&q=80' },
-    { name: 'e-tron GT', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/47073/e-tron-gt-exterior-right-front-three-quarter-2.jpeg?isig=0&q=80' },
-    { name: 'RS5', type: 'Sports', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/100073/rs5-exterior-right-front-three-quarter-4.jpeg?isig=0&q=80' },
-  ],
-  mercedes: [
-    { name: 'A-Class Limousine', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/149525/a-class-limousine-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'C-Class', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/178535/c-class-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: 'E-Class', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/162929/e-class-exterior-right-front-three-quarter-35.png?isig=0&q=80' },
-    { name: 'S-Class', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/48067/s-class-exterior-right-front-three-quarter-10.png?isig=0&q=80' },
-    { name: 'G-Class', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/150621/g-class-exterior-right-front-three-quarter-7.jpeg?isig=0&q=80' },
-    { name: 'GLA', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/169159/gla-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: 'GLB', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/134297/glb-exterior-right-front-three-quarter-2.jpeg?isig=0&q=80' },
-    { name: 'GLC', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/178525/glc-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: 'GLE', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/163317/gle-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: 'GLS', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/167373/gls-exterior-right-front-three-quarter-22.png?isig=0&q=80' },
-    { name: 'EQS', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/131249/eqs-exterior-right-front-three-quarter-31.png?isig=0&q=80' },
-    { name: 'EQE', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/108113/eqe-suv-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: 'Maybach S-Class', type: 'Luxury', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/115149/maybach-s-class-exterior-right-front-three-quarter-6.png?isig=0&q=80' },
-    { name: 'AMG CLE', type: 'Luxury', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/207030/amg-cle-exterior-right-front-three-quarter-33.png?isig=0&q=80' },
-    { name: 'Maybach GLS', type: 'Luxury', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/177511/maybach-gls-exterior-right-front-three-quarter-5.png?isig=0&q=80' },
-
-  ],
-  jeep: [
-    { name: 'Compass', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/47051/compass-exterior-right-front-three-quarter-84.png?isig=0&q=80' },
-    { name: 'Meridian', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/47139/meridian-exterior-right-front-three-quarter-18.png?isig=0&q=80' },
-    { name: 'Wrangler', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/174975/wrangler-exterior-right-front-three-quarter-34.png?isig=0&q=80' },
-    { name: 'Grand Cherokee', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/132711/grand-cherokee-exterior-right-front-three-quarter-28.png?isig=0&q=80' },
-  ],
-  volvo: [
-    { name: 'XC40', type: 'SUV', image: 'https://imgd.aeplcdn.com/664x374/cw/ec/32889/Volvo-XC40-Exterior-130763.jpg?wm=0&q=80' },
-    { name: 'XC60', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/206978/xc60-exterior-right-front-three-quarter-8.png?isig=0&q=80' },
-    { name: 'XC90', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/198257/xc90-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: 'EC40', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/150611/c40-recharge-exterior-right-front-three-quarter-3.jpeg?isig=0&q=80' },
-    { name: 'S60', type: 'Sedan', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/27032/s60-exterior-right-front-three-quarter-3.jpeg?q=80' },
-    { name: 'S90', type: 'Sedan', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/131145/s90-exterior-right-front-three-quarter-4.jpeg?isig=0&q=80' },
-    { name: 'EX30', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/173187/ex30-exterior-right-front-three-quarter-6.png?isig=0&q=80' },
-    { name: 'C40 Recharge', type: 'Electric', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/150611/c40-recharge-exterior-right-front-three-quarter-3.jpeg?isig=0&q=80' },
-  ],
-  lexus: [
-    { name: 'ES', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/35351/es-exterior-right-front-three-quarter-3.png?isig=0&q=80' },
-    { name: 'LS', type: 'Sedan', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/28191/ls-exterior-right-front-three-quarter-3.jpeg?isig=0&q=80' },
-    { name: 'NX', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/113023/nx-exterior-right-front-three-quarter-4.png?isig=0&q=80' },
-    { name: 'RX', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/139465/rx-exterior-right-front-three-quarter-15.png?isig=0&q=80' },
-    { name: 'LX', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/137979/lx-exterior-right-front-three-quarter-40.png?isig=0&q=80' },
-    { name: 'LC', type: 'Sports', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/44615/lexus-lc-500h-right-front-three-quarter10.jpeg?q=80' },
-    { name: 'LM', type: 'MPV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/155855/lm-exterior-right-front-three-quarter-5.png?isig=0&q=80' }
-  ],
-  porsche: [
-    { name: 'Cayenne', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/32951/cayenne-exterior-right-front-three-quarter-2.jpeg?isig=0&q=80' },
-    { name: 'Macan', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/99421/macan-exterior-right-front-three-quarter-9.jpeg?isig=0&q=80' },
-    { name: '911', type: 'Sports', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/39232/911-exterior-right-front-three-quarter-154382.jpeg?isig=0&q=80' },
-    { name: 'Panamera', type: 'Sedan', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/165641/panamera-exterior-right-front-three-quarter.jpeg?isig=0&q=80' },
-    { name: 'Taycan', type: 'Electric', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/45063/taycan-exterior-right-front-three-quarter-5.jpeg?isig=0&q=80' },
-  ],
-  jaguar: [
-    { name: 'F-Pace', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/56265/f-pace-exterior-right-front-three-quarter-5.png?isig=0&q=80' },
-    { name: 'I-Pace', type: 'Electric', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/39480/i-pace-exterior-right-front-three-quarter-2.jpeg?isig=0&q=80' },
-    { name: 'XE', type: 'Sedan', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/43356/jaguar-xe-front-right-three-quarter-7.jpeg?q=80' },
-    { name: 'XF', type: 'Sedan', image: 'https://imgd.aeplcdn.com/370x208/n/cw/ec/19826/xf-exterior-right-front-three-quarter-2.jpeg?isig=0' },
-    { name: 'F-Type', type: 'Sports', image: 'https://imgd.aeplcdn.com/664x374/n/cw/ec/46994/f-type-exterior-right-front-three-quarter-3.jpeg?isig=0&q=80' },
-  ],
-  landrover: [
-    { name: 'Range Rover', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/107719/range-rover-exterior-right-front-three-quarter-47.png?isig=0&q=80' },
-    { name: 'Range Rover Sport', type: 'Sport', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/122451/range-rover-sport-exterior-right-front-three-quarter-44.png?isig=0&q=80' },
-    { name: 'Range Rover Velar', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/153319/range-rover-velar-exterior-right-front-three-quarter-5.png?isig=0&q=80' },
-    { name: 'Range Rover Evoque', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/37721/range-rover-evoque-exterior-right-front-three-quarter-2.png?isig=0&q=80' },
-    { name: 'Defender', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/55215/defender-exterior-right-front-three-quarter-23.png?isig=0&q=80' },
-    { name: 'Discovery', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/24806/discovery-exterior-right-front-three-quarter-3.png?isig=0&q=80' },
-    { name: 'Discovery Sport', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/n/cw/ec/127321/discovery-sport-exterior-right-front-three-quarter-42.png?isig=0&q=80' },
-  ],
-  mitsubishi: [
-    { name: 'Outlander', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/cw/ec/34253/Mitsubishi-Outlander-Exterior-130062.jpg?wm=0&q=80' },
-    { name: 'Montero', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/cw/ec/23799/Mitsubishi-Montero-Right-Front-Three-Quarter-74529.jpg?wm=0&q=80' },
-    { name: 'Pajero Sport', type: 'SUV', image: 'https://imgd.aeplcdn.com/227x128/ec/b8/0e/9739/img/m/Mitsubishi-Pajero-Sport-Right-Front-Three-Quarter-52939_ol.jpg?t=170422253&t=170422253&q=80' },
-  ],
-};
-
-const fuelTypes = [
-  { id: 'petrol', name: 'Petrol', icon: '⛽', color: '#22C55E' },
-  { id: 'diesel', name: 'Diesel', icon: '🛢️', color: '#EAB308' },
-  { id: 'cng', name: 'CNG', icon: '💨', color: '#3B82F6' },
-  { id: 'electric', name: 'Electric', icon: '⚡', color: '#8B5CF6' },
-];
-
-const cities = [
-   'Chennai'
-];
+import { useContent } from '../../admin-portal';
 
 type ViewState = 'main' | 'brands' | 'models' | 'fuel';
 
 export const BookingWidget = () => {
+  // Get content from context
+  const { content } = useContent();
+  const bookingContent = content.bookingWidget;
+  
+  // Extract data from content
+  const brands = bookingContent.brands;
+  const carModels = bookingContent.carModels as Record<string, { name: string; type: string; image: string }[]>;
+  const fuelTypes = bookingContent.fuelTypes;
+  const cities = bookingContent.cities;
+
   const [currentView, setCurrentView] = useState<ViewState>('main');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCity, setSelectedCity] = useState('Chennai');
+  const [selectedCity, setSelectedCity] = useState(cities[0] || 'Chennai');
   const [isCityOpen, setIsCityOpen] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<typeof brands[0] | null>(null);
   const [selectedModel, setSelectedModel] = useState<{ name: string; type: string; image: string } | null>(null);
@@ -398,17 +118,17 @@ export const BookingWidget = () => {
                 {/* Header */}
                 <div>
                   <h3 className="text-2xl font-bold text-foreground tracking-tight">
-                    Book Your Service
+                    {bookingContent.title}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Get instant quotes & doorstep service
+                    {bookingContent.subtitle}
                   </p>
                 </div>
 
                 {/* City Selector */}
                 <div className="relative">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                    Select City
+                    {bookingContent.steps.location.title}
                   </label>
                   <button
                     onClick={() => setIsCityOpen(!isCityOpen)}
@@ -454,7 +174,7 @@ export const BookingWidget = () => {
                 {/* Car Selector */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                    Select Your Car
+                    {bookingContent.steps.brand.title}
                   </label>
                   <button
                     onClick={() => setCurrentView('brands')}
@@ -510,7 +230,7 @@ export const BookingWidget = () => {
                 {/* Mobile Number */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                    Mobile Number
+                    {bookingContent.steps.phone?.title || 'Mobile Number'}
                   </label>
                   <div className="flex items-center gap-3 px-4 py-4 bg-secondary/50 border border-border rounded-2xl focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                     <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
@@ -521,7 +241,7 @@ export const BookingWidget = () => {
                       type="tel"
                       value={mobileNumber}
                       onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      placeholder="Enter your mobile number"
+                      placeholder={bookingContent.steps.phone?.placeholder || 'Enter your mobile number'}
                       className="flex-1 bg-transparent outline-none text-base font-semibold text-foreground placeholder-muted-foreground"
                     />
                     {mobileNumber.length === 10 && (
@@ -537,7 +257,7 @@ export const BookingWidget = () => {
                   disabled={!isCarSelected || mobileNumber.length !== 10}
                   className="w-full py-4 bg-primary text-primary-foreground text-base font-bold rounded-2xl shadow-lg shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all flex items-center justify-center gap-2"
                 >
-                  Check Prices For Free
+                  {bookingContent.ctaText}
                   <ChevronRight className="w-5 h-5" />
                 </motion.button>
               </motion.div>
@@ -561,8 +281,8 @@ export const BookingWidget = () => {
                     <ChevronLeft className="w-5 h-5 text-muted-foreground" />
                   </button>
                   <div>
-                    <h3 className="text-xl font-bold text-foreground">Select Brand</h3>
-                    <p className="text-xs text-muted-foreground">Choose your car manufacturer</p>
+                    <h3 className="text-xl font-bold text-foreground">{bookingContent.steps.brand.title}</h3>
+                    <p className="text-xs text-muted-foreground">{bookingContent.steps.brand.subtitle || 'Choose your car manufacturer'}</p>
                   </div>
                 </div>
 
@@ -573,7 +293,7 @@ export const BookingWidget = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search car brand..."
+                    placeholder={bookingContent.steps.brand.placeholder || 'Search car brand...'}
                     className="flex-1 bg-transparent outline-none text-sm font-medium text-foreground placeholder-muted-foreground"
                     autoFocus
                   />
@@ -655,7 +375,7 @@ export const BookingWidget = () => {
                       }}
                     />
                     <div>
-                      <h3 className="text-xl font-bold text-foreground">Select Model</h3>
+                      <h3 className="text-xl font-bold text-foreground">{bookingContent.steps.model.title}</h3>
                       <p className="text-xs text-muted-foreground">{selectedBrand.name} models</p>
                     </div>
                   </div>
@@ -668,7 +388,7 @@ export const BookingWidget = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search model..."
+                    placeholder={bookingContent.steps.model.placeholder || 'Search model...'}
                     className="flex-1 bg-transparent outline-none text-sm font-medium text-foreground placeholder-muted-foreground"
                   />
                   {searchQuery && (
@@ -740,8 +460,8 @@ export const BookingWidget = () => {
                     <ChevronLeft className="w-5 h-5 text-muted-foreground" />
                   </button>
                   <div>
-                    <h3 className="text-xl font-bold text-foreground">Select Fuel Type</h3>
-                    <p className="text-xs text-muted-foreground">Choose your car's fuel type</p>
+                    <h3 className="text-xl font-bold text-foreground">{bookingContent.steps.fuel.title}</h3>
+                    <p className="text-xs text-muted-foreground">{bookingContent.steps.fuel.subtitle}</p>
                   </div>
                 </div>
 
@@ -812,10 +532,10 @@ export const BookingWidget = () => {
             <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <span className="font-semibold">4.8/5</span> Rating
+                <span className="font-semibold">{bookingContent.trustBadges.rating}</span> Rating
               </span>
               <span className="w-1 h-1 rounded-full bg-border" />
-              <span><span className="font-semibold">50,000+</span> Services</span>
+              <span><span className="font-semibold">{bookingContent.trustBadges.services}</span> Services</span>
             </div>
           </div>
         )}

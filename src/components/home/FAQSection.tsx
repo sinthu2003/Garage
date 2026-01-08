@@ -1,38 +1,57 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { ChevronDown, Phone, MessageCircle, ArrowRight } from 'lucide-react';
+import { ChevronDown, Phone, MessageCircle, ArrowRight, Mail, HelpCircle } from 'lucide-react';
+import { useContent } from '../../admin-portal';
 
-const faqs = [
-  {
-    question: "How does doorstep car service work?",
-    answer: "Simply book a service through our app or website. Our mechanic will arrive at your location with all tools and equipment. After service completion, pay online or cash."
+// Icon mapping for contact cards
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  phone: Phone,
+  whatsapp: MessageCircle,
+  email: Mail,
+  help: HelpCircle,
+};
+
+// Color mapping for contact card types
+const colorMap: Record<string, { bg: string; hoverBg: string; iconBg: string; iconHoverBg: string; iconColor: string; iconHoverColor: string; borderHover: string }> = {
+  phone: {
+    bg: 'bg-secondary',
+    hoverBg: 'hover:bg-primary/10',
+    iconBg: 'bg-primary/10',
+    iconHoverBg: 'group-hover:bg-primary',
+    iconColor: 'text-primary',
+    iconHoverColor: 'group-hover:text-primary-foreground',
+    borderHover: 'hover:border-primary/20',
   },
-  {
-    question: "What warranty do you provide?",
-    answer: "We provide 6-month/10,000 km warranty on all services and parts. Any defects in workmanship or parts are fixed free of charge."
+  whatsapp: {
+    bg: 'bg-secondary',
+    hoverBg: 'hover:bg-green-50 dark:hover:bg-green-900/20',
+    iconBg: 'bg-green-100 dark:bg-green-900/30',
+    iconHoverBg: 'group-hover:bg-green-500',
+    iconColor: 'text-green-500',
+    iconHoverColor: 'group-hover:text-white',
+    borderHover: 'hover:border-green-200 dark:hover:border-green-800',
   },
-  {
-    question: "Are your mechanics certified?",
-    answer: "Yes! All mechanics are trained and certified with 5+ years average experience. They undergo background checks and continuous training."
+  email: {
+    bg: 'bg-secondary',
+    hoverBg: 'hover:bg-blue-50 dark:hover:bg-blue-900/20',
+    iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+    iconHoverBg: 'group-hover:bg-blue-500',
+    iconColor: 'text-blue-500',
+    iconHoverColor: 'group-hover:text-white',
+    borderHover: 'hover:border-blue-200 dark:hover:border-blue-800',
   },
-  {
-    question: "Do you use genuine spare parts?",
-    answer: "We source parts directly from authorized dealers and OEM suppliers. Every part comes with documentation and warranty."
-  },
-  {
-    question: "Can I track my service in real-time?",
-    answer: "Yes! Get real-time updates with photos and videos of service progress. Chat directly with your mechanic through our app."
-  },
-  {
-    question: "How much can I save compared to authorized centers?",
-    answer: "Save 30-40% on average compared to authorized service centers while maintaining the same quality standards."
-  }
-];
+};
 
 export const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  // Get content from context
+  const { content } = useContent();
+  const faqContent = content.faq;
+  const faqs = faqContent.items;
+  const contactCards = faqContent.contactCards;
 
   return (
     <section id="faq" ref={sectionRef} className="py-16 sm:py-20 lg:py-24 bg-background relative overflow-hidden">
@@ -55,52 +74,50 @@ export const FAQSection = () => {
             className="lg:sticky lg:top-32"
           >
             <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
-              FAQ
+              {faqContent.badge}
             </span>
             
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-4">
-              Frequently Asked
+              {faqContent.headline.line1}
               <br />
               <span className="text-primary">
-                Questions
+                {faqContent.headline.highlight}
               </span>
             </h2>
             
             <p className="text-muted-foreground text-base sm:text-lg mb-8 max-w-md">
-              Everything you need to know about our car service. Can't find your answer? Contact us.
+              {faqContent.description}
             </p>
 
             {/* Contact Cards */}
             <div className="space-y-3">
-              <motion.a
-                href="tel:+919876543210"
-                className="flex items-center gap-4 p-4 bg-secondary rounded-xl hover:bg-primary/10 border border-border hover:border-primary/20 transition-all group"
-                whileHover={{ x: 5 }}
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors">
-                  <Phone className="w-5 h-5 text-primary group-hover:text-primary-foreground transition-colors" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Call us at</p>
-                  <p className="font-semibold text-foreground">+91 98765 43210</p>
-                </div>
-                <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              </motion.a>
-
-              <motion.a
-                href="#"
-                className="flex items-center gap-4 p-4 bg-secondary rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 border border-border hover:border-green-200 dark:hover:border-green-800 transition-all group"
-                whileHover={{ x: 5 }}
-              >
-                <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center group-hover:bg-green-500 transition-colors">
-                  <MessageCircle className="w-5 h-5 text-green-500 group-hover:text-white transition-colors" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Chat with us</p>
-                  <p className="font-semibold text-foreground">WhatsApp Support</p>
-                </div>
-                <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors" />
-              </motion.a>
+              {contactCards.map((card, idx) => {
+                const IconComponent = iconMap[card.type] || Phone;
+                const colors = colorMap[card.type] || colorMap.phone;
+                
+                return (
+                  <motion.a
+                    key={idx}
+                    href={card.href}
+                    target={card.type === 'whatsapp' ? '_blank' : undefined}
+                    rel={card.type === 'whatsapp' ? 'noopener noreferrer' : undefined}
+                    className={`flex items-center gap-4 p-4 ${colors.bg} rounded-xl ${colors.hoverBg} border border-border ${colors.borderHover} transition-all group`}
+                    whileHover={{ x: 5 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
+                    transition={{ delay: 0.3 + idx * 0.1 }}
+                  >
+                    <div className={`w-12 h-12 rounded-xl ${colors.iconBg} flex items-center justify-center ${colors.iconHoverBg} transition-colors`}>
+                      <IconComponent className={`w-5 h-5 ${colors.iconColor} ${colors.iconHoverColor} transition-colors`} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground">{card.label}</p>
+                      <p className="font-semibold text-foreground">{card.value}</p>
+                    </div>
+                    <ArrowRight className={`w-5 h-5 text-muted-foreground group-hover:${colors.iconColor.replace('text-', '')} transition-colors`} />
+                  </motion.a>
+                );
+              })}
             </div>
           </motion.div>
 

@@ -16,7 +16,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { services } from '../utils/data';
+import { useContent } from '../admin-portal';
 
 // Import local assets - Main images
 import PeriodicServiceImg from '../assets/PeriodicService.jpg';
@@ -50,14 +50,28 @@ import InsuranceClaimsImg from '../assets/InsuranceClaims.jpg';
 import InsuranceClaims1Img from '../assets/InsuranceClaims1.jpg';
 import InsuranceClaims2Img from '../assets/InsuranceClaims2.jpg';
 
-// Extended service data with SERVICE-SPECIFIC process steps
-const serviceExtendedData: Record<string, {
+// Type definitions for extended service data
+interface ProcessStep {
+  step: number;
+  title: string;
+  description: string;
+}
+
+interface FAQ {
+  question: string;
+  answer: string;
+}
+
+interface ExtendedServiceData {
   duration: string;
   warranty: string;
   includes: string[];
-  process: { step: number; title: string; description: string }[];
-  faqs: { question: string; answer: string }[];
-}> = {
+  process: ProcessStep[];
+  faqs: FAQ[];
+}
+
+// Extended service data with SERVICE-SPECIFIC process steps (fallback data)
+const serviceExtendedData: Record<string, ExtendedServiceData> = {
   'Periodic Service': {
     duration: '3-4 hours',
     warranty: '6 months / 10,000 km',
@@ -271,7 +285,7 @@ const serviceExtendedData: Record<string, {
 };
 
 // Default data for services without extended info
-const defaultExtendedData = {
+const defaultExtendedData: ExtendedServiceData = {
   duration: '2-4 hours',
   warranty: '6 months',
   includes: ['Professional service', 'Quality parts', 'Expert mechanics', 'Warranty coverage'],
@@ -309,15 +323,36 @@ export const ServiceDetailPage = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true });
 
+  // Get content from context
+  const { content } = useContent();
+  const services = content.services.items;
+  const globalContent = content.global;
+
   // Get service from state or find by slug
-  const service = location.state?.service || services.find(s => 
+  const service = location.state?.service || services.find((s: { title: string; }) => 
     s.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and') === serviceSlug
   );
 
-  // Get extended data
-  const extendedData = service ? 
-    (serviceExtendedData[service.title] || defaultExtendedData) : 
-    defaultExtendedData;
+  // Get extended data - prefer from service.process/faqs/includes if available, else use fallback
+  const getExtendedData = (): ExtendedServiceData => {
+    if (!service) return defaultExtendedData;
+    
+    const fallbackData = serviceExtendedData[service.title] || defaultExtendedData;
+    
+    return {
+      duration: service.duration || fallbackData.duration,
+      warranty: service.warranty || fallbackData.warranty,
+      includes: service.includes || fallbackData.includes,
+      process: service.process?.map((p: { title: string; description: string }, idx: number) => ({ 
+        step: idx + 1, 
+        title: p.title, 
+        description: p.description 
+      })) || fallbackData.process,
+      faqs: service.faqs || fallbackData.faqs
+    };
+  };
+
+  const extendedData = getExtendedData();
 
   // Get images
   const images = service ? 
@@ -558,14 +593,14 @@ export const ServiceDetailPage = () => {
               {/* Quick Contact */}
               <div className="flex gap-3">
                 <a 
-                  href="tel:+919876543210"
+                  href={`tel:${globalContent.brand.phone}`}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-secondary rounded-xl text-foreground font-medium hover:bg-secondary/80 transition-colors"
                 >
                   <Phone className="w-4 h-4" />
                   Call Now
                 </a>
                 <a 
-                  href="https://wa.me/919876543210"
+                  href={`https://wa.me/${globalContent.brand.phone.replace(/\D/g, '')}`}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors"
                 >
                   <MessageCircle className="w-4 h-4" />
@@ -590,7 +625,7 @@ export const ServiceDetailPage = () => {
             </h2>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {extendedData.includes.map((item, idx) => (
+              {extendedData.includes.map((item: string, idx: number) => (
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, y: 20 }}
@@ -649,7 +684,7 @@ export const ServiceDetailPage = () => {
                   gridTemplateColumns: `repeat(${Math.min(extendedData.process.length, 6)}, 1fr)` 
                 }}
               >
-                {extendedData.process.slice(0, 6).map((step, idx) => (
+                {extendedData.process.slice(0, 6).map((step: ProcessStep, idx: number) => (
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, y: 30 }}
@@ -700,7 +735,7 @@ export const ServiceDetailPage = () => {
                     gridTemplateColumns: `repeat(${extendedData.process.length - 6}, 1fr)` 
                   }}
                 >
-                  {extendedData.process.slice(6).map((step, idx) => (
+                  {extendedData.process.slice(6).map((step: ProcessStep, idx: number) => (
                     <motion.div
                       key={idx}
                       initial={{ opacity: 0, y: 30 }}
@@ -736,7 +771,7 @@ export const ServiceDetailPage = () => {
           {/* Process Steps - Tablet */}
           <div className="hidden sm:block lg:hidden">
             <div className="grid sm:grid-cols-2 gap-6">
-              {extendedData.process.map((step, idx) => (
+              {extendedData.process.map((step: ProcessStep, idx: number) => (
                 <motion.div
                   key={idx}
                   initial={{ opacity: 0, x: idx % 2 === 0 ? -20 : 20 }}
@@ -787,7 +822,7 @@ export const ServiceDetailPage = () => {
               />
               
               <div className="space-y-6">
-                {extendedData.process.map((step, idx) => (
+                {extendedData.process.map((step: ProcessStep, idx: number) => (
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, x: -20 }}
@@ -834,7 +869,7 @@ export const ServiceDetailPage = () => {
           </h2>
 
           <div className="space-y-3">
-            {extendedData.faqs.map((faq, idx) => (
+            {extendedData.faqs.map((faq: FAQ, idx: number) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}

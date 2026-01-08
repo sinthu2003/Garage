@@ -13,7 +13,7 @@ import {
   Gauge,
   X} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { services } from '../utils/data';
+import { useContent } from '../admin-portal';
 
 // Import local assets
 import PeriodicServiceImg from '../assets/PeriodicService.jpg';
@@ -63,6 +63,11 @@ export const ServicesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const sectionRef = useRef(null);
   const navigate = useNavigate();
+
+  // Get content from context
+  const { content } = useContent();
+  const services = content.services.items;
+  const globalContent = content.global;
 
   // Filter services based on category and search
   const filteredServices = services.filter(service => {
@@ -195,11 +200,11 @@ export const ServicesPage = () => {
                       <div className="absolute top-4 left-4 flex gap-2">
                         <span className="px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5" />
-                          2-4 hrs
+                          {service.duration || '2-4 hrs'}
                         </span>
                         <span className="px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full flex items-center gap-1.5">
                           <Shield className="w-3.5 h-3.5" />
-                          Warranty
+                          {service.warranty || 'Warranty'}
                         </span>
                       </div>
 
@@ -319,12 +324,12 @@ export const ServicesPage = () => {
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
               <motion.a
-                href="tel:+919876543210"
+                href={`tel:${globalContent.brand.phone}`}
                 className="px-8 py-4 bg-secondary text-foreground rounded-full font-semibold border border-border hover:border-primary/30 transition-colors"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
-                Call: +91 98765 43210
+                Call: {globalContent.brand.phone}
               </motion.a>
             </div>
           </motion.div>

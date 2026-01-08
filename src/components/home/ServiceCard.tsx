@@ -2,34 +2,26 @@ import { useRef, memo } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { ArrowUpRight, Check, Clock, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { Service } from '../../types';
 
-// Import local assets
-import PeriodicServiceImg from '../../assets/PeriodicService.jpg';
-import ACServiceImg from '../../assets/ACService.jpg';
-import DentingImg from '../../assets/Denting.jpg';
-import CarInspectionImg from '../../assets/CarInspection.jpg';
-import WheelCareImg from '../../assets/Wheelcare.jpg';
-import BatteryServiceImg from '../../assets/BatteryService.jpg';
-import ClutchBody1Img from '../../assets/ClutchBody1.jpg';
-import InsuranceClaimsImg from '../../assets/InsuranceClaims.jpg';
+// Service type definition
+interface Service {
+  id: string;
+  title: string;
+  description: string;
+  icon?: string;
+  price: number;
+  originalPrice: number;
+  image: string;
+  features: string[];
+  category?: string;
+  duration?: string;
+  warranty?: string;
+}
 
 interface ServiceCardProps {
   service: Service;
   index: number;
 }
-
-const serviceImages: Record<string, string> = {
-  'Periodic Service': PeriodicServiceImg,
-  'AC Service & Repair': ACServiceImg,
-  'Denting & Painting': DentingImg,
-  'Car Inspection': CarInspectionImg,
-  'Wheel Care': WheelCareImg,
-  'Battery Service': BatteryServiceImg,
-  'Clutch & Body': ClutchBody1Img,
-  'Insurance Claims': InsuranceClaimsImg,
-  'default': PeriodicServiceImg
-};
 
 // Memoized feature item to prevent re-renders
 const FeatureItem = memo(({ feature }: { feature: string }) => (
@@ -45,11 +37,11 @@ FeatureItem.displayName = 'FeatureItem';
 
 export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
   const cardRef = useRef(null);
-  // Use amount instead of margin for more reliable triggering
   const isInView = useInView(cardRef, { once: true, amount: 0.15 });
   const navigate = useNavigate();
 
-  const imageUrl = serviceImages[service.title] || serviceImages['default'];
+  // Use image from service data (from siteContent.json)
+  const imageUrl = service.image;
 
   // Create URL-friendly slug from service title
   const serviceSlug = service.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
@@ -78,8 +70,8 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{ 
         duration: 0.5, 
-        delay: Math.min(index * 0.08, 0.4), // Cap max delay
-        ease: [0.25, 0.1, 0.25, 1] // Custom easing for smoother feel
+        delay: Math.min(index * 0.08, 0.4),
+        ease: [0.25, 0.1, 0.25, 1]
       }}
       whileHover={{ y: -8 }}
       onClick={handleCardClick}
@@ -103,6 +95,17 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
             decoding="async"
             className="w-full h-full object-cover"
             style={{ willChange: 'transform' }}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.onerror = null;
+              // Fallback to a placeholder gradient
+              target.style.display = 'none';
+              target.parentElement!.innerHTML = `
+                <div class="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                  <span class="text-4xl">🔧</span>
+                </div>
+              `;
+            }}
           />
         </motion.div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
@@ -111,12 +114,12 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
         <div className="absolute top-3 left-3 flex gap-2">
           <span className="px-2 py-1 bg-white/20 backdrop-blur-sm text-white text-[10px] sm:text-xs rounded-full flex items-center gap-1">
             <Clock className="w-3 h-3" />
-            2-4 hrs
+            {service.duration || '2-4 hrs'}
           </span>
         </div>
         
         {/* Discount Badge */}
-        {discountPercent && (
+        {discountPercent && discountPercent > 0 && (
           <motion.div 
             className="absolute top-3 right-3"
             initial={{ opacity: 0, scale: 0.5 }}
@@ -136,7 +139,7 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
           </h3>
           <p className="text-white/70 text-xs mt-0.5 flex items-center gap-1">
             <Shield className="w-3 h-3" />
-            6 months warranty
+            {service.warranty || '6 months warranty'}
           </p>
         </div>
       </div>
@@ -157,16 +160,18 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
         {/* Pricing Footer */}
         <div className="flex items-end justify-between pt-3 border-t border-border">
           <div>
-            {service.originalPrice && (
+            {service.originalPrice && service.originalPrice > service.price && (
               <span className="text-xs text-muted-foreground line-through block">
                 ₹{service.originalPrice?.toLocaleString()}
               </span>
             )}
             <div className="flex items-baseline gap-1">
               <span className="text-xl sm:text-2xl font-bold text-foreground">
-                ₹{service.price?.toLocaleString()}
+                {service.price === 0 ? 'Free' : `₹${service.price?.toLocaleString()}`}
               </span>
-              <span className="text-xs text-muted-foreground">onwards</span>
+              {service.price > 0 && (
+                <span className="text-xs text-muted-foreground">onwards</span>
+              )}
             </div>
           </div>
           

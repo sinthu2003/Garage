@@ -64,85 +64,8 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
     { label: 'FAQ', href: '#faq' },
   ];
 
-  // Get current navbar values with defaults
-  const brandName = content.navbar?.brandName || 'Addax';
-  const tagline = content.navbar?.tagline || 'Automotive';
-  const phone = content.navbar?.phone || '+91 98765 43210';
-  const ctaText = content.navbar?.ctaText || 'Book Service';
-
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Inline Navbar Preview */}
-      <div className="rounded-xl border border-border overflow-hidden">
-        <div className="px-3 py-2 bg-muted/50 border-b border-border">
-          <p className="text-xs font-medium text-muted-foreground">Navbar Preview</p>
-        </div>
-        <div className="bg-white p-3">
-          {/* Desktop Navbar Preview */}
-          <div className="flex items-center justify-between p-3 rounded-lg bg-white shadow-sm border border-gray-100">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">
-                  {brandName.charAt(0)}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-gray-900 leading-tight">
-                  {brandName}
-                </span>
-                <span className="text-[9px] font-semibold text-red-500 tracking-wider uppercase">
-                  {tagline}
-                </span>
-              </div>
-            </div>
-
-            {/* Nav Links */}
-            <div className="hidden sm:flex items-center gap-3">
-              {defaultNavLinks.slice(0, 4).map((link, i) => (
-                <span
-                  key={i}
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    i === 0 ? 'text-red-500 bg-gray-100' : 'text-gray-600'
-                  }`}
-                >
-                  {link.label}
-                </span>
-              ))}
-              {defaultNavLinks.length > 4 && (
-                <span className="text-xs text-gray-400">+{defaultNavLinks.length - 4}</span>
-              )}
-            </div>
-
-            {/* Right Side */}
-            <div className="flex items-center gap-3">
-              <span className="hidden md:flex items-center gap-1.5 text-xs text-gray-600">
-                <Phone className="w-3 h-3" />
-                {phone}
-              </span>
-              <button className="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-full">
-                {ctaText}
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Navbar Preview */}
-          <div className="mt-3 sm:hidden">
-            <div className="flex items-center justify-between p-2 rounded-lg bg-white shadow-sm border border-gray-100">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">{brandName.charAt(0)}</span>
-                </div>
-                <span className="text-xs font-bold text-gray-900">{brandName}</span>
-              </div>
-              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                <Menu className="w-4 h-4 text-gray-600" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Brand / Logo Section */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('brand')} className={sectionHeaderClass}>
@@ -169,8 +92,8 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                     <label className={labelClass}>Brand Name</label>
                     <input
                       type="text"
-                      value={content.navbar?.brandName || 'Addax'}
-                      onChange={(e) => handleUpdate('navbar.brandName', e.target.value)}
+                      value={content.brand?.name || 'Addax'}
+                      onChange={(e) => handleUpdate('brand.name', e.target.value)}
                       placeholder="Addax"
                       className={inputClass}
                     />
@@ -179,8 +102,8 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                     <label className={labelClass}>Tagline</label>
                     <input
                       type="text"
-                      value={content.navbar?.tagline || 'Automotive'}
-                      onChange={(e) => handleUpdate('navbar.tagline', e.target.value)}
+                      value={content.brand?.tagline || 'Automotive'}
+                      onChange={(e) => handleUpdate('brand.tagline', e.target.value)}
                       placeholder="Automotive"
                       className={inputClass}
                     />
@@ -191,14 +114,14 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                   <label className={labelClass}>Logo Image URL</label>
                   <input
                     type="text"
-                    value={content.navbar?.logoUrl || ''}
-                    onChange={(e) => handleUpdate('navbar.logoUrl', e.target.value)}
+                    value={content.brand?.logo || content.brand?.logoUrl || ''}
+                    onChange={(e) => {
+                      handleUpdate('brand.logo', e.target.value);
+                      handleUpdate('brand.logoUrl', e.target.value);
+                    }}
                     placeholder="/assets/Logo.jpg or https://..."
                     className={inputClass}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Leave empty to use default logo. Recommended size: 44x44px
-                  </p>
                 </div>
               </div>
             </motion.div>
@@ -206,7 +129,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
-      {/* Contact Info */}
+      {/* Contact Info (shown in navbar) */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('contact')} className={sectionHeaderClass}>
           <div className="flex items-center gap-2 sm:gap-3">
@@ -214,7 +137,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
             <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Contact (Header)</span>
+            <span className="font-medium text-foreground text-sm sm:text-base">Contact Info</span>
           </div>
         </button>
 
@@ -231,13 +154,13 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                   <label className={labelClass}>Phone Number</label>
                   <input
                     type="text"
-                    value={content.navbar?.phone || '+91 98765 43210'}
-                    onChange={(e) => handleUpdate('navbar.phone', e.target.value)}
+                    value={content.brand?.phone || '+91 98765 43210'}
+                    onChange={(e) => handleUpdate('brand.phone', e.target.value)}
                     placeholder="+91 98765 43210"
                     className={inputClass}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Displayed in header and mobile menu. Used for click-to-call.
+                    Displayed in navbar and used for call/WhatsApp links
                   </p>
                 </div>
               </div>
@@ -268,8 +191,8 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              const newLinks = [...defaultNavLinks, { label: 'New Link', href: '#section' }];
-              handleUpdate('navbar.links', newLinks);
+              const newLink: NavLink = { label: 'New Link', href: '#', isRoute: false };
+              handleUpdate('navbar.links', [...defaultNavLinks, newLink]);
             }}
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
@@ -289,37 +212,37 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                 {defaultNavLinks.map((link, index) => (
                   <div
                     key={index}
-                    className="p-3 rounded-xl border border-border bg-card"
+                    className="p-3 sm:p-4 rounded-xl border border-border bg-card"
                   >
-                    <div className="flex items-center gap-2 mb-3">
-                      <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground" />
-                      <LinkIcon className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground flex-1">
-                        Link #{index + 1}
-                      </span>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
+                        <LinkIcon className="w-4 h-4 text-primary" />
+                        <span className="font-medium text-foreground text-sm">Link #{index + 1}</span>
+                      </div>
                       <button
                         onClick={() => {
-                          const newLinks = defaultNavLinks.filter((_, i) => i !== index);
+                          const newLinks = defaultNavLinks.filter((_: NavLink, i: number) => i !== index);
                           handleUpdate('navbar.links', newLinks);
                         }}
-                        className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
+                        className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                       <div className="space-y-1">
                         <label className="text-xs text-muted-foreground">Label</label>
                         <input
                           type="text"
-                          value={link.label}
+                          value={link.label || ''}
                           onChange={(e) => {
                             const newLinks = [...defaultNavLinks];
                             newLinks[index] = { ...newLinks[index], label: e.target.value };
                             handleUpdate('navbar.links', newLinks);
                           }}
-                          placeholder="Link Label"
+                          placeholder="Link label"
                           className={inputClass}
                         />
                       </div>
@@ -327,7 +250,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                         <label className="text-xs text-muted-foreground">URL / Anchor</label>
                         <input
                           type="text"
-                          value={link.href}
+                          value={link.href || ''}
                           onChange={(e) => {
                             const newLinks = [...defaultNavLinks];
                             newLinks[index] = { ...newLinks[index], href: e.target.value };
@@ -411,36 +334,13 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="space-y-2">
-                    <label className={labelClass}>Button Text (Desktop)</label>
-                    <input
-                      type="text"
-                      value={content.navbar?.ctaText || 'Book Service'}
-                      onChange={(e) => handleUpdate('navbar.ctaText', e.target.value)}
-                      placeholder="Book Service"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className={labelClass}>Button Text (Mobile)</label>
-                    <input
-                      type="text"
-                      value={content.navbar?.ctaTextMobile || 'Book Service Now'}
-                      onChange={(e) => handleUpdate('navbar.ctaTextMobile', e.target.value)}
-                      placeholder="Book Service Now"
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-
                 <div className="space-y-2">
-                  <label className={labelClass}>Button Link</label>
+                  <label className={labelClass}>Button Text</label>
                   <input
                     type="text"
-                    value={content.navbar?.ctaLink || '/services'}
-                    onChange={(e) => handleUpdate('navbar.ctaLink', e.target.value)}
-                    placeholder="/services"
+                    value={content.navbar?.ctaText || 'Book Service'}
+                    onChange={(e) => handleUpdate('navbar.ctaText', e.target.value)}
+                    placeholder="Book Service"
                     className={inputClass}
                   />
                 </div>

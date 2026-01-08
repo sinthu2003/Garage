@@ -1,61 +1,37 @@
 import { motion } from 'framer-motion';
-import { Shield, Clock, BadgePercent, MapPin, Smartphone, Award, CheckCircle } from 'lucide-react';
+import { 
+  Shield, 
+  Clock, 
+  BadgePercent, 
+  MapPin, 
+  Smartphone, 
+  Award, 
+  CheckCircle,
+  Zap,
+  Star,
+  Wrench
+} from 'lucide-react';
+import { useContent } from '../../admin-portal';
 
-// Import local images from assets
-import warrantyImage from '../../assets/6-month-warranty.png';
-import saveUpToImage from '../../assets/save-up-to-40-percent.png';
-import quickTurnaroundImage from '../../assets/quick-turnaround-service.png';
-import freePickupImage from '../../assets/free-pickup-and-drop.png';
-import realTimeUpdatesImage from '../../assets/real-time-service-updates.png';
-import expertMechanicsImage from '../../assets/expert-mechanics.png';
-import workshopImage from '../../assets/CarInspection.jpg';
-
-const features = [
-  {
-    icon: Shield,
-    title: '6-Month Warranty',
-    description: 'Comprehensive warranty coverage on all parts and labor for your peace of mind.',
-    color: '#3B82F6',
-    image: warrantyImage
-  },
-  {
-    icon: BadgePercent,
-    title: 'Save up to 40%',
-    description: 'Get the same quality service at prices much lower than authorized centers.',
-    color: '#10B981',
-    image: saveUpToImage
-  },
-  {
-    icon: Clock,
-    title: 'Quick Turnaround',
-    description: 'Most services completed within the same day. No more long waiting times.',
-    color: '#FF5733',
-    image: quickTurnaroundImage
-  },
-  {
-    icon: MapPin,
-    title: 'Free Pickup & Drop',
-    description: 'Doorstep service with complimentary pickup and delivery at your convenience.',
-    color: '#8B5CF6',
-    image: freePickupImage
-  },
-  {
-    icon: Smartphone,
-    title: 'Real-time Updates',
-    description: 'Track your service progress with live updates, photos, and notifications.',
-    color: '#EC4899',
-    image: realTimeUpdatesImage
-  },
-  {
-    icon: Award,
-    title: 'Expert Mechanics',
-    description: '500+ certified professionals with years of experience across all brands.',
-    color: '#F59E0B',
-    image: expertMechanicsImage
-  }
-];
+// Icon mapping for dynamic icon rendering
+const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
+  Shield,
+  Clock,
+  BadgePercent,
+  MapPin,
+  Smartphone,
+  Award,
+  CheckCircle,
+  Zap,
+  Star,
+  Wrench,
+};
 
 export const Features = () => {
+  // Get content from context
+  const { content } = useContent();
+  const featuresContent = content.features;
+
   return (
     <section className="py-12 sm:py-16 lg:py-24 bg-gray-50 relative overflow-hidden">
       {/* Background */}
@@ -77,15 +53,17 @@ export const Features = () => {
           viewport={{ once: true }}
         >
           <span className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 text-primary text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-3 sm:mb-4">
-            Why Choose Us
+            {featuresContent.badge}
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 tracking-tight mb-4 sm:mb-6">
-            Built for
+            {featuresContent.headline.line1}
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">modern car owners.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary">
+              {featuresContent.headline.highlight}
+            </span>
           </h2>
           <p className="text-sm sm:text-base lg:text-lg text-gray-500">
-            We've reimagined car service with technology, transparency, and trust.
+            {featuresContent.description}
           </p>
         </motion.div>
 
@@ -100,7 +78,7 @@ export const Features = () => {
             {/* Image Side */}
             <div className="relative h-64 sm:h-80 lg:h-auto">
               <img
-                src={workshopImage}
+                src={featuresContent.mainFeature.image}
                 alt="Car Service Workshop"
                 className="w-full h-full object-cover"
               />
@@ -117,17 +95,16 @@ export const Features = () => {
               >
                 <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 text-primary text-xs font-semibold mb-4 sm:mb-6">
                   <Award className="w-4 h-4" />
-                  Premium Quality
+                  {featuresContent.mainFeature.badge}
                 </span>
                 <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-3 sm:mb-4">
-                  State-of-the-art Workshop with Modern Equipment
+                  {featuresContent.mainFeature.title}
                 </h3>
                 <p className="text-gray-400 text-sm sm:text-base mb-4 sm:mb-6 leading-relaxed">
-                  Our workshops are equipped with the latest diagnostic tools and equipment
-                  to ensure your car receives the best possible care.
+                  {featuresContent.mainFeature.description}
                 </p>
                 <ul className="space-y-2 sm:space-y-3">
-                  {['Advanced Diagnostics', 'Genuine Parts', 'Trained Technicians'].map((item, idx) => (
+                  {featuresContent.mainFeature.highlights.map((item, idx) => (
                     <motion.li
                       key={idx}
                       className="flex items-center gap-2 sm:gap-3 text-gray-300 text-sm sm:text-base"
@@ -148,46 +125,62 @@ export const Features = () => {
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -8 }}
-              className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:border-gray-200 transition-all duration-300"
-            >
-              {/* Image */}
-              <div className="relative h-32 sm:h-40 overflow-hidden">
-                <img
-                  src={feature.image}
-                  alt={feature.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div
-                  className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: `${feature.color}20` }}
-                >
-                  <feature.icon
-                    className="w-5 h-5 sm:w-6 sm:h-6"
-                    style={{ color: feature.color }}
-                  />
+          {featuresContent.items.map((feature, index) => {
+            const IconComponent = iconMap[feature.icon] || Award;
+            
+            return (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -8 }}
+                className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:border-gray-200 transition-all duration-300"
+              >
+                {/* Image */}
+                <div className="relative h-32 sm:h-40 overflow-hidden">
+                  {feature.image ? (
+                    <img
+                      src={feature.image}
+                      alt={feature.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div 
+                      className="w-full h-full flex items-center justify-center"
+                      style={{ backgroundColor: `${feature.color}15` }}
+                    >
+                      <IconComponent 
+                        className="w-16 h-16 opacity-30"
+                        style={{ color: feature.color }}
+                      />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div
+                    className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center"
+                    style={{ backgroundColor: `${feature.color}20` }}
+                  >
+                    <IconComponent
+                      className="w-5 h-5 sm:w-6 sm:h-6"
+                      style={{ color: feature.color }}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Content */}
-              <div className="p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+                {/* Content */}
+                <div className="p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

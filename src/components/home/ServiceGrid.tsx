@@ -1,9 +1,9 @@
 import { useRef } from 'react';
-import { services } from '../../utils/data';
 import { ServiceCard } from './ServiceCard';
 import { motion, useInView } from 'framer-motion';
 import { ArrowRight, Settings, Wrench, Car } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useContent } from '../../admin-portal';
 
 export const ServiceGrid = () => {
   const sectionRef = useRef(null);
@@ -12,9 +12,13 @@ export const ServiceGrid = () => {
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
   const navigate = useNavigate();
 
+  // Get content from context
+  const { content } = useContent();
+  const servicesContent = content.services;
+
   // Show only first 8 services on homepage
-  const displayedServices = services.slice(0, 8);
-  const hasMoreServices = services.length > 8;
+  const displayedServices = servicesContent.items.slice(0, 8);
+  const hasMoreServices = servicesContent.items.length > 8;
 
   const handleViewAll = () => {
     navigate('/services');
@@ -71,7 +75,7 @@ export const ServiceGrid = () => {
               transition={{ duration: 0.4 }}
             >
               <Settings className="w-4 h-4" />
-              Our Services
+              {servicesContent.badge}
             </motion.span>
 
             {/* Title */}
@@ -81,10 +85,10 @@ export const ServiceGrid = () => {
               animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              Everything your
+              {servicesContent.headline.line1}
               <br />
               <span className="text-primary">
-                car needs.
+                {servicesContent.headline.highlight}
               </span>
             </motion.h2>
 
@@ -94,8 +98,7 @@ export const ServiceGrid = () => {
               animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              From routine maintenance to complex repairs, our expert mechanics 
-              deliver quality service at transparent prices.
+              {servicesContent.description}
             </motion.p>
           </div>
           
@@ -109,7 +112,7 @@ export const ServiceGrid = () => {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
           >
-            View All Services
+            {servicesContent.viewAllCta}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </motion.button>
         </motion.div>
@@ -117,7 +120,23 @@ export const ServiceGrid = () => {
         {/* Services Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
           {displayedServices.map((service, index) => (
-            <ServiceCard key={service.id} service={service} index={index} />
+            <ServiceCard 
+              key={service.id} 
+              service={{
+                id: String(service.id),
+                title: service.title,
+                description: service.description,
+                icon: service.icon || 'Settings',
+                price: service.price,
+                originalPrice: service.originalPrice,
+                image: service.image,
+                features: service.features,
+                category: service.category || 'maintenance',
+                duration: service.duration,
+                warranty: service.warranty,
+              }} 
+              index={index} 
+            />
           ))}
         </div>
 
@@ -135,41 +154,11 @@ export const ServiceGrid = () => {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              View All {services.length} Services
+              View All {servicesContent.items.length} Services
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </motion.div>
         )}
-
-        {/* Quick Stats */}
-        {/* <motion.div 
-          className="mt-12 lg:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4"
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          transition={{ delay: 0.6 }}
-        >
-          {[
-            { icon: Wrench, value: '500+', label: 'Expert Mechanics' },
-            { icon: Car, value: '50,000+', label: 'Cars Serviced' },
-            { icon: Gauge, value: '40%', label: 'Avg Savings' },
-            { icon: Sparkles, value: '4.8★', label: 'Customer Rating' },
-          ].map((stat, idx) => (
-            <motion.div
-              key={idx}
-              className="text-center p-4 sm:p-5 bg-card rounded-2xl border border-border"
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ delay: 0.7 + idx * 0.1 }}
-              whileHover={{ y: -3 }}
-            >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 rounded-xl bg-primary/10 flex items-center justify-center">
-                <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-              </div>
-              <p className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
-            </motion.div>
-          ))}
-        </motion.div> */}
       </div>
     </section>
   );

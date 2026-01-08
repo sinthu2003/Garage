@@ -2,54 +2,22 @@ import { useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { ArrowRight, Sparkles, CheckCircle, Star } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-
-// Import local assets
-import CretaBefore from '../../assets/hyundai-creta-denting-painting-before.png';
-import CretaAfter from '../../assets/hyundai-creta-denting-painting-after.png';
-import CityBefore from '../../assets/honda-city-full-car-detailing-before.png';
-import CityAfter from '../../assets/honda-city-full-car-detailing-after.png';
-import FortunerBefore from '../../assets/toyota-fortuner-interior-deep-clean-before.png';
-import FortunerAfter from '../../assets/toyota-fortuner-interior-deep-clean-after.png';
-
-// Before/After transformations with realistic car service images
-const transformations = [
-  {
-    id: 1,
-    title: 'Denting & Painting',
-    car: 'Hyundai Creta',
-    // Before: Scratched/damaged car | After: Clean polished SUV
-    before: CretaBefore,
-    after: CretaAfter,
-    description: 'Complete bumper repair and full body paint restoration with color matching',
-    time: '2 Days',
-    savings: '₹8,000'
-  },
-  {
-    id: 2,
-    title: 'Full Car Detailing',
-    car: 'Honda City',
-    // Before: Dusty/dirty sedan | After: Shiny polished sedan
-    before: CityBefore,
-    after: CityAfter,
-    description: 'Deep exterior polish, ceramic coating and paint protection applied',
-    time: '1 Day',
-    savings: '₹3,500'
-  },
-  {
-    id: 3,
-    title: 'Interior Deep Clean',
-    car: 'Toyota Fortuner',
-    // Before: Dirty car interior | After: Clean premium interior
-    before: FortunerBefore,
-    after: FortunerAfter,
-    description: 'Complete interior steam cleaning, leather conditioning and sanitization',
-    time: '4 Hours',
-    savings: '₹2,000'
-  },
-];
+import { useContent } from '../../admin-portal';
 
 // Comparison slider component
-const ComparisonSlider = ({ before, after, title }: { before: string; after: string; title: string }) => {
+const ComparisonSlider = ({ 
+  before, 
+  after, 
+  title,
+  beforeLabel,
+  afterLabel 
+}: { 
+  before: string; 
+  after: string; 
+  title: string;
+  beforeLabel: string;
+  afterLabel: string;
+}) => {
   const [sliderPosition, setSliderPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -115,10 +83,10 @@ const ComparisonSlider = ({ before, after, title }: { before: string; after: str
 
       {/* Labels */}
       <div className="absolute top-4 left-4 px-3 py-1 bg-primary text-white text-xs font-bold rounded-full">
-        BEFORE
+        {beforeLabel}
       </div>
       <div className="absolute top-4 right-4 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full">
-        AFTER
+        {afterLabel}
       </div>
     </div>
   );
@@ -134,6 +102,11 @@ export const BeforeAfterSection = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+
+  // Get content from context
+  const { content } = useContent();
+  const beforeAfterContent = content.beforeAfter;
+  const transformations = beforeAfterContent.items;
 
   // Handle Book Now click
   const handleBookNow = () => {
@@ -197,11 +170,11 @@ export const BeforeAfterSection = () => {
             <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}>
               <Sparkles className="w-4 h-4" />
             </motion.div>
-            Transformations
+            {beforeAfterContent.badge}
           </motion.span>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight mb-4 sm:mb-6">
-            {"Before & After ".split('').map((char, i) => (
+            {beforeAfterContent.headline.text.split('').map((char, i) => (
               <motion.span
                 key={i}
                 initial={{ opacity: 0, y: 50 }}
@@ -211,8 +184,9 @@ export const BeforeAfterSection = () => {
                 {char}
               </motion.span>
             ))}
+            {' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-500">
-              {"magic".split('').map((char, i) => (
+              {beforeAfterContent.headline.highlight.split('').map((char, i) => (
                 <motion.span
                   key={i}
                   initial={{ opacity: 0, y: 50, rotate: -10 }}
@@ -231,7 +205,7 @@ export const BeforeAfterSection = () => {
             animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ delay: 0.6 }}
           >
-            Drag the slider to see the incredible transformations we've achieved
+            {beforeAfterContent.description}
           </motion.p>
 
           {/* Animated Underline */}
@@ -252,9 +226,11 @@ export const BeforeAfterSection = () => {
             transition={{ duration: 0.6 }}
           >
             <ComparisonSlider
-              before={transformations[activeIndex].before}
-              after={transformations[activeIndex].after}
+              before={transformations[activeIndex].beforeImage}
+              after={transformations[activeIndex].afterImage}
               title={transformations[activeIndex].title}
+              beforeLabel={beforeAfterContent.beforeLabel}
+              afterLabel={beforeAfterContent.afterLabel}
             />
 
             {/* Service Details */}
@@ -298,7 +274,7 @@ export const BeforeAfterSection = () => {
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 50 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Transformation</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{beforeAfterContent.selectLabel}</h3>
 
             {transformations.map((item, idx) => (
               <motion.div
@@ -317,7 +293,7 @@ export const BeforeAfterSection = () => {
                 {/* Thumbnail */}
                 <div className="w-20 h-16 rounded-xl overflow-hidden flex-shrink-0 relative">
                   <img
-                    src={item.after}
+                    src={item.afterImage}
                     alt={item.title}
                     className="w-full h-full object-cover"
                   />
@@ -360,7 +336,7 @@ export const BeforeAfterSection = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              Get Your Car Transformed
+              {beforeAfterContent.cta}
               <motion.div
                 animate={{ x: [0, 5, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
