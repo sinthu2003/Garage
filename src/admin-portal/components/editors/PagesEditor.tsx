@@ -8,12 +8,11 @@ import {
   AlertTriangle,
   Wrench,
   Home,
-  ArrowLeft,
   Phone,
   Plus,
   Trash2,
- 
   Filter,
+  MousePointerClick,
 } from 'lucide-react';
 import { usePagesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
@@ -60,8 +59,6 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
   const labelClass = `text-sm font-medium text-muted-foreground`;
 
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
-
-  const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
   // Default categories for Services page
   const defaultCategories = [
@@ -130,7 +127,13 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
 
             {/* Page Header */}
             <div className={sectionClass}>
-              <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
+              <div 
+                onClick={() => toggleSection('header')} 
+                onKeyDown={(e) => e.key === 'Enter' && toggleSection('header')}
+                role="button"
+                tabIndex={0}
+                className="w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50 cursor-pointer"
+              >
                 <div className="flex items-center gap-2 sm:gap-3">
                   <motion.div animate={{ rotate: expandedSections.has('header') ? 90 : 0 }}>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -138,7 +141,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                   <Type className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
                   <span className="font-medium text-foreground text-sm sm:text-base">Page Header</span>
                 </div>
-              </button>
+              </div>
 
               <AnimatePresence>
                 {expandedSections.has('header') && (
@@ -192,8 +195,16 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
 
             {/* Category Filters */}
             <div className={sectionClass}>
-              <button onClick={() => toggleSection('categories')} className={sectionHeaderClass}>
-                <div className="flex items-center gap-2 sm:gap-3">
+              <div 
+                className="w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50"
+              >
+                <div 
+                  onClick={() => toggleSection('categories')}
+                  onKeyDown={(e) => e.key === 'Enter' && toggleSection('categories')}
+                  role="button"
+                  tabIndex={0}
+                  className="flex items-center gap-2 sm:gap-3 flex-1 cursor-pointer"
+                >
                   <motion.div animate={{ rotate: expandedSections.has('categories') ? 90 : 0 }}>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </motion.div>
@@ -204,8 +215,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                   </span>
                 </div>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={() => {
                     handleUpdate('services.categories', [
                       ...categories,
                       { id: `cat-${Date.now()}`, label: 'New Category', icon: 'Sparkles' }
@@ -215,7 +225,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                 >
                   <Plus className="w-4 h-4" />
                 </button>
-              </button>
+              </div>
 
               <AnimatePresence>
                 {expandedSections.has('categories') && (
@@ -272,9 +282,15 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
               </AnimatePresence>
             </div>
 
-            {/* CTA Section */}
+            {/* CTA Section - with proper two-button fields */}
             <div className={sectionClass}>
-              <button onClick={() => toggleSection('cta')} className={sectionHeaderClass}>
+              <div 
+                onClick={() => toggleSection('cta')} 
+                onKeyDown={(e) => e.key === 'Enter' && toggleSection('cta')}
+                role="button"
+                tabIndex={0}
+                className="w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50 cursor-pointer"
+              >
                 <div className="flex items-center gap-2 sm:gap-3">
                   <motion.div animate={{ rotate: expandedSections.has('cta') ? 90 : 0 }}>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -282,7 +298,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                   <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
                   <span className="font-medium text-foreground text-sm sm:text-base">Bottom CTA Section</span>
                 </div>
-              </button>
+              </div>
 
               <AnimatePresence>
                 {expandedSections.has('cta') && (
@@ -307,34 +323,66 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                       <div className="space-y-2">
                         <label className={labelClass}>CTA Description</label>
                         <textarea
-                          value={content.services?.cta?.description || 'Contact us for custom service requirements. Our experts are ready to help with any car-related needs.'}
+                          value={content.services?.cta?.description || 'Contact us for custom service packages or any specific requirements.'}
                           onChange={(e) => handleUpdate('services.cta.description', e.target.value)}
-                          placeholder="Contact us for custom service requirements..."
+                          placeholder="Contact us for custom service packages..."
                           rows={2}
                           className={inputClass}
                         />
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <label className={labelClass}>Primary Button</label>
-                          <input
-                            type="text"
-                            value={content.services?.cta?.primaryButton || 'Get Free Quote'}
-                            onChange={(e) => handleUpdate('services.cta.primaryButton', e.target.value)}
-                            placeholder="Get Free Quote"
-                            className={inputClass}
-                          />
+                      {/* Buttons Section */}
+                      <div className="pt-2 border-t border-border">
+                        <div className="flex items-center gap-2 mb-3">
+                          <MousePointerClick className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-muted-foreground">Action Buttons</span>
                         </div>
-                        <div className="space-y-2">
-                          <label className={labelClass}>Phone Number</label>
-                          <input
-                            type="text"
-                            value={content.services?.cta?.phone || '+91 98765 43210'}
-                            onChange={(e) => handleUpdate('services.cta.phone', e.target.value)}
-                            placeholder="+91 98765 43210"
-                            className={inputClass}
-                          />
+
+                        <div className="grid grid-cols-1 gap-4">
+                          {/* Primary Button */}
+                          <div className="p-3 rounded-lg bg-secondary/30 space-y-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full bg-primary"></div>
+                              <span className="text-xs font-medium text-foreground">Primary Button (Red)</span>
+                            </div>
+                            <input
+                              type="text"
+                              value={content.services?.cta?.primaryButton || 'Contact Us'}
+                              onChange={(e) => handleUpdate('services.cta.primaryButton', e.target.value)}
+                              placeholder="Contact Us"
+                              className={inputClass}
+                            />
+                          </div>
+
+                          {/* Secondary Button */}
+                          <div className="p-3 rounded-lg bg-secondary/30 space-y-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full bg-secondary border border-border"></div>
+                              <span className="text-xs font-medium text-foreground">Secondary Button (Outline)</span>
+                            </div>
+                            <input
+                              type="text"
+                              value={content.services?.cta?.secondaryButton || 'Call Now'}
+                              onChange={(e) => handleUpdate('services.cta.secondaryButton', e.target.value)}
+                              placeholder="Call Now"
+                              className={inputClass}
+                            />
+                          </div>
+
+                          {/* Phone Number */}
+                          <div className="space-y-2">
+                            <label className={labelClass}>
+                              <Phone className="w-4 h-4 inline mr-1" />
+                              Phone Number (for Call button)
+                            </label>
+                            <input
+                              type="text"
+                              value={content.services?.cta?.phone || '+91 98765 43210'}
+                              onChange={(e) => handleUpdate('services.cta.phone', e.target.value)}
+                              placeholder="+91 98765 43210"
+                              className={inputClass}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -345,7 +393,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
           </motion.div>
         )}
 
-        {/* ==================== 404 NOT FOUND PAGE ==================== */}
+        {/* ==================== 404 PAGE ==================== */}
         {activePage === 'notFound' && (
           <motion.div
             key="notFound"
@@ -357,20 +405,26 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
             {/* Route indicator */}
             <div className="flex items-center gap-2 px-3 py-2 bg-secondary/50 rounded-lg">
               <span className="text-xs text-muted-foreground">Route:</span>
-              <code className="text-xs font-mono text-destructive">/* (any invalid URL)</code>
+              <code className="text-xs font-mono text-primary">/404</code>
             </div>
 
-            {/* Title & Description */}
+            {/* Page Content */}
             <div className={sectionClass}>
-              <button onClick={() => toggleSection('title')} className={sectionHeaderClass}>
+              <div 
+                onClick={() => toggleSection('title')} 
+                onKeyDown={(e) => e.key === 'Enter' && toggleSection('title')}
+                role="button"
+                tabIndex={0}
+                className="w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50 cursor-pointer"
+              >
                 <div className="flex items-center gap-2 sm:gap-3">
                   <motion.div animate={{ rotate: expandedSections.has('title') ? 90 : 0 }}>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </motion.div>
-                  <Type className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-                  <span className="font-medium text-foreground text-sm sm:text-base">Title & Message</span>
+                  <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
+                  <span className="font-medium text-foreground text-sm sm:text-base">Page Content</span>
                 </div>
-              </button>
+              </div>
 
               <AnimatePresence>
                 {expandedSections.has('title') && (
@@ -385,15 +439,15 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                         <label className={labelClass}>Error Title</label>
                         <input
                           type="text"
-                          value={content.notFound?.title || 'Oops! Road Not Found'}
+                          value={content.notFound?.title || 'Page Not Found'}
                           onChange={(e) => handleUpdate('notFound.title', e.target.value)}
-                          placeholder="Oops! Road Not Found"
+                          placeholder="Page Not Found"
                           className={inputClass}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className={labelClass}>Error Message</label>
+                        <label className={labelClass}>Error Description</label>
                         <textarea
                           value={content.notFound?.description || "Looks like you've taken a wrong turn. The page you're looking for doesn't exist or has been moved."}
                           onChange={(e) => handleUpdate('notFound.description', e.target.value)}
@@ -424,7 +478,13 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
 
             {/* Action Buttons */}
             <div className={sectionClass}>
-              <button onClick={() => toggleSection('buttons')} className={sectionHeaderClass}>
+              <div 
+                onClick={() => toggleSection('buttons')} 
+                onKeyDown={(e) => e.key === 'Enter' && toggleSection('buttons')}
+                role="button"
+                tabIndex={0}
+                className="w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50 cursor-pointer"
+              >
                 <div className="flex items-center gap-2 sm:gap-3">
                   <motion.div animate={{ rotate: expandedSections.has('buttons') ? 90 : 0 }}>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -432,7 +492,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                   <Home className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
                   <span className="font-medium text-foreground text-sm sm:text-base">Action Buttons</span>
                 </div>
-              </button>
+              </div>
 
               <AnimatePresence>
                 {expandedSections.has('buttons') && (
@@ -443,12 +503,13 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                     className="overflow-hidden"
                   >
                     <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <label className={labelClass}>
-                            <Home className="w-4 h-4 inline mr-1" />
-                            Primary Button
-                          </label>
+                      <div className="grid grid-cols-1 gap-4">
+                        {/* Primary Button */}
+                        <div className="p-3 rounded-lg bg-secondary/30 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-primary"></div>
+                            <span className="text-xs font-medium text-foreground">Primary Button (Red)</span>
+                          </div>
                           <input
                             type="text"
                             value={content.notFound?.primaryButton || 'Back to Home'}
@@ -457,11 +518,13 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                             className={inputClass}
                           />
                         </div>
-                        <div className="space-y-2">
-                          <label className={labelClass}>
-                            <ArrowLeft className="w-4 h-4 inline mr-1" />
-                            Secondary Button
-                          </label>
+
+                        {/* Secondary Button */}
+                        <div className="p-3 rounded-lg bg-secondary/30 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-secondary border border-border"></div>
+                            <span className="text-xs font-medium text-foreground">Secondary Button (Outline)</span>
+                          </div>
                           <input
                             type="text"
                             value={content.notFound?.secondaryButton || 'Go Back'}
@@ -479,8 +542,16 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
 
             {/* Quick Links */}
             <div className={sectionClass}>
-              <button onClick={() => toggleSection('quickLinks')} className={sectionHeaderClass}>
-                <div className="flex items-center gap-2 sm:gap-3">
+              <div 
+                className="w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50"
+              >
+                <div 
+                  onClick={() => toggleSection('quickLinks')}
+                  onKeyDown={(e) => e.key === 'Enter' && toggleSection('quickLinks')}
+                  role="button"
+                  tabIndex={0}
+                  className="flex items-center gap-2 sm:gap-3 flex-1 cursor-pointer"
+                >
                   <motion.div animate={{ rotate: expandedSections.has('quickLinks') ? 90 : 0 }}>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </motion.div>
@@ -491,8 +562,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                   </span>
                 </div>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={() => {
                     handleUpdate('notFound.quickLinks', [
                       ...quickLinks,
                       { name: 'New Link', href: '/' }
@@ -502,7 +572,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                 >
                   <Plus className="w-4 h-4" />
                 </button>
-              </button>
+              </div>
 
               <AnimatePresence>
                 {expandedSections.has('quickLinks') && (
@@ -555,7 +625,13 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
 
                       {quickLinks.length === 0 && (
                         <p className="text-center py-4 text-sm text-muted-foreground">
-                          No quick links. <button onClick={() => handleUpdate('notFound.quickLinks', defaultQuickLinks)} className="text-primary">Add defaults</button>
+                          No quick links.{' '}
+                          <button 
+                            onClick={() => handleUpdate('notFound.quickLinks', defaultQuickLinks)} 
+                            className="text-primary hover:underline"
+                          >
+                            Add defaults
+                          </button>
                         </p>
                       )}
                     </div>

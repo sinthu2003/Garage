@@ -55,7 +55,7 @@
           "isRoute": false
         },
         {
-          "label": "FAQ",
+          "label": "Contact",
           "href": "#faq",
           "isRoute": false
         }
@@ -64,7 +64,7 @@
     }
   },
   "hero": {
-    "badge": "#1 Car Service in Coimbatore",
+    "badge": "#1 Car Service in Chennai",
     "headline": {
       "line1": "Premium Car",
       "line2": "Service at",
@@ -198,21 +198,8 @@
       "fuel": "fuel"
     },
     "cities": [
-      "Coimbatore",
-      "Chennai",
-      "Bangalore",
-      "Hyderabad",
-      "Mumbai",
-      "Delhi",
-      "Pune",
-      "Kolkata",
-      "Ahmedabad",
-      "Jaipur",
-      "Lucknow",
-      "Kochi",
-      "Chandigarh",
-      "Indore",
-      "Nagpur"
+      
+      "Chennai"
     ],
     "brands": [
       {
@@ -2619,14 +2606,9 @@
         }
       ],
       "cities": [
-        "Coimbatore",
-        "Chennai",
-        "Bangalore",
-        "Hyderabad",
-        "Mumbai",
-        "Delhi",
-        "Pune",
-        "Kolkata"
+        
+        "Chennai"
+        
       ]
     },
     "copyright": "© {year} Addax Automotive. All rights reserved.",
@@ -2689,8 +2671,8 @@
       "searchPlaceholder": "Search for services...",
       "primaryCta": "Go to Homepage",
       "primaryButton": "Go to Homepage",
-      "secondaryCta": "Contact Support",
-      "secondaryButton": "Contact Support",
+      "secondaryCta": "Back to Services",
+      "secondaryButton": "Back to Services",
       "quickLinks": [
         {
           "name": "Services",

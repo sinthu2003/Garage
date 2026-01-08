@@ -31,16 +31,17 @@ import {
   Minimize2,
   RefreshCw,
   ExternalLink,
+  Copy,
+  CheckCircle,
+  Maximize2,
+  Save,
+  AlertCircle,
 } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import { 
   editorConfig, 
   type EditorId,
   SectionPreviewWrapper,
-  PreviewPanelHeader,
-  PreviewUrlBar,
-  devicePresets,
-  type DeviceType,
   getPreviewUrl,
 } from './editors';
 import {
@@ -109,6 +110,7 @@ const editorComponents: Record<string, React.FC<{ isDarkMode: boolean }>> = {
 /**
  * AdminPanel - Slide-out Panel with Two-Panel Layout
  * Left: Editor Fields (30%) | Right: Live Component Preview (70%)
+ * Desktop-only preview with Apply Changes functionality
  */
 export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const {
@@ -119,6 +121,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     canRedo,
     resetContent,
     hasUnsavedChanges,
+    applyChanges,
+    discardChanges,
   } = useContent();
 
   // Core states
@@ -128,25 +132,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSaveIndicator, setShowSaveIndicator] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
 
   // Two-panel layout states
   const [previewVisible, setPreviewVisible] = useState(true);
-  const [previewDevice, setPreviewDevice] = useState<DeviceType>('desktop');
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
-  const [editorPanelWidth, setEditorPanelWidth] = useState(30); // Changed to 30%
+  const [editorPanelWidth, setEditorPanelWidth] = useState(30);
   const [isResizing, setIsResizing] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
 
   const resizeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
- const sidebarTimeoutRef = useRef<number | null>(null);
-
+  const sidebarTimeoutRef = useRef<number | null>(null);
 
   // Check for mobile/tablet viewport
   useEffect(() => {
@@ -156,7 +158,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       const tablet = width >= 768 && width < 1024;
       
       setIsMobile(mobile);
-      setIsTablet(tablet);
       
       if (mobile) {
         setSidebarCollapsed(true);
@@ -181,15 +182,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       editor.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Show save indicator when content changes
-  useEffect(() => {
-    if (hasUnsavedChanges) {
-      setShowSaveIndicator(true);
-      const timer = setTimeout(() => setShowSaveIndicator(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [content, hasUnsavedChanges]);
-
   // Refresh preview when content changes (debounced)
   useEffect(() => {
     if (!isOpen) return;
@@ -203,6 +195,30 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 3000);
+  };
+
+  // Handle Apply Changes
+  const handleApplyChanges = async () => {
+    if (!hasUnsavedChanges) return;
+    
+    setIsApplying(true);
+    try {
+      await applyChanges();
+      showNotification('success', 'Changes applied successfully!');
+      setPreviewKey((k) => k + 1);
+    } catch (error) {
+      showNotification('error', 'Failed to apply changes. Please try again.');
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  // Handle Discard Changes
+  const handleDiscardChanges = () => {
+    discardChanges();
+    setShowDiscardConfirm(false);
+    showNotification('success', 'Changes discarded!');
+    setPreviewKey((k) => k + 1);
   };
 
   // Handle reset
@@ -329,6 +345,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           e.preventDefault();
           setPreviewVisible((v) => !v);
         }
+        if (e.key === 's') {
+          e.preventDefault();
+          if (hasUnsavedChanges) handleApplyChanges();
+        }
       }
 
       if (e.key === 'Escape') {
@@ -342,7 +362,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, canUndo, canRedo, undo, redo, onClose, previewFullscreen]);
+  }, [isOpen, canUndo, canRedo, undo, redo, onClose, previewFullscreen, hasUnsavedChanges]);
 
   // Theme-aware class helper
   const themeClass = (darkClass: string, lightClass: string) =>
@@ -402,12 +422,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 >
                   {previewVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                 </button>
-                <button
+                {/* <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   className="p-2 rounded-xl hover:bg-secondary text-muted-foreground"
                 >
                   {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                </button>
+                </button> */}
                 <button
                   onClick={onClose}
                   className="p-2 rounded-xl hover:bg-secondary text-muted-foreground"
@@ -636,23 +656,62 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       </button>
                     </div>
 
-                    {/* Save Indicator */}
+                    {/* Unsaved Changes Indicator */}
                     <AnimatePresence>
-                      {showSaveIndicator && (
+                      {hasUnsavedChanges && (
                         <motion.div
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -10 }}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10"
                         >
-                          <Check className="w-4 h-4 text-green-500" />
-                          <span className="text-xs font-medium text-green-500">Auto-saved</span>
+                          <AlertCircle className="w-4 h-4 text-amber-500" />
+                          <span className="text-xs font-medium text-amber-500">Unsaved changes</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {/* Discard Changes Button */}
+                    {hasUnsavedChanges && (
+                      <button
+                        onClick={() => setShowDiscardConfirm(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
+                        title="Discard Changes"
+                      >
+                        <X className="w-4 h-4" />
+                        <span className="hidden lg:inline">Discard</span>
+                      </button>
+                    )}
+
+                    {/* Apply Changes Button */}
+                    <motion.button
+                      onClick={handleApplyChanges}
+                      disabled={!hasUnsavedChanges || isApplying}
+                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        hasUnsavedChanges && !isApplying
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                          : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
+                      }`}
+                      title="Apply Changes (Ctrl+S)"
+                      whileTap={hasUnsavedChanges && !isApplying ? { scale: 0.95 } : {}}
+                    >
+                      {isApplying ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </motion.div>
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                      <span>{isApplying ? 'Applying...' : 'Apply Changes'}</span>
+                    </motion.button>
+
+                    <div className="w-px h-6 bg-border mx-1" />
+
                     {/* Preview Toggle */}
                     <button
                       onClick={() => setPreviewVisible(!previewVisible)}
@@ -705,10 +764,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     </button>
                   </div>
                   <div className="flex items-center gap-1">
-                    {showSaveIndicator && (
-                      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/10">
-                        <Check className="w-3 h-3 text-green-500" />
-                        <span className="text-xs text-green-500">Saved</span>
+                    {hasUnsavedChanges && (
+                      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/10">
+                        <AlertCircle className="w-3 h-3 text-amber-500" />
+                        <span className="text-xs text-amber-500">Unsaved</span>
                       </div>
                     )}
                   </div>
@@ -728,6 +787,42 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     <div className={`flex-1 overflow-y-auto p-3 sm:p-4 md:p-5 ${themeClass('bg-background', 'bg-gray-50')}`}>
                       <ActiveEditorComponent isDarkMode={isDarkMode} />
                     </div>
+
+                    {/* Mobile Apply Changes Bar */}
+                    {isMobile && hasUnsavedChanges && !previewVisible && (
+                      <div className={`p-3 border-t ${themeClass('border-border bg-card', 'border-gray-200 bg-white')}`}>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowDiscardConfirm(true)}
+                            className="flex-1 py-2.5 rounded-xl font-medium bg-secondary text-foreground"
+                          >
+                            Discard
+                          </button>
+                          <button
+                            onClick={handleApplyChanges}
+                            disabled={isApplying}
+                            className="flex-1 py-2.5 rounded-xl font-medium bg-primary text-primary-foreground flex items-center justify-center gap-2"
+                          >
+                            {isApplying ? (
+                              <>
+                                <motion.div
+                                  animate={{ rotate: 360 }}
+                                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                >
+                                  <RefreshCw className="w-4 h-4" />
+                                </motion.div>
+                                Applying...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="w-4 h-4" />
+                                Apply Changes
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
 
                   {/* Resize Handle (Desktop only) */}
@@ -743,7 +838,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     </div>
                   )}
 
-                  {/* Preview Panel - 70% width */}
+                  {/* Preview Panel - 70% width - Desktop Only View */}
                   <AnimatePresence>
                     {previewVisible && (
                       <motion.div
@@ -756,69 +851,83 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                         transition={{ duration: 0.2 }}
                         className={`flex flex-col overflow-hidden ${themeClass('bg-secondary/30', 'bg-gray-100')}`}
                       >
-                        {/* Preview Header */}
-                        <PreviewPanelHeader
-                          sectionId={activeEditor}
-                          device={previewDevice}
-                          onDeviceChange={setPreviewDevice}
-                          onRefresh={refreshPreview}
-                          onOpenExternal={openInNewTab}
-                          onCopyUrl={copyPreviewUrl}
-                          onFullscreen={() => setPreviewFullscreen(true)}
-                          copiedUrl={copiedUrl}
-                          isDarkMode={isDarkMode}
-                        />
+                        {/* Preview Header - Desktop Only (No device toggles) */}
+                        <div className={`flex items-center justify-between px-4 py-2 border-b ${themeClass('bg-card border-border', 'bg-card border-border')}`}>
+                          <div className="flex items-center gap-2">
+                            <Eye className="w-4 h-4 text-primary" />
+                            <span className="text-sm font-medium text-foreground">
+                              Live Preview
+                            </span>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-500">
+                              Real-time
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={refreshPreview}
+                              className="p-1.5 rounded-lg transition-colors hover:bg-secondary text-muted-foreground"
+                              title="Refresh Preview"
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={copyPreviewUrl}
+                              className="p-1.5 rounded-lg transition-colors hover:bg-secondary text-muted-foreground"
+                              title="Copy Preview URL"
+                            >
+                              {copiedUrl ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                            </button>
+                            <button
+                              onClick={openInNewTab}
+                              className="p-1.5 rounded-lg transition-colors hover:bg-secondary text-muted-foreground"
+                              title="Open in New Tab"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setPreviewFullscreen(true)}
+                              className="hidden md:flex p-1.5 rounded-lg transition-colors hover:bg-secondary text-muted-foreground"
+                              title="Fullscreen Preview"
+                            >
+                              <Maximize2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
 
                         {/* Preview URL Bar */}
-                        <PreviewUrlBar sectionId={activeEditor} isDarkMode={isDarkMode} />
+                        <div className={`flex items-center gap-2 px-4 py-2 border-b ${themeClass('bg-secondary/50 border-border', 'bg-gray-100 border-gray-200')}`}>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors cursor-pointer" />
+                            <div className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors cursor-pointer" />
+                            <div className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors cursor-pointer" />
+                          </div>
+                          <div className={`flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg ${themeClass('bg-background', 'bg-white')} border ${themeClass('border-border', 'border-gray-200')}`}>
+                            <div className="w-4 h-4 rounded bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                              <div className="w-2 h-2 rounded-full bg-green-500" />
+                            </div>
+                            <span className={`text-xs truncate ${themeClass('text-muted-foreground', 'text-gray-500')}`}>
+                              {typeof window !== 'undefined' ? window.location.origin : 'https://yoursite.com'}{getPreviewUrl(activeEditor)}
+                            </span>
+                          </div>
+                        </div>
 
-                        {/* Preview Content - Improved Responsive */}
+                        {/* Preview Content - Desktop Only View */}
                         <div className="flex-1 overflow-auto p-2 sm:p-3 md:p-4">
                           <motion.div
-                            animate={{
-                              width: previewDevice === 'desktop' 
-                                ? '100%' 
-                                : previewDevice === 'tablet'
-                                  ? isTablet ? '100%' : devicePresets[previewDevice].width
-                                  : devicePresets[previewDevice].width,
-                              margin: previewDevice !== 'desktop' ? '0 auto' : undefined,
-                            }}
+                            animate={{ width: '100%' }}
                             transition={{ duration: 0.3 }}
                             className="relative rounded-xl overflow-hidden shadow-2xl bg-white"
-                            style={{ 
-                              minHeight: '400px',
-                              maxWidth: '100%',
-                            }}
+                            style={{ minHeight: '400px', maxWidth: '100%' }}
                           >
-                            <div 
-                              className="h-full w-full overflow-auto"
-                              style={{
-                                transform: previewDevice !== 'desktop' && !isTablet && !isMobile 
-                                  ? `scale(${devicePresets[previewDevice].scale})` 
-                                  : 'none',
-                                transformOrigin: 'top left',
-                                width: previewDevice !== 'desktop' && !isTablet && !isMobile 
-                                  ? `${100 / devicePresets[previewDevice].scale}%` 
-                                  : '100%',
-                                height: previewDevice !== 'desktop' && !isTablet && !isMobile 
-                                  ? `${100 / devicePresets[previewDevice].scale}%` 
-                                  : '100%',
-                              }}
-                            >
+                            <div className="h-full w-full overflow-auto">
                               <SectionPreviewWrapper
                                 sectionId={activeEditor}
-                                device={previewDevice}
+                                device="desktop"
                                 refreshKey={previewKey}
                                 className="h-full"
                               />
                             </div>
-                            
-                            {/* Device Frame Overlay */}
-                            {previewDevice !== 'desktop' && !isTablet && !isMobile && (
-                              <div className="absolute inset-0 pointer-events-none border-4 border-gray-800 rounded-xl">
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-gray-800 rounded-b-full" />
-                              </div>
-                            )}
                           </motion.div>
                         </div>
 
@@ -841,7 +950,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
             </div>
           </motion.div>
 
-          {/* Fullscreen Preview Overlay */}
+          {/* Fullscreen Preview Overlay - Desktop Only View */}
           <AnimatePresence>
             {previewFullscreen && previewVisible && (
               <motion.div
@@ -850,67 +959,36 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-[10100] bg-black/90 flex flex-col"
               >
-                {/* Fullscreen Header */}
                 <div className="flex items-center justify-between px-4 py-3 bg-gray-900">
                   <div className="flex items-center gap-3">
                     <Eye className="w-5 h-5 text-white" />
                     <span className="text-white font-medium">Fullscreen Preview</span>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
-                      {devicePresets[previewDevice].label}
+                      Desktop
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    {(Object.keys(devicePresets) as DeviceType[]).map((device) => {
-                      const DeviceIcon = devicePresets[device].icon;
-                      return (
-                        <button
-                          key={device}
-                          onClick={() => setPreviewDevice(device)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            previewDevice === device
-                              ? 'bg-white text-gray-900'
-                              : 'hover:bg-gray-800 text-gray-400'
-                          }`}
-                        >
-                          <DeviceIcon className="w-5 h-5" />
-                        </button>
-                      );
-                    })}
-                    <div className="w-px h-6 bg-gray-700 mx-2" />
-                    <button
-                      onClick={refreshPreview}
-                      className="p-2 rounded-lg hover:bg-gray-800 text-gray-400"
-                    >
+                    <button onClick={refreshPreview} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400">
                       <RefreshCw className="w-5 h-5" />
                     </button>
-                    <button
-                      onClick={openInNewTab}
-                      className="p-2 rounded-lg hover:bg-gray-800 text-gray-400"
-                    >
+                    <button onClick={openInNewTab} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400">
                       <ExternalLink className="w-5 h-5" />
                     </button>
-                    <button
-                      onClick={() => setPreviewFullscreen(false)}
-                      className="p-2 rounded-lg hover:bg-gray-800 text-white"
-                    >
+                    <button onClick={() => setPreviewFullscreen(false)} className="p-2 rounded-lg hover:bg-gray-800 text-white">
                       <Minimize2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
 
-                {/* Fullscreen Preview Frame */}
                 <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
                   <motion.div
-                    animate={{
-                      width: previewDevice === 'desktop' ? '100%' : devicePresets[previewDevice].width,
-                      maxWidth: '100%',
-                    }}
+                    animate={{ width: '100%', maxWidth: '100%' }}
                     transition={{ duration: 0.3 }}
                     className="h-full rounded-xl overflow-hidden shadow-2xl bg-white"
                   >
                     <SectionPreviewWrapper
                       sectionId={activeEditor}
-                      device={previewDevice}
+                      device="desktop"
                       refreshKey={previewKey}
                       className="h-full"
                     />
@@ -946,11 +1024,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       <p className="text-sm text-muted-foreground">This action cannot be undone</p>
                     </div>
                   </div>
-
                   <p className="mb-6 text-muted-foreground">
                     All your content changes will be lost and reset to the default values.
                   </p>
-
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowResetConfirm(false)}
@@ -963,6 +1039,54 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       className="flex-1 py-2.5 rounded-xl font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
                       Reset Content
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Discard Changes Confirmation Modal */}
+          <AnimatePresence>
+            {showDiscardConfirm && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4"
+                onClick={() => setShowDiscardConfirm(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className={`max-w-md w-full p-6 rounded-2xl shadow-xl ${themeClass('bg-card', 'bg-white')}`}
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center">
+                      <AlertCircle className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground">Discard Changes?</h3>
+                      <p className="text-sm text-muted-foreground">Your unsaved changes will be lost</p>
+                    </div>
+                  </div>
+                  <p className="mb-6 text-muted-foreground">
+                    Are you sure you want to discard all unsaved changes? This action cannot be undone.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowDiscardConfirm(false)}
+                      className="flex-1 py-2.5 rounded-xl font-medium bg-secondary text-foreground hover:bg-secondary/80"
+                    >
+                      Keep Editing
+                    </button>
+                    <button
+                      onClick={handleDiscardChanges}
+                      className="flex-1 py-2.5 rounded-xl font-medium bg-amber-500 text-white hover:bg-amber-600"
+                    >
+                      Discard
                     </button>
                   </div>
                 </motion.div>

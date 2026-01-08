@@ -541,7 +541,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
                                     <div key={modelIndex} className="flex items-center gap-2 p-2 rounded-lg bg-card">
                                       <div className="w-10 h-8 rounded bg-secondary flex items-center justify-center overflow-hidden">
                                         {model.image ? (
-                                          <img src={model.image} alt={model.name} className="w-full h-full object-contain" />
+                                          <img src={model.image} alt={model.name} className="w-full h-full object-contain mix-blend-multiply" />
                                         ) : (
                                           <Car className="w-4 h-4 text-muted-foreground" />
                                         )}

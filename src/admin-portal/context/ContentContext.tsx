@@ -3,7 +3,6 @@ import React, {
   useContext,
   useState,
   useCallback,
-  useEffect,
   useMemo,
 } from 'react';
 import type { SiteContent, ContentContextValue } from '../types/content.types';
@@ -91,8 +90,8 @@ interface ContentProviderProps {
 // ============================================
 
 const DEFAULT_STORAGE_KEY = 'addax-cms-content';
+const SAVED_CONTENT_KEY = 'addax-cms-saved-content';
 const HISTORY_LIMIT = 50;
-const SAVE_DEBOUNCE_MS = 500;
 
 // ============================================
 // HELPER FUNCTIONS
@@ -171,7 +170,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   enablePersistence = true,
 }) => {
   // ----------------------------------------
-  // Load initial content
+  // Load initial content (working content)
   // ----------------------------------------
   const loadInitialContent = useCallback((): SiteContent => {
     let loadedData: SiteContent = defaultContent as SiteContent;
@@ -200,9 +199,38 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   }, [initialContent, storageKey, enablePersistence]);
 
   // ----------------------------------------
+  // Load saved content (last applied state)
+  // ----------------------------------------
+  const loadSavedContent = useCallback((): SiteContent => {
+    let loadedData: SiteContent = defaultContent as SiteContent;
+
+    if (enablePersistence && typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(SAVED_CONTENT_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          loadedData = deepMerge(defaultContent as SiteContent, parsed);
+        } else {
+          // If no saved content, use current working content
+          const workingContent = localStorage.getItem(storageKey);
+          if (workingContent) {
+            const parsed = JSON.parse(workingContent);
+            loadedData = deepMerge(defaultContent as SiteContent, parsed);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved content from localStorage:', error);
+      }
+    }
+
+    return resolveContentImages(loadedData);
+  }, [storageKey, enablePersistence]);
+
+  // ----------------------------------------
   // State
   // ----------------------------------------
   const [content, setContent] = useState<SiteContent>(() => loadInitialContent());
+  const [savedContent, setSavedContent] = useState<SiteContent>(() => loadSavedContent());
   
   // We only add to history AFTER resolving images
   const [history, setHistory] = useState<HistoryEntry[]>(() => [
@@ -211,33 +239,11 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   
   const [historyIndex, setHistoryIndex] = useState(0);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [initialHash, setInitialHash] = useState<string>('');
 
-  useEffect(() => {
-    setInitialHash(generateHash(loadInitialContent()));
-  }, [loadInitialContent]);
-
+  // Check for unsaved changes by comparing current content with saved content
   const hasUnsavedChanges = useMemo(() => {
-    return generateHash(content) !== initialHash;
-  }, [content, initialHash]);
-
-  // ----------------------------------------
-  // Auto-save
-  // ----------------------------------------
-  useEffect(() => {
-    if (!enablePersistence || typeof window === 'undefined') return;
-
-    const saveTimer = setTimeout(() => {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(content));
-        setLastSaved(new Date());
-      } catch (error) {
-        console.error('Error saving content to localStorage:', error);
-      }
-    }, SAVE_DEBOUNCE_MS);
-
-    return () => clearTimeout(saveTimer);
-  }, [content, storageKey, enablePersistence]);
+    return generateHash(content) !== generateHash(savedContent);
+  }, [content, savedContent]);
 
   // ----------------------------------------
   // Add to history
@@ -330,14 +336,64 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
     // Reset to default JSON, but make sure to resolve images again
     const resetData = resolveContentImages(defaultContent as SiteContent);
     setContent(deepClone(resetData));
+    setSavedContent(deepClone(resetData));
     setHistory([{ content: deepClone(resetData), timestamp: Date.now(), action: 'reset' }]);
     setHistoryIndex(0);
     
     if (enablePersistence && typeof window !== 'undefined') {
       localStorage.removeItem(storageKey);
+      localStorage.removeItem(SAVED_CONTENT_KEY);
     }
   }, [storageKey, enablePersistence]);
 
+  // ----------------------------------------
+  // Apply Changes (NEW) - Save current content as the new "saved" state
+  // ----------------------------------------
+  const applyChanges = useCallback(async (): Promise<void> => {
+    // Simulate async operation (e.g., API call)
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Update saved content to match current content
+    const contentToSave = deepClone(content);
+    setSavedContent(contentToSave);
+    setLastSaved(new Date());
+    
+    // Persist to localStorage
+    if (enablePersistence && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(content));
+        localStorage.setItem(SAVED_CONTENT_KEY, JSON.stringify(content));
+      } catch (error) {
+        console.error('Error saving content to localStorage:', error);
+        throw error;
+      }
+    }
+  }, [content, storageKey, enablePersistence]);
+
+  // ----------------------------------------
+  // Discard Changes (NEW) - Revert to last saved state
+  // ----------------------------------------
+  const discardChanges = useCallback((): void => {
+    // Revert content to last saved state
+    setContent(deepClone(savedContent));
+    
+    // Reset history to saved content
+    setHistory([{ content: deepClone(savedContent), timestamp: Date.now(), action: 'discard' }]);
+    setHistoryIndex(0);
+    
+    // Update localStorage to match saved content
+    if (enablePersistence && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(savedContent));
+      } catch (error) {
+        console.error('Error updating localStorage:', error);
+      }
+    }
+  }, [savedContent, storageKey, enablePersistence]);
+
+  // ----------------------------------------
+  // Export / Import
+  // ----------------------------------------
   const exportContent = useCallback((): string => {
     return JSON.stringify(content, null, 2);
   }, [content]);
@@ -355,7 +411,6 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
 
         setContent(resolvedMerged);
         addToHistory(resolvedMerged, 'import');
-        setInitialHash(generateHash(resolvedMerged));
 
         return true;
       } catch (error) {
@@ -383,6 +438,8 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
       importContent,
       hasUnsavedChanges,
       lastSaved,
+      applyChanges,
+      discardChanges,
     }),
     [
       content,
@@ -397,6 +454,8 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
       importContent,
       hasUnsavedChanges,
       lastSaved,
+      applyChanges,
+      discardChanges,
     ]
   );
 

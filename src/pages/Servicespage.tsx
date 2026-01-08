@@ -11,18 +11,29 @@ import {
   Settings,
   Paintbrush,
   Gauge,
-  X} from 'lucide-react';
+  Phone,
+  X
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../admin-portal';
 
 // Service categories with icons
-const categories = [
-  { id: 'all', label: 'All', icon: Sparkles },
-  { id: 'maintenance', label: 'Maintenance', icon: Wrench },
-  { id: 'repair', label: 'Repairs', icon: Settings },
-  { id: 'cosmetic', label: 'Cosmetic', icon: Paintbrush },
-  { id: 'inspection', label: 'Inspection', icon: Gauge },
+const defaultCategories = [
+  { id: 'all', label: 'All', icon: 'Sparkles' },
+  { id: 'maintenance', label: 'Maintenance', icon: 'Wrench' },
+  { id: 'repair', label: 'Repairs', icon: 'Settings' },
+  { id: 'cosmetic', label: 'Cosmetic', icon: 'Paintbrush' },
+  { id: 'inspection', label: 'Inspection', icon: 'Gauge' },
 ];
+
+// Icon mapping
+const iconMap: Record<string, React.FC<{ className?: string }>> = {
+  Sparkles,
+  Wrench,
+  Settings,
+  Paintbrush,
+  Gauge,
+};
 
 // Map services to categories (fallback if category not in JSON)
 const serviceCategoryMap: Record<string, string> = {
@@ -47,6 +58,9 @@ export const ServicesPage = () => {
   const services = content.services.items;
   const globalContent = content.global;
   const pagesContent = content.pages?.services;
+
+  // Use categories from CMS or fallback to defaults
+  const categories = pagesContent?.categories || defaultCategories;
 
   // Filter services based on category and search
   const filteredServices = services.filter(service => {
@@ -118,8 +132,8 @@ export const ServicesPage = () => {
       <div className="sticky top-16 z-30 bg-white dark:bg-gray-950 border-b border-border py-3">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {categories.map((cat) => {
-              const IconComponent = cat.icon;
+            {categories.map((cat: { id: string; label: string; icon?: string }) => {
+              const IconComponent = iconMap[cat.icon || 'Sparkles'] || Sparkles;
               const isActive = activeCategory === cat.id;
               return (
                 <button
@@ -281,7 +295,7 @@ export const ServicesPage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA Section - Now using CMS content */}
       <section className="py-16 sm:py-20 bg-secondary">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl text-center">
           <motion.div
@@ -296,21 +310,25 @@ export const ServicesPage = () => {
               {pagesContent?.cta?.description || pagesContent?.ctaSection?.description || "Contact us for custom service requirements. Our experts are ready to help with any car-related needs."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {/* Primary CTA Button - Now using CMS content */}
               <motion.button
                 className="px-8 py-4 bg-primary text-primary-foreground rounded-full font-semibold flex items-center justify-center gap-2"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
-                {pagesContent?.cta?.primaryCta || pagesContent?.ctaSection?.primaryCta || 'Get Free Quote'}
+                {pagesContent?.cta?.primaryButton || pagesContent?.cta?.primaryCta || pagesContent?.ctaSection?.primaryCta || 'Get Free Quote'}
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
+              
+              {/* Secondary CTA Button - Now using CMS content */}
               <motion.a
-                href={`tel:${globalContent.brand.phone}`}
-                className="px-8 py-4 bg-secondary text-foreground rounded-full font-semibold border border-border hover:border-primary/30 transition-colors"
+                href={`tel:${pagesContent?.cta?.phone || globalContent.brand.phone}`}
+                className="px-8 py-4 bg-secondary text-foreground rounded-full font-semibold border border-border hover:border-primary/30 transition-colors flex items-center justify-center gap-2"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
-                Call: {globalContent.brand.phone}
+                <Phone className="w-5 h-5" />
+                {pagesContent?.cta?.secondaryCta || pagesContent?.ctaSection?.secondaryCta || `Call: ${pagesContent?.cta?.phone || globalContent.brand.phone}`}
               </motion.a>
             </div>
           </motion.div>
@@ -330,3 +348,5 @@ export const ServicesPage = () => {
     </div>
   );
 };
+
+export default ServicesPage;

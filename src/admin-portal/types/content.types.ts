@@ -1,6 +1,6 @@
 // ============================================
 // UNIFIED CONTENT TYPES FOR ADMIN & USER UI
-// Version: 2.0.0
+// Version: 2.1.0
 // ============================================
 
 import type { ReactNode } from 'react';
@@ -151,6 +151,12 @@ export interface BookingLabels {
   brand: string;
   model: string;
   fuel: string;
+  // Add missing fields accessed by BookingWidgetEditor
+  car?: string;
+  carPlaceholder?: string;
+  mobile?: string;
+  mobilePlaceholder?: string;
+  countryCode?: string;
 }
 
 export interface BookingScreens {
@@ -554,10 +560,13 @@ export interface FooterContent {
 // PAGES
 // ============================================
 export interface ServicesCTASection {
-  title: string;
-  description: string;
-  primaryCta: string;
-  secondaryCta: string;
+  title?: string;
+  description?: string;
+  primaryCta?: string;
+  secondaryCta?: string;
+  primaryButton?: string;
+  secondaryButton?: string;
+  phone?: string;
 }
 
 export interface ServicesCategory {
@@ -569,19 +578,20 @@ export interface ServicesCategory {
 export interface ServicesPageCTA {
   title: string;
   description: string;
-  primaryCta: string;
-  secondaryCta: string;
+  primaryCta?: string;
+  secondaryCta?: string;
   primaryButton?: string;
+  secondaryButton?: string;
   phone?: string;
 }
 
 export interface ServicesPageContent {
-  title: string;
-  description: string;
-  searchPlaceholder: string;
-  categories: ServicesCategory[];
-  cta: ServicesPageCTA;
-  ctaSection: ServicesCTASection;
+  title?: string;
+  description?: string;
+  searchPlaceholder?: string;
+  categories?: ServicesCategory[];
+  cta?: ServicesPageCTA;
+  ctaSection?: ServicesCTASection;
 }
 
 export interface NotFoundQuickLink {
@@ -590,19 +600,19 @@ export interface NotFoundQuickLink {
 }
 
 export interface NotFoundPageContent {
-  title: string;
-  description: string;
-  searchPlaceholder: string;
-  primaryCta: string;
-  primaryButton: string;
-  secondaryCta: string;
-  secondaryButton: string;
-  quickLinks: NotFoundQuickLink[];
+  title?: string;
+  description?: string;
+  searchPlaceholder?: string;
+  primaryCta?: string;
+  primaryButton?: string;
+  secondaryCta?: string;
+  secondaryButton?: string;
+  quickLinks?: NotFoundQuickLink[];
 }
 
 export interface PagesContent {
-  services: ServicesPageContent;
-  notFound: NotFoundPageContent;
+  services?: ServicesPageContent;
+  notFound?: NotFoundPageContent;
 }
 
 // ============================================
@@ -694,6 +704,9 @@ export interface ContentContextValue {
   importContent: (jsonString: string) => boolean;
   hasUnsavedChanges: boolean;
   lastSaved: Date | null;
+  // NEW: Apply and Discard changes methods
+  applyChanges: () => Promise<void>;
+  discardChanges: () => void;
 }
 
 // ============================================
