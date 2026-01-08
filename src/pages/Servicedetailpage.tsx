@@ -18,38 +18,6 @@ import {
 } from 'lucide-react';
 import { useContent } from '../admin-portal';
 
-// Import local assets - Main images
-import PeriodicServiceImg from '../assets/PeriodicService.jpg';
-import PeriodicService1Img from '../assets/PeriodicService1.jpg';
-import PeriodicService2Img from '../assets/PeriodicService2.jpg';
-
-import ACServiceImg from '../assets/ACService.jpg';
-import ACService1Img from '../assets/ACService1.jpg';
-import ACService2Img from '../assets/ACService2.jpg';
-
-import DentingImg from '../assets/Denting.jpg';
-import Denting1Img from '../assets/Denting1.jpg';
-import Denting2Img from '../assets/Denting2.jpg';
-
-import CarInspectionImg from '../assets/CarInspection.jpg';
-import CarInspection1Img from '../assets/CarInspection1.jpg';
-import CarInspection2Img from '../assets/CarInspection2.jpg';
-
-import WheelCareImg from '../assets/Wheelcare.jpg';
-import WheelCare1Img from '../assets/WheelCare1.jpg';
-import WheelCare2Img from '../assets/WheelCare2.jpg';
-
-import BatteryServiceImg from '../assets/BatteryService.jpg';
-import BatteryService1Img from '../assets/BatteryService1.jpg';
-import BatteryService2Img from '../assets/BatteryService2.jpg';
-
-
-import ClutchBody1Img from '../assets/ClutchBody1.jpg';
-
-import InsuranceClaimsImg from '../assets/InsuranceClaims.jpg';
-import InsuranceClaims1Img from '../assets/InsuranceClaims1.jpg';
-import InsuranceClaims2Img from '../assets/InsuranceClaims2.jpg';
-
 // Type definitions for extended service data
 interface ProcessStep {
   step: number;
@@ -70,7 +38,7 @@ interface ExtendedServiceData {
   faqs: FAQ[];
 }
 
-// Extended service data with SERVICE-SPECIFIC process steps (fallback data)
+// Extended service data with SERVICE-SPECIFIC process steps (fallback data only)
 const serviceExtendedData: Record<string, ExtendedServiceData> = {
   'Periodic Service': {
     duration: '3-4 hours',
@@ -301,19 +269,6 @@ const defaultExtendedData: ExtendedServiceData = {
   ]
 };
 
-// Service images mapping with multiple images per service
-const serviceImages: Record<string, string[]> = {
-  'Periodic Service': [PeriodicServiceImg, PeriodicService1Img, PeriodicService2Img],
-  'AC Service & Repair': [ACServiceImg, ACService1Img, ACService2Img],
-  'Denting & Painting': [DentingImg, Denting1Img, Denting2Img],
-  'Car Inspection': [CarInspectionImg, CarInspection1Img, CarInspection2Img],
-  'Wheel Care': [WheelCareImg, WheelCare1Img, WheelCare2Img],
-  'Battery Service': [BatteryServiceImg, BatteryService1Img, BatteryService2Img],
-  'Clutch & Body': [ ClutchBody1Img],
-  'Insurance Claims': [InsuranceClaimsImg, InsuranceClaims1Img, InsuranceClaims2Img],
-  'default': [PeriodicServiceImg, PeriodicService1Img, PeriodicService2Img]
-};
-
 export const ServiceDetailPage = () => {
   const { serviceSlug } = useParams();
   const location = useLocation();
@@ -323,7 +278,7 @@ export const ServiceDetailPage = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true });
 
-  // Get content from context
+  // Get content from context - images are already resolved by ContentContext
   const { content } = useContent();
   const services = content.services.items;
   const globalContent = content.global;
@@ -354,10 +309,21 @@ export const ServiceDetailPage = () => {
 
   const extendedData = getExtendedData();
 
-  // Get images
-  const images = service ? 
-    (serviceImages[service.title] || serviceImages['default']) : 
-    serviceImages['default'];
+  // Get images from siteContent.json gallery array (already resolved by ContentContext)
+  // Falls back to main image if no gallery exists
+  const getServiceImages = (): string[] => {
+    if (!service) return [];
+    
+    // Check if gallery exists and has images
+    if (service.gallery && Array.isArray(service.gallery) && service.gallery.length > 0) {
+      return service.gallery;
+    }
+    
+    // Fallback to main image only
+    return service.image ? [service.image] : [];
+  };
+
+  const images = getServiceImages();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -365,6 +331,8 @@ export const ServiceDetailPage = () => {
 
   // Auto-advance gallery
   useEffect(() => {
+    if (images.length <= 1) return;
+    
     const interval = setInterval(() => {
       setActiveImage((prev) => (prev + 1) % images.length);
     }, 5000);
@@ -427,7 +395,7 @@ export const ServiceDetailPage = () => {
               <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4 aspect-[4/3] group">
                 <motion.img 
                   key={activeImage}
-                  src={images[activeImage]}
+                  src={images[activeImage] || ''}
                   alt={service.title}
                   className="w-full h-full object-cover"
                   initial={{ opacity: 0, scale: 1.05 }}
@@ -437,23 +405,29 @@ export const ServiceDetailPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 
                 {/* Navigation Arrows */}
-                <button
-                  onClick={prevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-gray-700"
-                >
-                  <ChevronLeft className="w-5 h-5 text-foreground" />
-                </button>
-                <button
-                  onClick={nextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-gray-700"
-                >
-                  <ChevronRight className="w-5 h-5 text-foreground" />
-                </button>
+                {images.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-gray-700"
+                    >
+                      <ChevronLeft className="w-5 h-5 text-foreground" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white dark:hover:bg-gray-700"
+                    >
+                      <ChevronRight className="w-5 h-5 text-foreground" />
+                    </button>
+                  </>
+                )}
 
                 {/* Image Counter */}
-                <div className="absolute bottom-4 right-4 px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-full text-white text-sm">
-                  {activeImage + 1} / {images.length}
-                </div>
+                {images.length > 1 && (
+                  <div className="absolute bottom-4 right-4 px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-full text-white text-sm">
+                    {activeImage + 1} / {images.length}
+                  </div>
+                )}
 
                 {/* Badges */}
                 <div className="absolute top-4 left-4 flex flex-wrap gap-2">
@@ -469,30 +443,32 @@ export const ServiceDetailPage = () => {
               </div>
 
               {/* Thumbnail Gallery */}
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                {images.map((img, idx) => (
-                  <motion.button
-                    key={idx}
-                    onClick={() => setActiveImage(idx)}
-                    className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden transition-all ${
-                      activeImage === idx 
-                        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' 
-                        : 'opacity-60 hover:opacity-100'
-                    }`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <img 
-                      src={img} 
-                      alt={`${service.title} ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    {activeImage === idx && (
-                      <div className="absolute inset-0 bg-primary/10" />
-                    )}
-                  </motion.button>
-                ))}
-              </div>
+              {images.length > 1 && (
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                  {images.map((img, idx) => (
+                    <motion.button
+                      key={idx}
+                      onClick={() => setActiveImage(idx)}
+                      className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden transition-all ${
+                        activeImage === idx 
+                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' 
+                          : 'opacity-60 hover:opacity-100'
+                      }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <img 
+                        src={img} 
+                        alt={`${service.title} ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {activeImage === idx && (
+                        <div className="absolute inset-0 bg-primary/10" />
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              )}
             </motion.div>
 
             {/* Service Info */}

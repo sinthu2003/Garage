@@ -15,7 +15,8 @@ import defaultContent from '../data/siteContent.json';
 
 // 1. Import all images using Vite's glob import
 // Note: We use '../../assets' because this file is in src/admin-portal/context
-const imageModules = import.meta.glob('../../assets/**/*.{png,jpg,jpeg,svg,webp}', { eager: true });
+// FIXED: Added 'avif' to the pattern below
+const imageModules = import.meta.glob('../../assets/**/*.{png,jpg,jpeg,svg,webp,avif}', { eager: true });
 
 /**
  * 2. Helper to resolve a single path string to a built image URL

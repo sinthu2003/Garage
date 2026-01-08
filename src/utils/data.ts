@@ -21,7 +21,8 @@ import type {
 // ============================================
 
 // Import all images from the assets folder eagerly
-const images = import.meta.glob('../assets/**/*.{png,jpg,jpeg,svg,webp}', { eager: true });
+// FIXED: Added 'avif' to the glob pattern below
+const images = import.meta.glob('../assets/**/*.{png,jpg,jpeg,svg,webp,avif}', { eager: true });
 
 /**
  * Resolves a path string (e.g., "../assets/Logo.jpg") to the actual build URL.
@@ -41,7 +42,7 @@ const resolveImage = (path: string | undefined): string => {
     return imageModule.default;
   }
 
-  console.warn(`Image not found for path: ${path}`);
+  // console.warn(`Image not found for path: ${path}`);
   return path;
 };
 

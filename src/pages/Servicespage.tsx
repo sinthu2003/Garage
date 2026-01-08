@@ -15,16 +15,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../admin-portal';
 
-// Import local assets
-import PeriodicServiceImg from '../assets/PeriodicService.jpg';
-import ACServiceImg from '../assets/ACService.jpg';
-import DentingImg from '../assets/Denting.jpg';
-import CarInspectionImg from '../assets/CarInspection.jpg';
-import WheelCareImg from '../assets/Wheelcare.jpg';
-import BatteryServiceImg from '../assets/BatteryService.jpg';
-import ClutchBody1Img from '../assets/ClutchBody1.jpg';
-import InsuranceClaimsImg from '../assets/InsuranceClaims.jpg';
-
 // Service categories with icons
 const categories = [
   { id: 'all', label: 'All', icon: Sparkles },
@@ -34,7 +24,7 @@ const categories = [
   { id: 'inspection', label: 'Inspection', icon: Gauge },
 ];
 
-// Map services to categories
+// Map services to categories (fallback if category not in JSON)
 const serviceCategoryMap: Record<string, string> = {
   'Periodic Service': 'maintenance',
   'AC Service & Repair': 'repair',
@@ -46,33 +36,23 @@ const serviceCategoryMap: Record<string, string> = {
   'Insurance Claims': 'inspection',
 };
 
-const serviceImages: Record<string, string> = {
-  'Periodic Service': PeriodicServiceImg,
-  'AC Service & Repair': ACServiceImg,
-  'Denting & Painting': DentingImg,
-  'Car Inspection': CarInspectionImg,
-  'Wheel Care': WheelCareImg,
-  'Battery Service': BatteryServiceImg,
-  'Clutch & Body': ClutchBody1Img,
-  'Insurance Claims': InsuranceClaimsImg,
-  'default': PeriodicServiceImg
-};
-
 export const ServicesPage = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const sectionRef = useRef(null);
   const navigate = useNavigate();
 
-  // Get content from context
+  // Get content from context - images are already resolved by ContentContext
   const { content } = useContent();
   const services = content.services.items;
   const globalContent = content.global;
+  const pagesContent = content.pages?.services;
 
   // Filter services based on category and search
   const filteredServices = services.filter(service => {
-    const matchesCategory = activeCategory === 'all' || 
-      serviceCategoryMap[service.title] === activeCategory;
+    // Use category from JSON if available, otherwise fallback to serviceCategoryMap
+    const serviceCategory = service.category || serviceCategoryMap[service.title];
+    const matchesCategory = activeCategory === 'all' || serviceCategory === activeCategory;
     const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       service.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
@@ -104,10 +84,10 @@ export const ServicesPage = () => {
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 lg:gap-8">
             <div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight mb-2">
-                Our Services
+                {pagesContent?.title || 'Our Services'}
               </h1>
               <p className="text-muted-foreground text-sm sm:text-base max-w-md">
-                Professional car care services at transparent prices
+                {pagesContent?.description || 'Professional car care services at transparent prices'}
               </p>
             </div>
 
@@ -116,7 +96,7 @@ export const ServicesPage = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
                 type="text"
-                placeholder="Search services..."
+                placeholder={pagesContent?.searchPlaceholder || 'Search services...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-10 py-2.5 bg-background border border-border rounded-full text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
@@ -172,7 +152,8 @@ export const ServicesPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             <AnimatePresence mode="popLayout">
               {filteredServices.map((service, index) => {
-                const imageUrl = serviceImages[service.title] || serviceImages['default'];
+                // Use image from siteContent.json (already resolved by ContentContext)
+                const imageUrl = service.image || '';
                 
                 return (
                   <motion.div
@@ -309,10 +290,10 @@ export const ServicesPage = () => {
             viewport={{ once: true }}
           >
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Can't find what you're looking for?
+              {pagesContent?.cta?.title || pagesContent?.ctaSection?.title || "Can't find what you're looking for?"}
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Contact us for custom service requirements. Our experts are ready to help with any car-related needs.
+              {pagesContent?.cta?.description || pagesContent?.ctaSection?.description || "Contact us for custom service requirements. Our experts are ready to help with any car-related needs."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <motion.button
@@ -320,7 +301,7 @@ export const ServicesPage = () => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >
-                Get Free Quote
+                {pagesContent?.cta?.primaryCta || pagesContent?.ctaSection?.primaryCta || 'Get Free Quote'}
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
               <motion.a

@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "2.0.0",
-    "lastModified": "2025-01-07T00:00:00.000Z",
+    "lastModified": "2025-01-08T00:00:00.000Z",
     "description": "Unified content source for Admin Panel and User-Facing UI"
   },
   "global": {
@@ -34,11 +34,31 @@
     },
     "navbar": {
       "links": [
-        { "label": "Services", "href": "/services", "isRoute": true },
-        { "label": "How It Works", "href": "#how-it-works", "isRoute": false },
-        { "label": "Pricing", "href": "#pricing", "isRoute": false },
-        { "label": "Reviews", "href": "#testimonials", "isRoute": false },
-        { "label": "FAQ", "href": "#faq", "isRoute": false }
+        {
+          "label": "Services",
+          "href": "/services",
+          "isRoute": true
+        },
+        {
+          "label": "How It Works",
+          "href": "#how-it-works",
+          "isRoute": false
+        },
+        {
+          "label": "Pricing",
+          "href": "#pricing",
+          "isRoute": false
+        },
+        {
+          "label": "Reviews",
+          "href": "#testimonials",
+          "isRoute": false
+        },
+        {
+          "label": "FAQ",
+          "href": "#faq",
+          "isRoute": false
+        }
       ],
       "ctaText": "Book Service"
     }
@@ -82,15 +102,53 @@
       }
     ],
     "scrollingBrands": [
-      { "name": "Maruti Suzuki" },
-      { "name": "Hyundai" },
-      { "name": "Honda" },
-      { "name": "Tata" },
-      { "name": "Toyota" },
-      { "name": "Mahindra" },
-      { "name": "Kia" },
-      { "name": "MG" }
-    ]
+  { "name": "Maruti Suzuki", "logo": "../assets/brand/suzuki-logo.png" },
+  { "name": "Hyundai", "logo": "../assets/brand/hyundai-logo.png" },
+  { "name": "Honda", "logo": "../assets/brand/honda-logo.png" },
+  { "name": "Tata", "logo": "../assets/brand/tata-logo.png" },
+  { "name": "Toyota", "logo": "../assets/brand/toyota-logo.png" },
+  { "name": "Mahindra", "logo": "../assets/brand/mahindra-logo.png" },
+  { "name": "Kia", "logo": "../assets/brand/kia-logo.png" },
+  { "name": "MG", "logo": "../assets/brand/mg-logo.png" },
+  { "name": "Volkswagen", "logo": "../assets/brand/volkswagen-logo.png" },
+  { "name": "Skoda", "logo": "../assets/brand/skoda-logo.png" },
+  { "name": "Renault", "logo": "../assets/brand/renault-logo.png" },
+  { "name": "Nissan", "logo": "../assets/brand/nissan-logo.png" },
+  { "name": "Ford", "logo": "../assets/brand/ford-logo.png" },
+  { "name": "Chevrolet", "logo": "../assets/brand/chevrolet-logo.png" },
+  { "name": "Jeep", "logo": "../assets/brand/jeep-logo.png" },
+  { "name": "Citroen", "logo": "../assets/brand/citroen-logo.png" },
+  { "name": "Isuzu", "logo": "../assets/brand/isuzu-logo.png" },
+  { "name": "Datsun", "logo": "../assets/brand/datsun-logo.png" },
+  { "name": "Fiat", "logo": "../assets/brand/fiat-logo.png" },
+  { "name": "Force Motors", "logo": "../assets/brand/force-logo.png" },
+  { "name": "Hindustan Motors", "logo": "../assets/brand/hindustan-logo.png" },
+  { "name": "Premier", "logo": "../assets/brand/premier-logo.png" },
+  { "name": "Daewoo", "logo": "../assets/brand/daewoo-logo.png" },
+  { "name": "Opel", "logo": "../assets/brand/opel-logo.png" },
+  { "name": "Mitsubishi", "logo": "../assets/brand/mitsubishi-logo.png" },
+  { "name": "SsangYong", "logo": "../assets/brand/ssangyong-logo.png" },
+  { "name": "Foton", "logo": "../assets/brand/foton-logo.png" },
+  { "name": "BYD", "logo": "../assets/brand/byd-logo.png" },
+  { "name": "Mercedes-Benz", "logo": "../assets/brand/mercedes-benz-logo.png" },
+  { "name": "BMW", "logo": "../assets/brand/bmw-logo.png" },
+  { "name": "Audi", "logo": "../assets/brand/audi-logo.png" },
+  { "name": "Volvo", "logo": "../assets/brand/volvo-logo.png" },
+  { "name": "Jaguar", "logo": "../assets/brand/jaguar-logo.png" },
+  { "name": "Land Rover", "logo": "../assets/brand/land-rover-logo.png" },
+  { "name": "Porsche", "logo": "../assets/brand/porsche-logo.png" },
+  { "name": "Lexus", "logo": "../assets/brand/lexus-logo.png" },
+  { "name": "Mini", "logo": "../assets/brand/mini-logo.png" },
+  { "name": "Bentley", "logo": "../assets/brand/bentley-logo.png" },
+  { "name": "Rolls-Royce", "logo": "../assets/brand/rolls-royce-logo.png" },
+  { "name": "Aston Martin", "logo": "../assets/brand/aston-martin-logo.png" },
+  { "name": "Ferrari", "logo": "../assets/brand/ferrari-logo.png" },
+  { "name": "Lamborghini", "logo": "../assets/brand/lamborghini-logo.png" },
+  { "name": "Maserati", "logo": "../assets/brand/maserati-logo.png" },
+  { "name": "McLaren", "logo": "../assets/brand/mclaren-logo.png" },
+  { "name": "Lotus", "logo": "../assets/brand/lotus-logo.png" },
+  { "name": "Hummer", "logo": "../assets/brand/hummer-logo.png" }
+]
   },
   "bookingWidget": {
     "title": "Book Your Service",
@@ -140,103 +198,1153 @@
       "fuel": "fuel"
     },
     "cities": [
-      "Coimbatore", "Chennai", "Bangalore", "Hyderabad", "Mumbai",
-      "Delhi", "Pune", "Kolkata", "Ahmedabad", "Jaipur",
-      "Lucknow", "Kochi", "Chandigarh", "Indore", "Nagpur"
+      "Coimbatore",
+      "Chennai",
+      "Bangalore",
+      "Hyderabad",
+      "Mumbai",
+      "Delhi",
+      "Pune",
+      "Kolkata",
+      "Ahmedabad",
+      "Jaipur",
+      "Lucknow",
+      "Kochi",
+      "Chandigarh",
+      "Indore",
+      "Nagpur"
     ],
     "brands": [
-      { "id": "maruti", "name": "Maruti Suzuki", "logo": "https://www.carlogos.org/car-logos/suzuki-logo.png", "urlName": "maruti-suzuki" },
-      { "id": "hyundai", "name": "Hyundai", "logo": "https://www.carlogos.org/car-logos/hyundai-logo.png", "urlName": "hyundai" },
-      { "id": "honda", "name": "Honda", "logo": "https://www.carlogos.org/car-logos/honda-logo.png", "urlName": "honda" },
-      { "id": "tata", "name": "Tata", "logo": "https://www.carlogos.org/car-logos/tata-logo.png", "urlName": "tata" },
-      { "id": "toyota", "name": "Toyota", "logo": "https://www.carlogos.org/car-logos/toyota-logo.png", "urlName": "toyota" },
-      { "id": "mahindra", "name": "Mahindra", "logo": "https://www.carlogos.org/car-logos/mahindra-logo.png", "urlName": "mahindra" },
-      { "id": "kia", "name": "Kia", "logo": "https://www.carlogos.org/car-logos/kia-logo.png", "urlName": "kia" },
-      { "id": "mg", "name": "MG", "logo": "https://www.carlogos.org/car-logos/mg-logo.png", "urlName": "mg" },
-      { "id": "volkswagen", "name": "Volkswagen", "logo": "https://www.carlogos.org/car-logos/volkswagen-logo.png", "urlName": "volkswagen" },
-      { "id": "skoda", "name": "Skoda", "logo": "https://www.carlogos.org/car-logos/skoda-logo.png", "urlName": "skoda" },
-      { "id": "renault", "name": "Renault", "logo": "https://www.carlogos.org/car-logos/renault-logo.png", "urlName": "renault" },
-      { "id": "nissan", "name": "Nissan", "logo": "https://www.carlogos.org/car-logos/nissan-logo.png", "urlName": "nissan" },
-      { "id": "ford", "name": "Ford", "logo": "https://www.carlogos.org/car-logos/ford-logo.png", "urlName": "ford" },
-      { "id": "chevrolet", "name": "Chevrolet", "logo": "https://www.carlogos.org/car-logos/chevrolet-logo.png", "urlName": "chevrolet" },
-      { "id": "bmw", "name": "BMW", "logo": "https://www.carlogos.org/car-logos/bmw-logo.png", "urlName": "bmw" },
-      { "id": "audi", "name": "Audi", "logo": "https://www.carlogos.org/car-logos/audi-logo.png", "urlName": "audi" },
-      { "id": "mercedes", "name": "Mercedes-Benz", "logo": "https://www.carlogos.org/car-logos/mercedes-benz-logo.png", "urlName": "mercedes-benz" },
-      { "id": "jeep", "name": "Jeep", "logo": "https://www.carlogos.org/car-logos/jeep-logo.png", "urlName": "jeep" },
-      { "id": "volvo", "name": "Volvo", "logo": "https://www.carlogos.org/car-logos/volvo-logo.png", "urlName": "volvo" },
-      { "id": "lexus", "name": "Lexus", "logo": "https://www.carlogos.org/car-logos/lexus-logo.png", "urlName": "lexus" },
-      { "id": "porsche", "name": "Porsche", "logo": "https://www.carlogos.org/car-logos/porsche-logo.png", "urlName": "porsche" },
-      { "id": "jaguar", "name": "Jaguar", "logo": "https://www.carlogos.org/car-logos/jaguar-logo.png", "urlName": "jaguar" },
-      { "id": "landrover", "name": "Land Rover", "logo": "https://www.carlogos.org/car-logos/land-rover-logo.png", "urlName": "land-rover" },
-      { "id": "mitsubishi", "name": "Mitsubishi", "logo": "https://www.carlogos.org/car-logos/mitsubishi-logo.png", "urlName": "mitsubishi" }
+      {
+        "id": "maruti",
+        "name": "Maruti Suzuki",
+        "logo": "../assets/brand/suzuki-logo.png",
+        "urlName": "maruti-suzuki"
+      },
+      {
+        "id": "hyundai",
+        "name": "Hyundai",
+        "logo": "../assets/brand/hyundai-logo.png",
+        "urlName": "hyundai"
+      },
+      {
+        "id": "honda",
+        "name": "Honda",
+        "logo": "../assets/brand/honda-logo.png",
+        "urlName": "honda"
+      },
+      {
+        "id": "tata",
+        "name": "Tata",
+        "logo": "../assets/brand/tata-logo.png",
+        "urlName": "tata"
+      },
+      {
+        "id": "toyota",
+        "name": "Toyota",
+        "logo": "../assets/brand/toyota-logo.png",
+        "urlName": "toyota"
+      },
+      {
+        "id": "mahindra",
+        "name": "Mahindra",
+        "logo": "../assets/brand/mahindra-logo.png",
+        "urlName": "mahindra"
+      },
+      {
+        "id": "kia",
+        "name": "Kia",
+        "logo": "../assets/brand/kia-logo.png",
+        "urlName": "kia"
+      },
+      {
+        "id": "mg",
+        "name": "MG",
+        "logo": "../assets/brand/mg-logo.png",
+        "urlName": "mg"
+      },
+      {
+        "id": "volkswagen",
+        "name": "Volkswagen",
+        "logo": "../assets/brand/volkswagen-logo.png",
+        "urlName": "volkswagen"
+      },
+      {
+        "id": "skoda",
+        "name": "Skoda",
+        "logo": "../assets/brand/skoda-logo.png",
+        "urlName": "skoda"
+      },
+      {
+        "id": "renault",
+        "name": "Renault",
+        "logo": "../assets/brand/renault-logo.png",
+        "urlName": "renault"
+      },
+      {
+        "id": "nissan",
+        "name": "Nissan",
+        "logo": "../assets/brand/nissan-logo.png",
+        "urlName": "nissan"
+      },
+      {
+        "id": "ford",
+        "name": "Ford",
+        "logo": "../assets/brand/ford-logo.png",
+        "urlName": "ford"
+      },
+      {
+        "id": "chevrolet",
+        "name": "Chevrolet",
+        "logo": "../assets/brand/chevrolet-logo.png",
+        "urlName": "chevrolet"
+      },
+      {
+        "id": "bmw",
+        "name": "BMW",
+        "logo": "../assets/brand/bmw-logo.png",
+        "urlName": "bmw"
+      },
+      {
+        "id": "audi",
+        "name": "Audi",
+        "logo": "../assets/brand/audi-logo.png",
+        "urlName": "audi"
+      },
+      {
+        "id": "mercedes",
+        "name": "Mercedes-Benz",
+        "logo": "../assets/brand/mercedes-benz-logo.png",
+        "urlName": "mercedes-benz"
+      },
+      {
+        "id": "jeep",
+        "name": "Jeep",
+        "logo": "../assets/brand/jeep-logo.png",
+        "urlName": "jeep"
+      },
+      {
+        "id": "volvo",
+        "name": "Volvo",
+        "logo": "../assets/brand/volvo-logo.png",
+        "urlName": "volvo"
+      },
+      {
+        "id": "lexus",
+        "name": "Lexus",
+        "logo": "../assets/brand/lexus-logo.png",
+        "urlName": "lexus"
+      },
+      {
+        "id": "porsche",
+        "name": "Porsche",
+        "logo": "../assets/brand/porsche-logo.png",
+        "urlName": "porsche"
+      },
+      {
+        "id": "jaguar",
+        "name": "Jaguar",
+        "logo": "../assets/brand/jaguar-logo.png",
+        "urlName": "jaguar"
+      },
+      {
+        "id": "landrover",
+        "name": "Land Rover",
+        "logo": "../assets/brand/land-rover-logo.png",
+        "urlName": "land-rover"
+      },
+      {
+        "id": "mitsubishi",
+        "name": "Mitsubishi",
+        "logo": "../assets/brand/mitsubishi-logo.png",
+        "urlName": "mitsubishi"
+      },
+      { "id": "citroen", "name": "Citroen", "logo": "../assets/brand/citroen-logo.png", "urlName": "citroen" },
+{ "id": "isuzu", "name": "Isuzu", "logo": "../assets/brand/isuzu-logo.png", "urlName": "isuzu" },
+{ "id": "datsun", "name": "Datsun", "logo": "../assets/brand/datsun-logo.png", "urlName": "datsun" },
+{ "id": "fiat", "name": "Fiat", "logo": "../assets/brand/fiat-logo.png", "urlName": "fiat" },
+{ "id": "force", "name": "Force Motors", "logo": "../assets/brand/force-logo.png", "urlName": "force-motors" },
+{ "id": "hindustan", "name": "Hindustan Motors", "logo": "../assets/brand/hindustan-logo.png", "urlName": "hindustan-motors" },
+{ "id": "premier", "name": "Premier", "logo": "../assets/brand/premier-logo.png", "urlName": "premier" },
+{ "id": "daewoo", "name": "Daewoo", "logo": "../assets/brand/daewoo-logo.png", "urlName": "daewoo" },
+{ "id": "opel", "name": "Opel", "logo": "../assets/brand/opel-logo.png", "urlName": "opel" },
+{ "id": "ssangyong", "name": "SsangYong", "logo": "../assets/brand/ssangyong-logo.png", "urlName": "ssangyong" },
+{ "id": "foton", "name": "Foton", "logo": "../assets/brand/foton-logo.png", "urlName": "foton" },
+{ "id": "byd", "name": "BYD", "logo": "../assets/brand/byd-logo.png", "urlName": "byd" },
+{ "id": "mini", "name": "Mini", "logo": "../assets/brand/mini-logo.png", "urlName": "mini" },
+{ "id": "bentley", "name": "Bentley", "logo": "../assets/brand/bentley-logo.png", "urlName": "bentley" },
+{ "id": "rollsroyce", "name": "Rolls-Royce", "logo": "../assets/brand/rolls-royce-logo.png", "urlName": "rolls-royce" },
+{ "id": "astonmartin", "name": "Aston Martin", "logo": "../assets/brand/aston-martin-logo.png", "urlName": "aston-martin" },
+{ "id": "ferrari", "name": "Ferrari", "logo": "../assets/brand/ferrari-logo.png", "urlName": "ferrari" },
+{ "id": "lamborghini", "name": "Lamborghini", "logo": "../assets/brand/lamborghini-logo.png", "urlName": "lamborghini" },
+{ "id": "maserati", "name": "Maserati", "logo": "../assets/brand/maserati-logo.png", "urlName": "maserati" },
+{ "id": "mclaren", "name": "McLaren", "logo": "../assets/brand/mclaren-logo.png", "urlName": "mclaren" },
+{ "id": "lotus", "name": "Lotus", "logo": "../assets/brand/lotus-logo.png", "urlName": "lotus" },
+{ "id": "hummer", "name": "Hummer", "logo": "../assets/brand/hummer-logo.png", "urlName": "hummer" }
     ],
     "carModels": {
       "maruti": [
-        { "name": "Swift", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/159099/swift-exterior-right-front-three-quarter-31.png?isig=0&q=80" },
-        { "name": "Baleno", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/102663/baleno-exterior-right-front-three-quarter-69.png?isig=0&q=80" },
-        { "name": "Alto K10", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/127563/alto-k10-exterior-right-front-three-quarter-63.png?isig=0&q=80" },
-        { "name": "Wagon R", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/112947/wagon-r-exterior-right-front-three-quarter-6.png?isig=0&q=80" },
-        { "name": "Dzire", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/170173/dzire-exterior-right-front-three-quarter-27.png?isig=0&q=80" },
-        { "name": "Vitara Brezza", "type": "SUV", "image": "https://imgd.aeplcdn.com/664x374/n/cw/ec/39028/marutisuzuki-vitara-brezza-right-front-three-quarter3.jpeg?q=80" },
-        { "name": "Ertiga", "type": "MPV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/115777/ertiga-exterior-right-front-three-quarter-10.png?isig=0&q=80" },
-        { "name": "Ciaz", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/48542/ciaz-exterior-right-front-three-quarter-2.png?isig=0&q=80" },
-        { "name": "Grand Vitara", "type": "SUV", "image": "https://imgd.aeplcdn.com/664x374/n/cw/ec/123185/grand-vitara-exterior-right-front-three-quarter-5.png?isig=0&q=80" },
-        { "name": "Fronx", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/130591/fronx-exterior-right-front-three-quarter-109.png?isig=0&q=80" },
-        { "name": "Jimny", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/45299/jimny-exterior-right-front-three-quarter-23.png?isig=0&q=80" }
+        {
+          "name": "Swift",
+          "type": "Hatchback",
+          "image": "../assets/model/maruti-suzuki/swift-exterior-right-front-three-quarter-31.avif"
+        },
+        {
+          "name": "Baleno",
+          "type": "Hatchback",
+          "image": "../assets/model/maruti-suzuki/baleno-exterior-right-front-three-quarter-69.avif"
+        },
+        {
+          "name": "Alto K10",
+          "type": "Hatchback",
+          "image": "../assets/model/maruti-suzuki/alto-k10-exterior-right-front-three-quarter-63.avif"
+        },
+        {
+          "name": "Wagon R",
+          "type": "Hatchback",
+          "image": "../assets/model/maruti-suzuki/wagon-r-exterior-right-front-three-quarter-6.avif"
+        },
+        {
+          "name": "Dzire",
+          "type": "Sedan",
+          "image": "../assets/model/maruti-suzuki/dzire-exterior-right-front-three-quarter-27.avif"
+        },
+        {
+          "name": "Vitara Brezza",
+          "type": "SUV",
+          "image": "../assets/model/maruti-suzuki/marutisuzuki-vitara-brezza-right-front-three-quarter3.avif"
+        },
+        {
+          "name": "Brezza",
+          "type": "SUV",
+          "image": "../assets/model/maruti-suzuki/brezza-exterior-right-front-three-quarter-9.avif"
+        },
+        {
+          "name": "Ertiga",
+          "type": "MPV",
+          "image": "../assets/model/maruti-suzuki/ertiga-exterior-right-front-three-quarter-10.avif"
+        },
+        {
+          "name": "Ciaz",
+          "type": "Sedan",
+          "image": "../assets/model/maruti-suzuki/ciaz-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "Grand Vitara",
+          "type": "SUV",
+          "image": "../assets/model/maruti-suzuki/grand-vitara-exterior-right-front-three-quarter-5.avif"
+        },
+        {
+          "name": "Fronx",
+          "type": "SUV",
+          "image": "../assets/model/maruti-suzuki/fronx-exterior-right-front-three-quarter-109.avif"
+        },
+        {
+          "name": "Jimny",
+          "type": "SUV",
+          "image": "../assets/model/maruti-suzuki/jimny-exterior-right-front-three-quarter-23.avif"
+        },
+        {
+          "name": "Celerio",
+          "type": "Hatchback",
+          "image": "../assets/model/maruti-suzuki/celerio-exterior-right-front-three-quarter-8.avif"
+        },
+        {
+          "name": "S-Presso",
+          "type": "Hatchback",
+          "image": "../assets/model/maruti-suzuki/s-presso-exterior-right-front-three-quarter-5.avif"
+        },
+        {
+          "name": "Ignis",
+          "type": "Hatchback",
+          "image": "../assets/model/maruti-suzuki/ignis-exterior-right-front-three-quarter-16.avif"
+        },
+        {
+          "name": "XL6",
+          "type": "MPV",
+          "image": "../assets/model/maruti-suzuki/xl6-exterior-right-front-three-quarter-13.avif"
+        },
+        {
+          "name": "Eeco",
+          "type": "MPV",
+          "image": "../assets/model/maruti-suzuki/eeco-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "Invicto",
+          "type": "MPV",
+          "image": "../assets/model/maruti-suzuki/invicto-exterior-right-front-three-quarter-68.avif"
+        },
+        { "name": "S-Cross", "type": "SUV", "image": "../assets/model/maruti-suzuki/s-cross-petrol-exterior-right-front-three-quarter.avif" },
+{ "name": "Victoris", "type": "Sedan", "image": "../assets/model/maruti-suzuki/victoris-exterior-right-front-three-quarter-8.avif" }
       ],
       "hyundai": [
-        { "name": "Creta", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/106815/creta-exterior-right-front-three-quarter-6.png?isig=0&q=80" },
-        { "name": "i20", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/150603/i20-exterior-right-front-three-quarter-13.png?isig=0&q=80" },
-        { "name": "Venue", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/197163/venue-exterior-right-front-three-quarter-38.png?isig=0&q=80" },
-        { "name": "Verna", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/121943/verna-exterior-right-front-three-quarter-103.png?isig=0&q=80" },
-        { "name": "Grand i10 Nios", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/136183/grand-i10-nios-exterior-right-front-three-quarter-17.png?isig=0&q=80" },
-        { "name": "Aura", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/139133/aura-exterior-right-front-three-quarter-9.png?isig=0&q=80" },
-        { "name": "Tucson", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/106821/tucson-exterior-right-front-three-quarter-8.png?isig=0&q=80" },
-        { "name": "Alcazar", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/157825/alcazar-exterior-right-front-three-quarter-24.png?isig=0&q=80" },
-        { "name": "Exter", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/144851/exter-exterior-right-front-three-quarter-64.png?isig=0&q=80" }
+        {
+          "name": "Creta",
+          "type": "SUV",
+          "image": "../assets/model/hyundai/creta-exterior-right-front-three-quarter-6.avif"
+        },
+        {
+          "name": "i20",
+          "type": "Hatchback",
+          "image": "../assets/model/hyundai/i20-exterior-right-front-three-quarter-13.avif"
+        },
+        {
+          "name": "Venue",
+          "type": "SUV",
+          "image": "../assets/model/hyundai/venue-exterior-right-front-three-quarter-38.avif"
+        },
+        {
+          "name": "Verna",
+          "type": "Sedan",
+          "image": "../assets/model/hyundai/verna-exterior-right-front-three-quarter-103.avif"
+        },
+        {
+          "name": "Grand i10 Nios",
+          "type": "Hatchback",
+          "image": "../assets/model/hyundai/grand-i10-nios-exterior-right-front-three-quarter-17.avif"
+        },
+        {
+          "name": "Aura",
+          "type": "Sedan",
+          "image": "../assets/model/hyundai/aura-exterior-right-front-three-quarter-9.avif"
+        },
+        {
+          "name": "Tucson",
+          "type": "SUV",
+          "image": "../assets/model/hyundai/tucson-exterior-right-front-three-quarter-8.avif"
+        },
+        {
+          "name": "Alcazar",
+          "type": "SUV",
+          "image": "../assets/model/hyundai/alcazar-exterior-right-front-three-quarter-24.avif"
+        },
+        {
+          "name": "Exter",
+          "type": "SUV",
+          "image": "../assets/model/hyundai/exter-exterior-right-front-three-quarter-64.avif"
+        },
+        {
+          "name": "i20 N Line",
+          "type": "Hatchback",
+          "image": "../assets/model/hyundai/i20-n-line-exterior-right-front-three-quarter-16.avif"
+        },
+        {
+          "name": "Creta N Line",
+          "type": "SUV",
+          "image": "../assets/model/hyundai/creta-n-line-exterior-right-front-three-quarter-26.avif"
+        },
+        {
+          "name": "Venue N Line",
+          "type": "SUV",
+          "image": "../assets/model/hyundai/new-venue-n-line-exterior-right-front-three-quarter-11.avif"
+        },
+        {
+          "name": "Ioniq 5",
+          "type": "Electric",
+          "image": "../assets/model/hyundai/ioniq-5-exterior-right-front-three-quarter-96.avif"
+        },
+        {
+          "name": "Kona Electric",
+          "type": "Electric",
+          "image": "../assets/model/hyundai/kona-electric-exterior-right-front-three-quarter-162254.avif"
+        }
       ],
       "honda": [
-        { "name": "City", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/134287/city-exterior-right-front-three-quarter-2.png?isig=0&q=80" },
-        { "name": "Amaze", "type": "Sedan", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/184377/amaze-exterior-right-front-three-quarter-5.png?isig=0&q=80" },
-        { "name": "Elevate", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/142515/elevate-exterior-right-front-three-quarter-29.png?isig=0&q=80" }
+        {
+          "name": "City",
+          "type": "Sedan",
+          "image": "../assets/model/honda/city-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "Amaze",
+          "type": "Sedan",
+          "image": "../assets/model/honda/amaze-exterior-right-front-three-quarter-5.avif"
+        },
+        {
+          "name": "Elevate",
+          "type": "SUV",
+          "image": "../assets/model/honda/elevate-exterior-right-front-three-quarter-29.avif"
+        },
+        {
+          "name": "Jazz",
+          "type": "Hatchback",
+          "image": "../assets/model/honda/jazz-exterior-right-front-three-quarter.avif"
+        },
+        {
+          "name": "WR-V",
+          "type": "SUV",
+          "image": "../assets/model/honda/wr-v-exterior-left-front-three-quarter-5.avif"
+        },
+        {
+          "name": "BR-V",
+          "type": "SUV",
+          "image": "../assets/model/honda/Honda-BRV-Exterior-119023.avif"
+        },
+        {
+          "name": "Civic",
+          "type": "Sedan",
+          "image": "../assets/model/honda/civic-exterior-right-front-three-quarter-148156.avif"
+        },
+        {
+          "name": "CR-V",
+          "type": "SUV",
+          "image": "../assets/model/honda/cr-v-exterior-right-front-three-quarter.avif"
+        }
       ],
       "tata": [
-        { "name": "Nexon", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/141867/nexon-exterior-right-front-three-quarter-79.png?isig=0&q=80" },
-        { "name": "Punch", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/39015/punch-exterior-right-front-three-quarter-58.png?isig=0&q=80" },
-        { "name": "Altroz", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/199863/altroz-exterior-right-front-three-quarter-13.png?isig=0&q=80" },
-        { "name": "Harrier", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/139139/harrier-exterior-right-front-three-quarter-7.png?isig=0&q=80" },
-        { "name": "Safari", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/138895/safari-exterior-right-front-three-quarter-40.png?isig=0&q=80" },
-        { "name": "Tiago", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/39345/tiago-exterior-right-front-three-quarter-33.png?isig=0&q=80" }
+        {
+          "name": "Nexon",
+          "type": "SUV",
+          "image": "../assets/model/tata/nexon-exterior-right-front-three-quarter-79.avif"
+        },
+        {
+          "name": "Punch",
+          "type": "SUV",
+          "image": "../assets/model/tata/punch-exterior-right-front-three-quarter-58.avif"
+        },
+        {
+          "name": "Altroz",
+          "type": "Hatchback",
+          "image": "../assets/model/tata/altroz-exterior-right-front-three-quarter-13.avif"
+        },
+        {
+          "name": "Harrier",
+          "type": "SUV",
+          "image": "../assets/model/tata/harrier-exterior-right-front-three-quarter-7.avif"
+        },
+        {
+          "name": "Safari",
+          "type": "SUV",
+          "image": "../assets/model/tata/safari-exterior-right-front-three-quarter-40.avif"
+        },
+        {
+          "name": "Tiago",
+          "type": "Hatchback",
+          "image": "../assets/model/tata/tiago-exterior-right-front-three-quarter-33.avif"
+        },
+        {
+          "name": "Tigor",
+          "type": "Sedan",
+          "image": "../assets/model/tata/tigor-exterior-right-front-three-quarter-23.avif"
+        },
+        {
+          "name": "Nexon EV",
+          "type": "Electric",
+          "image": "../assets/model/tata/nexon-ev-exterior-right-front-three-quarter-80.avif"
+        },
+        {
+          "name": "Tiago EV",
+          "type": "Electric",
+          "image": "../assets/model/tata/tiago-ev-exterior-right-front-three-quarter-15.avif"
+        },
+        {
+          "name": "Curvv",
+          "type": "SUV",
+          "image": "../assets/model/tata/curvv-exterior-right-front-three-quarter-16.avif"
+        }
       ],
       "toyota": [
-        { "name": "Innova Crysta", "type": "MPV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/140809/innova-crysta-exterior-right-front-three-quarter-2.png?isig=0&q=80" },
-        { "name": "Fortuner", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/44709/fortuner-exterior-right-front-three-quarter-18.png?isig=0&q=80" },
-        { "name": "Glanza", "type": "Hatchback", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/112839/glanza-exterior-right-front-three-quarter-8.png?isig=0&q=80" },
-        { "name": "Urban Cruiser Hyryder", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/112975/urban-cruiser-hyryder-exterior-right-front-three-quarter-20.png?isig=0&q=80" }
+        {
+          "name": "Innova Crysta",
+          "type": "MPV",
+          "image": "../assets/model/toyoto/innova-crysta-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "Innova Hycross",
+          "type": "MPV",
+          "image": "../assets/model/toyoto/innova-hycross-exterior-right-front-three-quarter-74.avif"
+        },
+        {
+          "name": "Fortuner",
+          "type": "SUV",
+          "image": "../assets/model/toyoto/fortuner-exterior-right-front-three-quarter-28.avif"
+        },
+        {
+          "name": "Fortuner Legender",
+          "type": "SUV",
+          "image": "../assets/model/toyoto/fortuner-legender-exterior-right-front-three-quarter-5.avif"
+        },
+        {
+          "name": "Glanza",
+          "type": "Hatchback",
+          "image": "../assets/model/toyoto/glanza-exterior-right-front-three-quarter-6.avif"
+        },
+        {
+          "name": "Urban Cruiser Hyryder",
+          "type": "SUV",
+          "image": "../assets/model/toyoto/hyryder-exterior-right-front-three-quarter-74.avif"
+        },
+        {
+          "name": "Camry",
+          "type": "Sedan",
+          "image": "../assets/model/toyoto/camry-exterior-right-front-three-quarter-15.avif"
+        },
+        {
+          "name": "Hilux",
+          "type": "Pickup",
+          "image": "../assets/model/toyoto/hilux-exterior-right-front-three-quarter-44.avif"
+        },
+        {
+          "name": "Land Cruiser",
+          "type": "SUV",
+          "image": "../assets/model/toyoto/land-cruiser-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "Vellfire",
+          "type": "MPV",
+          "image": "../assets/model/toyoto/vellfire-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "Rumion",
+          "type": "MPV",
+          "image": "../assets/model/toyoto/rumion-exterior-right-front-three-quarter-8.avif"
+        },
+        {
+          "name": "Taisor",
+          "type": "SUV",
+          "image": "../assets/model/toyoto/taisor-exterior-right-front-three-quarter-41.avif"
+        },
+        { "name": "Corolla Altis", "type": "Sedan", "image": "../assets/model/toyoto/Toyota-Corolla-Altis-Exterior-92974.avif" },
+{ "name": "Yaris", "type": "Sedan", "image": "../assets/model/toyoto/yaris-exterior-right-front-three-quarter-2.avif" }
       ],
       "mahindra": [
-        { "name": "Thar", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/40087/thar-exterior-right-front-three-quarter-76.png?isig=0&q=80" },
-        { "name": "XUV700", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/42355/xuv700-exterior-right-front-three-quarter-73.png?isig=0&q=80" },
-        { "name": "Scorpio N", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/107545/scorpio-n-exterior-right-front-three-quarter-3.png?isig=0&q=80" },
-        { "name": "XUV300", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/144631/xuv300-exterior-right-front-three-quarter-22.png?isig=0&q=80" },
-        { "name": "Bolero", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/46492/bolero-exterior-right-front-three-quarter-2.png?isig=0&q=80" }
+        {
+          "name": "Thar",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/thar-2025-exterior-right-front-three-quarter-5.avif"
+        },
+        {
+          "name": "Thar Roxx",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/thar-roxx-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "XUV700",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/xuv700-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "Scorpio N",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/scorpio-n-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "Scorpio Classic",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/scorpio-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "XUV 3XO",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/xuv-3xo-exterior-right-front-three-quarter-33.avif"
+        },
+        {
+          "name": "XUV300",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/xuv300-exterior-right-front-three-quarter-148709.avif"
+        },
+        {
+          "name": "XUV400",
+          "type": "Electric",
+          "image": "../assets/model/mahindra/xuv400-exterior-right-front-three-quarter-8.avif"
+        },
+        {
+          "name": "Bolero",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/bolero-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "Bolero Neo",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/bolero-neo-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "Marazzo",
+          "type": "MPV",
+          "image": "../assets/model/mahindra/marazzo-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "BE 6",
+          "type": "Electric",
+          "image": "../assets/model/mahindra/be-6-exterior-right-front-three-quarter-6.avif"
+        },
+        {
+          "name": "XEV 9e",
+          "type": "Electric",
+          "image": "../assets/model/mahindra/xev-9e-exterior-right-front-three-quarter-2.avif"
+        },
+        { "name": "TUV300", "type": "SUV", "image": "../assets/model/mahindra/Mahindra-TUV300-Right-Front-Three-Quarter-155763.avif" },
+{ "name": "KUV100 NXT", "type": "SUV", "image": "../assets/model/mahindra/kuv100-nxt-exterior-right-front-three-quarter-64047.avif" },
+{ "name": "XEV9s", "type": "Electric", "image": "../assets/model/mahindra/xev9s-exterior-right-front-three-quarter-11.avif" }
       ],
       "kia": [
-        { "name": "Seltos", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/174323/seltos-exterior-right-front-three-quarter-36.png?isig=0&q=80" },
-        { "name": "Sonet", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/141115/sonet-exterior-right-front-three-quarter-32.png?isig=0&q=80" },
-        { "name": "Carens", "type": "MPV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/143865/carens-exterior-right-front-three-quarter-29.png?isig=0&q=80" }
+        {
+          "name": "Seltos",
+          "type": "SUV",
+          "image": "../assets/model/kia/new-seltos-exterior-right-front-three-quarter-48.avif"
+        },
+        {
+          "name": "Sonet",
+          "type": "SUV",
+          "image": "../assets/model/kia/sonet-exterior-right-front-three-quarter-12.avif"
+        },
+        {
+          "name": "Carens",
+          "type": "MPV",
+          "image": "../assets/model/kia/carens-exterior-right-front-three-quarter-9.avif"
+        },
+        {
+          "name": "Carnival",
+          "type": "MPV",
+          "image": "../assets/model/kia/carnival-exterior-right-front-three-quarter-20.avif"
+        },
+        {
+          "name": "EV6",
+          "type": "Electric",
+          "image": "../assets/model/kia/ev6-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "EV9",
+          "type": "Electric",
+          "image": "../assets/model/kia/ev9-exterior-right-front-three-quarter-6.avif"
+        },
+        { "name": "Carens Clavis", "type": "SUV", "image": "../assets/model/kia/carens-clavis-exterior-right-front-three-quarter-3.avif" }
       ],
       "mg": [
-        { "name": "Hector", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/130583/hector-exterior-right-front-three-quarter-74.png?isig=0&q=80" },
-        { "name": "Astor", "type": "SUV", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/115119/astor-exterior-right-front-three-quarter-21.png?isig=0&q=80" },
-        { "name": "ZS EV", "type": "Electric", "image": "https://imgd.aeplcdn.com/227x128/n/cw/ec/121903/zs-ev-exterior-right-front-three-quarter-2.png?isig=0&q=80" }
+        {
+          "name": "Hector",
+          "type": "SUV",
+          "image": "../assets/model/mg/hector-facelift-exterior-right-front-three-quarter.avif"
+        },
+        {
+          "name": "Hector Plus",
+          "type": "SUV",
+          "image": "../assets/model/mg/hector-plus-exterior-right-front-three-quarter.avif"
+        },
+        {
+          "name": "Astor",
+          "type": "SUV",
+          "image": "../assets/model/mg/astor-exterior-right-front-three-quarter-8.avif"
+        },
+        {
+          "name": "ZS EV",
+          "type": "Electric",
+          "image": "../assets/model/mg/zs-ev-exterior-right-front-three-quarter-70.avif"
+        },
+        {
+          "name": "Gloster",
+          "type": "SUV",
+          "image": "../assets/model/mg/gloster-exterior-right-front-three-quarter-5.avif"
+        },
+        {
+          "name": "Comet EV",
+          "type": "Electric",
+          "image": "../assets/model/mg/comet-ev-exterior-right-front-three-quarter-31.avif"
+        }
+      ],
+      "volkswagen": [
+        { "name": "Golf GTI", "type": "Hatchback", "image": "../assets/model/volkswagen/golf-gti-exterior-right-front-three-quarter-4.avif" },
+        {
+          "name": "Taigun",
+          "type": "SUV",
+          "image": "../assets/model/volkswagen/taigun-exterior-right-front-three-quarter-8.avif"
+        },
+        {
+          "name": "Virtus",
+          "type": "Sedan",
+          "image": "../assets/model/volkswagen/virtus-exterior-right-front-three-quarter-11.avif"
+        },
+        {
+          "name": "Tiguan",
+          "type": "SUV",
+          "image": "../assets/model/volkswagen/tiguan-r-line-exterior-right-front-three-quarter-10.avif"
+        },
+        {
+          "name": "Polo",
+          "type": "Hatchback",
+          "image": "../assets/model/volkswagen/polo-exterior-right-front-three-quarter-2.avif"
+        }
+      ],
+      "skoda": [
+        {
+          "name": "Kushaq",
+          "type": "SUV",
+          "image": "../assets/model/skoda/kushaq-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "Slavia",
+          "type": "Sedan",
+          "image": "../assets/model/skoda/slavia-exterior-right-front-three-quarter-10.avif"
+        },
+        {
+          "name": "Kodiaq",
+          "type": "SUV",
+          "image": "../assets/model/skoda/kodiaq-exterior-right-front-three-quarter-14.avif"
+        },
+        {
+          "name": "Superb",
+          "type": "Sedan",
+          "image": "../assets/model/skoda/superb-exterior-right-front-three-quarter-6.avif"
+        },
+        {
+          "name": "Kylaq",
+          "type": "SUV",
+          "image": "../assets/model/skoda/kylaq-exterior-right-front-three-quarter-10.avif"
+        },{ "name": "Octavia RS", "type": "Sedan", "image": "../assets/model/skoda/octaviars-exterior-right-front-three-quarter-2.avif" }
+      ],
+      "renault": [
+        {
+          "name": "Kiger",
+          "type": "SUV",
+          "image": "../assets/model/renault/kiger-exterior-right-front-three-quarter-30.avif"
+        },
+        {
+          "name": "Kwid",
+          "type": "Hatchback",
+          "image": "../assets/model/renault/kwid-exterior-right-front-three-quarter-38.avif"
+        },
+        {
+          "name": "Triber",
+          "type": "MPV",
+          "image": "../assets/model/renault/triber-exterior-right-front-three-quarter-26.avif"
+        },
+        {
+          "name": "Duster",
+          "type": "SUV",
+          "image": "../assets/model/renault/new-duster-exterior-right-front-three-quarter-5.avif"
+        }
+      ],
+      "nissan": [
+        {
+          "name": "Magnite",
+          "type": "SUV",
+          "image": "../assets/model/nissan/magnite-exterior-right-front-three-quarter-27.avif"
+        },
+        {
+          "name": "X-Trail",
+          "type": "SUV",
+          "image": "../assets/model/nissan/x-trail-exterior-right-front-three-quarter-28.avif"
+        },
+        { "name": "Kicks", "type": "SUV", "image": "../assets/model/nissan/Nissan-Kicks-Right-Front-Three-Quarter-159680.avif" }
+      ],
+      "ford": [
+        { "name": "Freestyle", "type": "Hatchback", "image": "../assets/model/ford/freestyle-exterior-right-front-three-quarter-2.avif" },
+        {
+          "name": "EcoSport",
+          "type": "SUV",
+          "image": "../assets/model/ford/Ford-EcoSport-New-Right-Front-Three-Quarter-111783.avif"
+        },
+        {
+          "name": "Endeavour",
+          "type": "SUV",
+          "image": "../assets/model/ford/endeavour-exterior-right-front-three-quarter-149473.avif"
+        },
+        {
+          "name": "Aspire",
+          "type": "Sedan",
+          "image": "../assets/model/ford/aspire-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "Figo",
+          "type": "Hatchback",
+          "image": "../assets/model/ford/figo-2010-2012.avif"
+        }
+      ],
+      "chevrolet": [
+        { "name": "Enjoy", "type": "MPV", "image": "../assets/model/chevrolet/Chevrolet-Enjoy-Right-Front-Three-Quarter-49907_ol.avif" },
+{ "name": "Tavera", "type": "MPV", "image": "../assets/model/chevrolet/Chevrolet-Tavera-Right-Front-Three-Quarter-49908_ol.avif" },
+        {
+          "name": "Beat",
+          "type": "Hatchback",
+          "image": "../assets/model/chevrolet/Chevrolet-Beat-Right-Front-Three-Quarter-81148.avif"
+        },
+        {
+          "name": "Cruze",
+          "type": "Sedan",
+          "image": "../assets/model/chevrolet/Chevrolet-Cruze-Right-Front-Three-Quarter-73032.avif"
+        },
+        {
+          "name": "Spark",
+          "type": "Hatchback",
+          "image": "../assets/model/chevrolet/spark.avif"
+        }
+      ],
+      "bmw": [
+        {
+          "name": "3 Series",
+          "type": "Sedan",
+          "image": "../assets/model/bmw/3-series-exterior-right-front-three-quarter-10.avif"
+        },
+        { "name": "2 Series", "type": "Sedan", "image": "../assets/model/bmw/2-series-gran-coupe-exterior-right-front-three-quarter-4.avif" },
+{ "name": "iX1", "type": "Electric", "image": "../assets/model/bmw/ix1-lwb-exterior-right-front-three-quarter-2.avif" },
+        {
+          "name": "5 Series",
+          "type": "Sedan",
+          "image": "../assets/model/bmw/5-series-exterior-right-front-three-quarter-95.avif"
+        },
+        {
+          "name": "7 Series",
+          "type": "Sedan",
+          "image": "../assets/model/bmw/7-series-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "X1",
+          "type": "SUV",
+          "image": "../assets/model/bmw/x1-exterior-right-front-three-quarter-8.avif"
+        },
+        {
+          "name": "X3",
+          "type": "SUV",
+          "image": "../assets/model/bmw/x3-exterior-right-front-three-quarter-8.avif"
+        },
+        {
+          "name": "X5",
+          "type": "SUV",
+          "image": "../assets/model/bmw/x5-exterior-right-front-three-quarter-7.avif"
+        },
+        {
+          "name": "X7",
+          "type": "SUV",
+          "image": "../assets/model/bmw/x7-exterior-right-front-three-quarter-10.avif"
+        },
+        {
+          "name": "i4",
+          "type": "Electric",
+          "image": "../assets/model/bmw/i4-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "i7",
+          "type": "Electric",
+          "image": "../assets/model/bmw/i7-exterior-right-front-three-quarter-9.avif"
+        }
+      ],
+      "audi": [
+        {
+          "name": "A4",
+          "type": "Sedan",
+          "image": "../assets/model/audi/a4-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "A6",
+          "type": "Sedan",
+          "image": "../assets/model/audi/a6-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "A8 L",
+          "type": "Sedan",
+          "image": "../assets/model/audi/a8-l-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "Q3",
+          "type": "SUV",
+          "image": "../assets/model/audi/q3-exterior-right-front-three-quarter-93481.avif"
+        },
+        {
+          "name": "Q5",
+          "type": "SUV",
+          "image": "../assets/model/audi/q5-exterior-right-front-three-quarter-36.avif"
+        },
+        {
+          "name": "Q7",
+          "type": "SUV",
+          "image": "../assets/model/audi/q7-exterior-right-front-three-quarter.avif"
+        },
+        {
+          "name": "Q8",
+          "type": "SUV",
+          "image": "../assets/model/audi/q8-facelift-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "e-tron",
+          "type": "Electric",
+          "image": "../assets/model/audi/e-tron-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "e-tron GT",
+          "type": "Electric",
+          "image": "../assets/model/audi/e-tron-gt-exterior-right-front-three-quarter-2.avif"
+        },
+        { "name": "RS5", "type": "Sports", "image": "../assets/model/audi/rs5-exterior-right-front-three-quarter-4.avif" }
+      ],
+      "mercedes": [
+        {
+          "name": "A-Class",
+          "type": "Sedan",
+          "image": "../assets/model/mercedes/a-class-limousine-exterior-right-front-three-quarter-8.avif"
+        },
+        {
+          "name": "C-Class",
+          "type": "Sedan",
+          "image": "../assets/model/mercedes/c-class-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "E-Class",
+          "type": "Sedan",
+          "image": "../assets/model/mercedes/e-class-exterior-right-front-three-quarter-35.avif"
+        },
+        {
+          "name": "S-Class",
+          "type": "Sedan",
+          "image": "../assets/model/mercedes/s-class-exterior-right-front-three-quarter-10.avif"
+        },
+        {
+          "name": "GLA",
+          "type": "SUV",
+          "image": "../assets/model/mercedes/gla-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "GLC",
+          "type": "SUV",
+          "image": "../assets/model/mercedes/glc-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "GLE",
+          "type": "SUV",
+          "image": "../assets/model/mercedes/gle-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "GLS",
+          "type": "SUV",
+          "image": "../assets/model/mercedes/gls-exterior-right-front-three-quarter-22.avif"
+        },
+        {
+          "name": "G-Class",
+          "type": "SUV",
+          "image": "../assets/model/mercedes/g-class-exterior-right-front-three-quarter-7.avif"
+        },
+        {
+          "name": "EQS",
+          "type": "Electric",
+          "image": "../assets/model/mercedes/eqs-exterior-right-front-three-quarter-31.avif"
+        },
+        { "name": "AMG CLE", "type": "Sports", "image": "../assets/model/mercedes/amg-cle-exterior-right-front-three-quarter-33.avif" },
+{ "name": "EQE SUV", "type": "Electric", "image": "../assets/model/mercedes/eqe-suv-exterior-right-front-three-quarter-4.avif" },
+{ "name": "GLB", "type": "SUV", "image": "../assets/model/mercedes/glb-exterior-right-front-three-quarter-2.avif" },
+{ "name": "Maybach GLS", "type": "SUV", "image": "../assets/model/mercedes/maybach-gls-exterior-right-front-three-quarter-5.avif" },
+{ "name": "Maybach S-Class", "type": "Sedan", "image": "../assets/model/mercedes/maybach-s-class-exterior-right-front-three-quarter-6.avif" }
+      ],
+      "jeep": [
+        {
+          "name": "Compass",
+          "type": "SUV",
+          "image": "../assets/model/jeep/compass-exterior-right-front-three-quarter-84.avif"
+        },
+        {
+          "name": "Meridian",
+          "type": "SUV",
+          "image": "../assets/model/jeep/meridian-exterior-right-front-three-quarter-18.avif"
+        },
+        {
+          "name": "Wrangler",
+          "type": "SUV",
+          "image": "../assets/model/jeep/wrangler-exterior-right-front-three-quarter-34.avif"
+        },
+        {
+          "name": "Grand Cherokee",
+          "type": "SUV",
+          "image": "../assets/model/jeep/grand-cherokee-exterior-right-front-three-quarter-28.avif"
+        }
+      ],
+      "volvo": [
+        {
+          "name": "XC40",
+          "type": "SUV",
+          "image": "../assets/model/volvo/Volvo-XC40-Exterior-130763.avif"
+        },
+        {
+          "name": "XC60",
+          "type": "SUV",
+          "image": "../assets/model/volvo/xc60-exterior-right-front-three-quarter-8.avif"
+        },
+        {
+          "name": "XC90",
+          "type": "SUV",
+          "image": "../assets/model/volvo/xc90-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "S60",
+          "type": "Sedan",
+          "image": "../assets/model/volvo/s60-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "S90",
+          "type": "Sedan",
+          "image": "../assets/model/volvo/s90-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "C40 Recharge",
+          "type": "Electric",
+          "image": "../assets/model/volvo/c40-recharge-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "EX30",
+          "type": "Electric",
+          "image": "../assets/model/volvo/ex30-exterior-right-front-three-quarter-6.avif"
+        }
+      ],
+      "lexus": [
+        {
+          "name": "ES",
+          "type": "Sedan",
+          "image": "../assets/model/lexus/es-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "LS",
+          "type": "Sedan",
+          "image": "../assets/model/lexus/ls-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "NX",
+          "type": "SUV",
+          "image": "../assets/model/lexus/nx-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "RX",
+          "type": "SUV",
+          "image": "../assets/model/lexus/rx-exterior-right-front-three-quarter-15.avif"
+        },
+        {
+          "name": "LX",
+          "type": "SUV",
+          "image": "../assets/model/lexus/lx-exterior-right-front-three-quarter-40.avif"
+        },
+        {
+          "name": "LM",
+          "type": "MPV",
+          "image": "../assets/model/lexus/lm-exterior-right-front-three-quarter-5.avif"
+        },
+        { "name": "LC 500h", "type": "Sports", "image": "../assets/model/lexus/lexus-lc-500h-right-front-three-quarter10.avif" }
+      ],
+      "porsche": [
+        {
+          "name": "911",
+          "type": "Sports",
+          "image": "../assets/model/porsche/911-exterior-right-front-three-quarter-154382.avif"
+        },
+        {
+          "name": "Cayenne",
+          "type": "SUV",
+          "image": "../assets/model/porsche/cayenne-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "Macan",
+          "type": "SUV",
+          "image": "../assets/model/porsche/macan-exterior-right-front-three-quarter-9.avif"
+        },
+        {
+          "name": "Panamera",
+          "type": "Sedan",
+          "image": "../assets/model/porsche/panamera-exterior-right-front-three-quarter.avif"
+        },
+        {
+          "name": "Taycan",
+          "type": "Electric",
+          "image": "../assets/model/porsche/taycan-exterior-right-front-three-quarter-5.avif"
+        }
+      ],
+      "jaguar": [
+        {
+          "name": "XE",
+          "type": "Sedan",
+          "image": "../assets/model/jaguar/jaguar-xe-front-right-three-quarter-7.avif"
+        },
+        {
+          "name": "XF",
+          "type": "Sedan",
+          "image": "../assets/model/jaguar/xf-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "F-Pace",
+          "type": "SUV",
+          "image": "../assets/model/jaguar/f-pace-exterior-right-front-three-quarter-5.avif"
+        },
+        {
+          "name": "F-Type",
+          "type": "Sports",
+          "image": "../assets/model/jaguar/f-type-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "I-Pace",
+          "type": "Electric",
+          "image": "../assets/model/jaguar/i-pace-exterior-right-front-three-quarter-2.avif"
+        }
+      ],
+      "landrover": [
+        {
+          "name": "Defender",
+          "type": "SUV",
+          "image": "../assets/model/landrover/defender-exterior-right-front-three-quarter-23.avif"
+        },
+        {
+          "name": "Discovery",
+          "type": "SUV",
+          "image": "../assets/model/landrover/discovery-exterior-right-front-three-quarter-3.avif"
+        },
+        {
+          "name": "Discovery Sport",
+          "type": "SUV",
+          "image": "../assets/model/landrover/discovery-sport-exterior-right-front-three-quarter-42.avif"
+        },
+        {
+          "name": "Range Rover",
+          "type": "SUV",
+          "image": "../assets/model/landrover/range-rover-exterior-right-front-three-quarter-47.avif"
+        },
+        {
+          "name": "Range Rover Sport",
+          "type": "SUV",
+          "image": "../assets/model/landrover/range-rover-sport-exterior-right-front-three-quarter-44.avif"
+        },
+        {
+          "name": "Range Rover Evoque",
+          "type": "SUV",
+          "image": "../assets/model/landrover/range-rover-evoque-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "Range Rover Velar",
+          "type": "SUV",
+          "image": "../assets/model/landrover/range-rover-velar-exterior-right-front-three-quarter-5.avif"
+        }
+      ],
+      "mitsubishi": [
+        { "name": "Montero", "type": "SUV", "image": "../assets/model/mitshubitsi/Mitsubishi-Montero-Right-Front-Three-Quarter-74529.avif" },
+        {
+          "name": "Outlander",
+          "type": "SUV",
+          "image": "../assets/model/mitshubitsi/Mitsubishi-Outlander-Exterior-130062.webp"
+        },
+        {
+          "name": "Pajero Sport",
+          "type": "SUV",
+          "image": "../assets/model/mitshubitsi/Mitsubishi-Pajero-Sport-Right-Front-Three-Quarter-52939_ol.avif"
+        }
       ]
     },
     "fuelTypes": [
-      { "id": "petrol", "name": "Petrol", "icon": "⛽", "color": "#EF4444" },
-      { "id": "diesel", "name": "Diesel", "icon": "🛢️", "color": "#3B82F6" },
-      { "id": "cng", "name": "CNG", "icon": "💨", "color": "#10B981" },
-      { "id": "electric", "name": "Electric", "icon": "⚡", "color": "#8B5CF6" }
+      {
+        "id": "petrol",
+        "name": "Petrol",
+        "icon": "⛽",
+        "color": "#EF4444"
+      },
+      {
+        "id": "diesel",
+        "name": "Diesel",
+        "icon": "🛢️",
+        "color": "#3B82F6"
+      },
+      {
+        "id": "cng",
+        "name": "CNG",
+        "icon": "💨",
+        "color": "#10B981"
+      },
+      {
+        "id": "electric",
+        "name": "Electric",
+        "icon": "⚡",
+        "color": "#8B5CF6"
+      }
     ]
   },
   "howItWorks": {
@@ -363,6 +1471,11 @@
         "price": 2999,
         "originalPrice": 4500,
         "image": "../assets/PeriodicService.jpg",
+        "gallery": [
+          "../assets/PeriodicService.jpg",
+          "../assets/PeriodicService1.jpg",
+          "../assets/PeriodicService2.jpg"
+        ],
         "features": [
           "Engine oil replacement",
           "Oil filter replacement",
@@ -378,15 +1491,36 @@
           "Free Pickup & Drop"
         ],
         "process": [
-          { "title": "Booking", "description": "Schedule your service online" },
-          { "title": "Pickup", "description": "We collect your car from your location" },
-          { "title": "Inspection", "description": "40+ point checkup performed" },
-          { "title": "Service", "description": "Oil change and filter replacement" },
-          { "title": "Delivery", "description": "Car delivered sanitized and clean" }
+          {
+            "title": "Booking",
+            "description": "Schedule your service online"
+          },
+          {
+            "title": "Pickup",
+            "description": "We collect your car from your location"
+          },
+          {
+            "title": "Inspection",
+            "description": "40+ point checkup performed"
+          },
+          {
+            "title": "Service",
+            "description": "Oil change and filter replacement"
+          },
+          {
+            "title": "Delivery",
+            "description": "Car delivered sanitized and clean"
+          }
         ],
         "faqs": [
-          { "question": "How long does periodic service take?", "answer": "Typically 4-5 hours depending on your car model." },
-          { "question": "What oil brands do you use?", "answer": "We use OEM recommended oils from brands like Castrol, Shell, and Mobil." }
+          {
+            "question": "How long does periodic service take?",
+            "answer": "Typically 4-5 hours depending on your car model."
+          },
+          {
+            "question": "What oil brands do you use?",
+            "answer": "We use OEM recommended oils from brands like Castrol, Shell, and Mobil."
+          }
         ],
         "duration": "4-5 hours",
         "warranty": "1 Month / 1000 Km",
@@ -400,12 +1534,55 @@
         "price": 1499,
         "originalPrice": 2200,
         "image": "../assets/ACService.jpg",
+        "gallery": [
+          "../assets/ACService.jpg",
+          "../assets/ACService1.jpg",
+          "../assets/ACService2.jpg"
+        ],
         "features": [
           "AC gas top-up",
           "Cooling coil cleaning",
           "Blower motor check",
           "Condenser cleaning",
           "Thermostat check"
+        ],
+        "includes": [
+          "AC Gas (R134a)",
+          "Compressor Oil",
+          "Labor Charges",
+          "Free Diagnostics"
+        ],
+        "process": [
+          {
+            "title": "Diagnosis",
+            "description": "Check AC cooling and identify issues"
+          },
+          {
+            "title": "Gas Check",
+            "description": "Measure refrigerant level and pressure"
+          },
+          {
+            "title": "Cleaning",
+            "description": "Clean condenser and evaporator coils"
+          },
+          {
+            "title": "Gas Refill",
+            "description": "Top up refrigerant gas if needed"
+          },
+          {
+            "title": "Testing",
+            "description": "Verify cooling performance at all vents"
+          }
+        ],
+        "faqs": [
+          {
+            "question": "How do I know if my AC needs gas?",
+            "answer": "If cooling is weak or AC takes longer to cool, it likely needs gas."
+          },
+          {
+            "question": "How long does AC gas last?",
+            "answer": "Typically 2-3 years, but depends on usage and leaks."
+          }
         ],
         "duration": "2-3 hours",
         "warranty": "1 Month",
@@ -419,12 +1596,59 @@
         "price": 3999,
         "originalPrice": 6000,
         "image": "../assets/Denting.jpg",
+        "gallery": [
+          "../assets/Denting.jpg",
+          "../assets/Denting1.jpg",
+          "../assets/Denting2.jpg"
+        ],
         "features": [
           "Dent removal",
           "Color matching",
           "Anti-rust treatment",
           "Paint protection",
           "1 year warranty"
+        ],
+        "includes": [
+          "Paint Materials",
+          "Dent Repair Kit",
+          "Clear Coat",
+          "Polish & Wax"
+        ],
+        "process": [
+          {
+            "title": "Assessment",
+            "description": "Evaluate dents and scratches thoroughly"
+          },
+          {
+            "title": "Dent Removal",
+            "description": "Professional dent pulling and smoothing"
+          },
+          {
+            "title": "Surface Prep",
+            "description": "Sand, clean and prepare for painting"
+          },
+          {
+            "title": "Color Matching",
+            "description": "Computer-aided exact color matching"
+          },
+          {
+            "title": "Paint",
+            "description": "Apply primer, base coat and clear coat"
+          },
+          {
+            "title": "Polish",
+            "description": "Buff and polish for showroom finish"
+          }
+        ],
+        "faqs": [
+          {
+            "question": "How long does denting and painting take?",
+            "answer": "Minor dents take 1-2 days, major repairs may take 3-5 days."
+          },
+          {
+            "question": "Do you match the original color?",
+            "answer": "Yes, we use computerized color matching for perfect results."
+          }
         ],
         "duration": "2-3 days",
         "warranty": "6 Months",
@@ -438,12 +1662,59 @@
         "price": 499,
         "originalPrice": 800,
         "image": "../assets/CarInspection.jpg",
+        "gallery": [
+          "../assets/CarInspection.jpg",
+          "../assets/CarInspection1.jpg",
+          "../assets/CarInspection2.jpg"
+        ],
         "features": [
           "150+ point check",
           "Engine diagnostics",
           "Detailed report",
           "Expert consultation",
           "Free re-inspection"
+        ],
+        "includes": [
+          "Full Inspection Report",
+          "OBD Scan",
+          "Road Test",
+          "Expert Consultation"
+        ],
+        "process": [
+          {
+            "title": "Visual Check",
+            "description": "Check exterior and interior condition"
+          },
+          {
+            "title": "Engine Check",
+            "description": "Inspect engine components and fluids"
+          },
+          {
+            "title": "OBD Scan",
+            "description": "Run diagnostic scan for error codes"
+          },
+          {
+            "title": "Underbody",
+            "description": "Inspect suspension, brakes and chassis"
+          },
+          {
+            "title": "Road Test",
+            "description": "Test drive to check performance"
+          },
+          {
+            "title": "Report",
+            "description": "Detailed inspection report with photos"
+          }
+        ],
+        "faqs": [
+          {
+            "question": "When should I get my car inspected?",
+            "answer": "Before buying a used car or annually for maintenance."
+          },
+          {
+            "question": "What does the inspection report include?",
+            "answer": "Complete assessment of all systems with photos and recommendations."
+          }
         ],
         "duration": "1-2 hours",
         "warranty": "N/A",
@@ -457,12 +1728,59 @@
         "price": 699,
         "originalPrice": 1200,
         "image": "../assets/Wheelcare.jpg",
+        "gallery": [
+          "../assets/Wheelcare.jpg",
+          "../assets/WheelCare1.jpg",
+          "../assets/WheelCare2.jpg"
+        ],
         "features": [
           "Wheel alignment",
           "Wheel balancing",
           "Tire rotation",
           "Pressure check",
           "Valve replacement"
+        ],
+        "includes": [
+          "Alignment Service",
+          "Balancing Weights",
+          "Nitrogen Filling",
+          "Valve Replacement"
+        ],
+        "process": [
+          {
+            "title": "Initial Check",
+            "description": "Inspect tire condition and wear pattern"
+          },
+          {
+            "title": "Wheel Removal",
+            "description": "Remove wheels for detailed inspection"
+          },
+          {
+            "title": "Alignment Check",
+            "description": "Measure camber, caster and toe angles"
+          },
+          {
+            "title": "Precision Alignment",
+            "description": "Adjust to manufacturer specifications"
+          },
+          {
+            "title": "Balancing",
+            "description": "Computer-aided dynamic balancing"
+          },
+          {
+            "title": "Road Test",
+            "description": "Verify smooth handling and steering"
+          }
+        ],
+        "faqs": [
+          {
+            "question": "How often should I get wheel alignment?",
+            "answer": "Every 10,000 km or when you notice uneven tire wear."
+          },
+          {
+            "question": "What are signs of wheel imbalance?",
+            "answer": "Vibration in steering wheel, especially at high speeds."
+          }
         ],
         "duration": "1-2 hours",
         "warranty": "1 Month",
@@ -476,12 +1794,55 @@
         "price": 399,
         "originalPrice": 600,
         "image": "../assets/BatteryService.jpg",
+        "gallery": [
+          "../assets/BatteryService.jpg",
+          "../assets/BatteryService1.jpg",
+          "../assets/BatteryService2.jpg"
+        ],
         "features": [
           "Battery testing",
           "Terminal cleaning",
           "Charging system check",
           "Free installation",
           "2 year warranty"
+        ],
+        "includes": [
+          "Battery Test Report",
+          "Terminal Cleaning Kit",
+          "Free Installation",
+          "Old Battery Disposal"
+        ],
+        "process": [
+          {
+            "title": "Testing",
+            "description": "Check battery health and cold cranking amps"
+          },
+          {
+            "title": "Voltage Check",
+            "description": "Measure voltage under load and rest"
+          },
+          {
+            "title": "Terminal Cleaning",
+            "description": "Clean corrosion from terminals"
+          },
+          {
+            "title": "Alternator Test",
+            "description": "Verify charging system output"
+          },
+          {
+            "title": "Replacement",
+            "description": "Install new battery if required"
+          }
+        ],
+        "faqs": [
+          {
+            "question": "How long does a car battery last?",
+            "answer": "Typically 3-5 years depending on usage and climate."
+          },
+          {
+            "question": "How do I know if my battery needs replacement?",
+            "answer": "Slow cranking, dim lights, or battery warning light are common signs."
+          }
         ],
         "duration": "30 minutes",
         "warranty": "2 Years",
@@ -495,12 +1856,57 @@
         "price": 5999,
         "originalPrice": 9000,
         "image": "../assets/ClutchBody1.jpg",
+        "gallery": [
+          "../assets/ClutchBody1.jpg"
+        ],
         "features": [
           "Clutch plate replacement",
           "Pressure plate",
           "Release bearing",
           "Flywheel machining",
           "6 month warranty"
+        ],
+        "includes": [
+          "Clutch Kit (OEM)",
+          "Labor Charges",
+          "Transmission Fluid",
+          "Road Test"
+        ],
+        "process": [
+          {
+            "title": "Symptom Analysis",
+            "description": "Diagnose clutch slipping or hard shifting"
+          },
+          {
+            "title": "Gearbox Removal",
+            "description": "Carefully remove transmission assembly"
+          },
+          {
+            "title": "Inspection",
+            "description": "Check clutch plate, pressure plate, bearing"
+          },
+          {
+            "title": "Replacement",
+            "description": "Install new clutch kit components"
+          },
+          {
+            "title": "Reassembly",
+            "description": "Reinstall gearbox with proper alignment"
+          },
+          {
+            "title": "Road Test",
+            "description": "Test smooth engagement and gear shifts"
+          }
+        ],
+        "faqs": [
+          {
+            "question": "How do I know if my clutch needs replacement?",
+            "answer": "Slipping clutch, difficulty shifting, or burning smell are common signs."
+          },
+          {
+            "question": "How long does clutch replacement take?",
+            "answer": "Typically 4-8 hours depending on the vehicle model."
+          }
         ],
         "duration": "1-2 days",
         "warranty": "6 Months",
@@ -514,12 +1920,59 @@
         "price": 0,
         "originalPrice": 0,
         "image": "../assets/InsuranceClaims.jpg",
+        "gallery": [
+          "../assets/InsuranceClaims.jpg",
+          "../assets/InsuranceClaims1.jpg",
+          "../assets/InsuranceClaims2.jpg"
+        ],
         "features": [
           "Claim assistance",
           "Surveyor coordination",
           "Paperwork handling",
           "Direct settlement",
           "Pickup & drop"
+        ],
+        "includes": [
+          "Claim Registration",
+          "Documentation Help",
+          "Surveyor Coordination",
+          "Cashless Facility"
+        ],
+        "process": [
+          {
+            "title": "Claim Registration",
+            "description": "Register claim with insurance company"
+          },
+          {
+            "title": "Documentation",
+            "description": "Collect FIR, license, RC and photos"
+          },
+          {
+            "title": "Survey",
+            "description": "Coordinate with insurance surveyor"
+          },
+          {
+            "title": "Approval",
+            "description": "Get repair estimate sanctioned"
+          },
+          {
+            "title": "Repair Work",
+            "description": "Complete repairs as per approval"
+          },
+          {
+            "title": "Settlement",
+            "description": "Cashless settlement or reimbursement"
+          }
+        ],
+        "faqs": [
+          {
+            "question": "Do you offer cashless claims?",
+            "answer": "Yes, we are empaneled with all major insurance companies."
+          },
+          {
+            "question": "How long does the claim process take?",
+            "answer": "Typically 3-7 days for approval, repairs depend on damage extent."
+          }
         ],
         "duration": "Varies",
         "warranty": "As per insurance",
@@ -689,11 +2142,26 @@
     },
     "description": "Take a look at our state-of-the-art facilities and the quality of work we deliver.",
     "categories": [
-      { "id": "all", "label": "All" },
-      { "id": "workshop", "label": "Our Workshop" },
-      { "id": "service", "label": "Service in Action" },
-      { "id": "before-after", "label": "Before & After" },
-      { "id": "team", "label": "Our Team" }
+      {
+        "id": "all",
+        "label": "All"
+      },
+      {
+        "id": "workshop",
+        "label": "Our Workshop"
+      },
+      {
+        "id": "service",
+        "label": "Service in Action"
+      },
+      {
+        "id": "before-after",
+        "label": "Before & After"
+      },
+      {
+        "id": "team",
+        "label": "Our Team"
+      }
     ],
     "images": [
       {
@@ -794,10 +2262,26 @@
       }
     ],
     "stats": [
-      { "icon": "Wrench", "value": "500+", "label": "Expert Mechanics" },
-      { "icon": "Car", "value": "50,000+", "label": "Cars Serviced" },
-      { "icon": "Camera", "value": "10+", "label": "Service Centers" },
-      { "icon": "Sparkles", "value": "4.8★", "label": "Customer Rating" }
+      {
+        "icon": "Wrench",
+        "value": "500+",
+        "label": "Expert Mechanics"
+      },
+      {
+        "icon": "Car",
+        "value": "50,000+",
+        "label": "Cars Serviced"
+      },
+      {
+        "icon": "Camera",
+        "value": "10+",
+        "label": "Service Centers"
+      },
+      {
+        "icon": "Sparkles",
+        "value": "4.8★",
+        "label": "Customer Rating"
+      }
     ]
   },
   "partners": {
@@ -807,49 +2291,194 @@
       "highlight": "all major brands"
     },
     "description": "Expert mechanics trained for all car makes and models - from budget hatchbacks to luxury supercars",
-    "brandCount": "35+",
+    "brandCount": "45+",
     "brandCountLabel": "Car Brands Serviced",
     "brands": [
-      { "name": "Maruti Suzuki", "logo": "https://www.carlogos.org/car-logos/suzuki-logo.png" },
-      { "name": "Tata", "logo": "https://www.carlogos.org/car-logos/tata-logo.png" },
-      { "name": "Mahindra", "logo": "https://www.carlogos.org/car-logos/mahindra-logo.png" },
-      { "name": "Hyundai", "logo": "https://www.carlogos.org/car-logos/hyundai-logo.png" },
-      { "name": "Kia", "logo": "https://www.carlogos.org/car-logos/kia-logo.png" },
-      { "name": "Toyota", "logo": "https://www.carlogos.org/car-logos/toyota-logo.png" },
-      { "name": "Honda", "logo": "https://www.carlogos.org/car-logos/honda-logo.png" },
-      { "name": "Nissan", "logo": "https://www.carlogos.org/car-logos/nissan-logo.png" },
-      { "name": "Isuzu", "logo": "https://www.carlogos.org/car-logos/isuzu-logo.png" },
-      { "name": "Volkswagen", "logo": "https://www.carlogos.org/car-logos/volkswagen-logo.png" },
-      { "name": "Skoda", "logo": "https://www.carlogos.org/car-logos/skoda-logo.png" },
-      { "name": "Renault", "logo": "https://www.carlogos.org/car-logos/renault-logo.png" },
-      { "name": "Citroen", "logo": "https://www.carlogos.org/car-logos/citroen-logo.png" },
-      { "name": "Jeep", "logo": "https://www.carlogos.org/car-logos/jeep-logo.png" },
-      { "name": "MG", "logo": "https://www.carlogos.org/car-logos/mg-logo.png" },
-      { "name": "BYD", "logo": "https://www.carlogos.org/car-logos/byd-logo.png" },
-      { "name": "BMW", "logo": "https://www.carlogos.org/car-logos/bmw-logo.png" },
-      { "name": "Mercedes-Benz", "logo": "https://www.carlogos.org/car-logos/mercedes-benz-logo.png" },
-      { "name": "Audi", "logo": "https://www.carlogos.org/car-logos/audi-logo.png" },
-      { "name": "Porsche", "logo": "https://www.carlogos.org/car-logos/porsche-logo.png" },
-      { "name": "Jaguar", "logo": "https://www.carlogos.org/car-logos/jaguar-logo.png" },
-      { "name": "Land Rover", "logo": "https://www.carlogos.org/car-logos/land-rover-logo.png" },
-      { "name": "Mini", "logo": "https://www.carlogos.org/car-logos/mini-logo.png" },
-      { "name": "Bentley", "logo": "https://www.carlogos.org/car-logos/bentley-logo.png" },
-      { "name": "Rolls-Royce", "logo": "https://www.carlogos.org/car-logos/rolls-royce-logo.png" },
-      { "name": "Aston Martin", "logo": "https://www.carlogos.org/car-logos/aston-martin-logo.png" },
-      { "name": "McLaren", "logo": "https://www.carlogos.org/car-logos/mclaren-logo.png" },
-      { "name": "Lotus", "logo": "https://www.carlogos.org/car-logos/lotus-logo.png" },
-      { "name": "Volvo", "logo": "https://www.carlogos.org/car-logos/volvo-logo.png" },
-      { "name": "Lexus", "logo": "https://www.carlogos.org/car-logos/lexus-logo.png" },
-      { "name": "Lamborghini", "logo": "https://www.carlogos.org/car-logos/lamborghini-logo.png" },
-      { "name": "Ferrari", "logo": "https://www.carlogos.org/car-logos/ferrari-logo.png" },
-      { "name": "Maserati", "logo": "https://www.carlogos.org/car-logos/maserati-logo.png" },
-      { "name": "Force Motors", "logo": "https://www.carlogos.org/car-logos/force-logo.png" }
+      {
+        "name": "Maruti Suzuki",
+        "logo": "../assets/brand/suzuki-logo.png"
+      },
+      {
+        "name": "Tata",
+        "logo": "../assets/brand/tata-logo.png"
+      },
+      {
+        "name": "Mahindra",
+        "logo": "../assets/brand/mahindra-logo.png"
+      },
+      {
+        "name": "Hyundai",
+        "logo": "../assets/brand/hyundai-logo.png"
+      },
+      {
+        "name": "Kia",
+        "logo": "../assets/brand/kia-logo.png"
+      },
+      {
+        "name": "Toyota",
+        "logo": "../assets/brand/toyota-logo.png"
+      },
+      {
+        "name": "Honda",
+        "logo": "../assets/brand/honda-logo.png"
+      },
+      {
+        "name": "Nissan",
+        "logo": "../assets/brand/nissan-logo.png"
+      },
+      {
+        "name": "Isuzu",
+        "logo": "../assets/brand/isuzu-logo.png"
+      },
+      {
+        "name": "Volkswagen",
+        "logo": "../assets/brand/volkswagen-logo.png"
+      },
+      {
+        "name": "Skoda",
+        "logo": "../assets/brand/skoda-logo.png"
+      },
+      {
+        "name": "Renault",
+        "logo": "../assets/brand/renault-logo.png"
+      },
+      {
+        "name": "Citroen",
+        "logo": "../assets/brand/citroen-logo.png"
+      },
+      {
+        "name": "Jeep",
+        "logo": "../assets/brand/jeep-logo.png"
+      },
+      {
+        "name": "MG",
+        "logo": "../assets/brand/mg-logo.png"
+      },
+      {
+        "name": "BYD",
+        "logo": "../assets/brand/byd-logo.png"
+      },
+      {
+        "name": "BMW",
+        "logo": "../assets/brand/bmw-logo.png"
+      },
+      {
+        "name": "Mercedes-Benz",
+        "logo": "../assets/brand/mercedes-benz-logo.png"
+      },
+      {
+        "name": "Audi",
+        "logo": "../assets/brand/audi-logo.png"
+      },
+      {
+        "name": "Porsche",
+        "logo": "../assets/brand/porsche-logo.png"
+      },
+      {
+        "name": "Jaguar",
+        "logo": "../assets/brand/jaguar-logo.png"
+      },
+      {
+        "name": "Land Rover",
+        "logo": "../assets/brand/land-rover-logo.png"
+      },
+      {
+        "name": "Mini",
+        "logo": "../assets/brand/mini-logo.png"
+      },
+      {
+        "name": "Bentley",
+        "logo": "../assets/brand/bentley-logo.png"
+      },
+      {
+        "name": "Rolls-Royce",
+        "logo": "../assets/brand/rolls-royce-logo.png"
+      },
+      {
+        "name": "Aston Martin",
+        "logo": "../assets/brand/aston-martin-logo.png"
+      },
+      {
+        "name": "McLaren",
+        "logo": "../assets/brand/mclaren-logo.png"
+      },
+      {
+        "name": "Lotus",
+        "logo": "../assets/brand/lotus-logo.png"
+      },
+      {
+        "name": "Volvo",
+        "logo": "../assets/brand/volvo-logo.png"
+      },
+      {
+        "name": "Lexus",
+        "logo": "../assets/brand/lexus-logo.png"
+      },
+      {
+        "name": "Lamborghini",
+        "logo": "../assets/brand/lamborghini-logo.png"
+      },
+      {
+        "name": "Ferrari",
+        "logo": "../assets/brand/ferrari-logo.png"
+      },
+      {
+        "name": "Maserati",
+        "logo": "../assets/brand/maserati-logo.png"
+      },
+      {
+        "name": "Force Motors",
+        "logo": "../assets/brand/force-logo.png"
+      },
+      {
+        "name": "Ford",
+        "logo": "../assets/brand/ford-logo.png"
+      },
+      {
+        "name": "Chevrolet",
+        "logo": "../assets/brand/chevrolet-logo.png"
+      },
+      {
+        "name": "Mitsubishi",
+        "logo": "../assets/brand/mitsubishi-logo.png"
+      },
+      {
+        "name": "Fiat",
+        "logo": "../assets/brand/fiat-logo.png"
+      },
+      {
+        "name": "Datsun",
+        "logo": "../assets/brand/datsun-logo.png"
+      },
+      { "name": "Hummer", "logo": "../assets/brand/hummer-logo.png" },
+{ "name": "SsangYong", "logo": "../assets/brand/ssangyong-logo.png" },
+{ "name": "Foton", "logo": "../assets/brand/foton-logo.png" },
+{ "name": "Opel", "logo": "../assets/brand/opel-logo.png" },
+{ "name": "Daewoo", "logo": "../assets/brand/daewoo-logo.png" },
+{ "name": "Hindustan Motors", "logo": "../assets/brand/hindustan-logo.png" },
+{ "name": "Premier", "logo": "../assets/brand/premier-logo.png" }
     ],
     "trustBadges": [
-      { "icon": "Shield", "title": "ISO Certified", "subtitle": "9001:2015" },
-      { "icon": "Award", "title": "Best Service", "subtitle": "Award 2024" },
-      { "icon": "Car", "title": "All Brands", "subtitle": "Covered" },
-      { "icon": "Sparkles", "title": "4.8 Rating", "subtitle": "Google Reviews" }
+      {
+        "icon": "Shield",
+        "title": "ISO Certified",
+        "subtitle": "9001:2015"
+      },
+      {
+        "icon": "Award",
+        "title": "Best Service",
+        "subtitle": "Award 2024"
+      },
+      {
+        "icon": "Car",
+        "title": "All Brands",
+        "subtitle": "Covered"
+      },
+      {
+        "icon": "Sparkles",
+        "title": "4.8 Rating",
+        "subtitle": "Google Reviews"
+      }
     ]
   },
   "faq": {
@@ -916,30 +2545,88 @@
     },
     "links": {
       "services": [
-        { "name": "Periodic Service", "href": "#services" },
-        { "name": "AC Service & Repair", "href": "#services" },
-        { "name": "Denting & Painting", "href": "#services" },
-        { "name": "Car Inspection", "href": "#services" },
-        { "name": "Wheel Care", "href": "#services" },
-        { "name": "Battery Service", "href": "#services" }
+        {
+          "name": "Periodic Service",
+          "href": "#services"
+        },
+        {
+          "name": "AC Service & Repair",
+          "href": "#services"
+        },
+        {
+          "name": "Denting & Painting",
+          "href": "#services"
+        },
+        {
+          "name": "Car Inspection",
+          "href": "#services"
+        },
+        {
+          "name": "Wheel Care",
+          "href": "#services"
+        },
+        {
+          "name": "Battery Service",
+          "href": "#services"
+        }
       ],
       "company": [
-        { "name": "About Us", "href": "#" },
-        { "name": "Careers", "href": "#" },
-        { "name": "Blog", "href": "#" },
-        { "name": "Press", "href": "#" },
-        { "name": "Partners", "href": "#" }
+        {
+          "name": "About Us",
+          "href": "#"
+        },
+        {
+          "name": "Careers",
+          "href": "#"
+        },
+        {
+          "name": "Blog",
+          "href": "#"
+        },
+        {
+          "name": "Press",
+          "href": "#"
+        },
+        {
+          "name": "Partners",
+          "href": "#"
+        }
       ],
       "support": [
-        { "name": "Help Center", "href": "#" },
-        { "name": "Contact Us", "href": "#" },
-        { "name": "FAQs", "href": "#faq" },
-        { "name": "Warranty Policy", "href": "#" },
-        { "name": "Privacy Policy", "href": "#" },
-        { "name": "Terms of Service", "href": "#" }
+        {
+          "name": "Help Center",
+          "href": "#"
+        },
+        {
+          "name": "Contact Us",
+          "href": "#"
+        },
+        {
+          "name": "FAQs",
+          "href": "#faq"
+        },
+        {
+          "name": "Warranty Policy",
+          "href": "#"
+        },
+        {
+          "name": "Privacy Policy",
+          "href": "#"
+        },
+        {
+          "name": "Terms of Service",
+          "href": "#"
+        }
       ],
       "cities": [
-        "Coimbatore", "Chennai", "Bangalore", "Hyderabad", "Mumbai", "Delhi", "Pune", "Kolkata"
+        "Coimbatore",
+        "Chennai",
+        "Bangalore",
+        "Hyderabad",
+        "Mumbai",
+        "Delhi",
+        "Pune",
+        "Kolkata"
       ]
     },
     "copyright": "© {year} Addax Automotive. All rights reserved.",
@@ -952,12 +2639,36 @@
       "description": "Comprehensive car care solutions for every need. From routine maintenance to complex repairs, our certified mechanics deliver quality service at your doorstep.",
       "searchPlaceholder": "Search services...",
       "categories": [
-        { "id": "all", "label": "All Services", "icon": "Grid" },
-        { "id": "maintenance", "label": "Maintenance", "icon": "Settings" },
-        { "id": "ac", "label": "AC Service", "icon": "Snowflake" },
-        { "id": "body", "label": "Body Work", "icon": "Paintbrush" },
-        { "id": "wheels", "label": "Wheels & Tyres", "icon": "Circle" },
-        { "id": "electrical", "label": "Electrical", "icon": "Battery" }
+        {
+          "id": "all",
+          "label": "All Services",
+          "icon": "Grid"
+        },
+        {
+          "id": "maintenance",
+          "label": "Maintenance",
+          "icon": "Settings"
+        },
+        {
+          "id": "ac",
+          "label": "AC Service",
+          "icon": "Snowflake"
+        },
+        {
+          "id": "body",
+          "label": "Body Work",
+          "icon": "Paintbrush"
+        },
+        {
+          "id": "wheels",
+          "label": "Wheels & Tyres",
+          "icon": "Circle"
+        },
+        {
+          "id": "electrical",
+          "label": "Electrical",
+          "icon": "Battery"
+        }
       ],
       "cta": {
         "title": "Can't find what you're looking for?",
@@ -981,10 +2692,22 @@
       "secondaryCta": "Contact Support",
       "secondaryButton": "Contact Support",
       "quickLinks": [
-        { "name": "Services", "href": "/services" },
-        { "name": "Pricing", "href": "/#pricing" },
-        { "name": "Book Now", "href": "/#booking" },
-        { "name": "Contact", "href": "/contact" }
+        {
+          "name": "Services",
+          "href": "/services"
+        },
+        {
+          "name": "Pricing",
+          "href": "/#pricing"
+        },
+        {
+          "name": "Book Now",
+          "href": "/#booking"
+        },
+        {
+          "name": "Contact",
+          "href": "/contact"
+        }
       ]
     }
   },
@@ -994,21 +2717,32 @@
       "name": "AutoFix Premium Garage",
       "address": "123, Avinashi Road, Peelamedu, Coimbatore",
       "rating": 4.8,
-      "amenities": ["AC Waiting Room", "Free Wi-Fi", "Coffee"]
+      "amenities": [
+        "AC Waiting Room",
+        "Free Wi-Fi",
+        "Coffee"
+      ]
     },
     {
       "id": "2",
       "name": "CarCare Experts",
       "address": "45, Trichy Road, Ramanathapuram, Coimbatore",
       "rating": 4.5,
-      "amenities": ["Pick & Drop", "Genuine Parts"]
+      "amenities": [
+        "Pick & Drop",
+        "Genuine Parts"
+      ]
     },
     {
       "id": "3",
       "name": "Mechanic Pro Hub",
       "address": "88, Mettupalayam Road, RS Puram, Coimbatore",
       "rating": 4.9,
-      "amenities": ["Certified Mechanics", "Card Payment", "Washroom"]
+      "amenities": [
+        "Certified Mechanics",
+        "Card Payment",
+        "Washroom"
+      ]
     }
   ]
 }
