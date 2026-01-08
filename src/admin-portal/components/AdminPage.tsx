@@ -84,8 +84,8 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   FileText,
 };
 
-// Editor component mapping - Updated type to support onPageChange callback
-const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageChange?: (page: 'services' | 'notFound') => void }>> = {
+// Editor component mapping - Updated type to support onPageChange and onEditingIndexChange callbacks
+const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageChange?: (page: 'services' | 'notFound') => void; onEditingIndexChange?: (index: number | null) => void }>> = {
   HeroEditor,
   ServicesEditor,
   ServiceDetailEditor,
@@ -148,6 +148,9 @@ export const AdminPage: React.FC = () => {
   // NEW: Pages preview state - tracks which page tab is selected
   const [pagesPreviewId, setPagesPreviewId] = useState<'servicesPage' | 'notFoundPage'>('servicesPage');
 
+  // NEW: ServiceDetail editing index state - tracks which service is being edited
+  const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null);
+
   const resizeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sidebarTimeoutRef = useRef<number | null>(null);
@@ -155,6 +158,11 @@ export const AdminPage: React.FC = () => {
   // NEW: Handler for pages tab change
   const handlePagesTabChange = useCallback((page: 'services' | 'notFound') => {
     setPagesPreviewId(page === 'services' ? 'servicesPage' : 'notFoundPage');
+  }, []);
+
+  // NEW: Handler for service editing index change
+  const handleServiceEditingIndexChange = useCallback((index: number | null) => {
+    setEditingServiceIndex(index);
   }, []);
 
   // NEW: Calculate effective preview ID - uses pagesPreviewId when editing pages
@@ -199,6 +207,13 @@ export const AdminPage: React.FC = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [content]);
+
+  // Reset editingServiceIndex when switching away from serviceDetail editor
+  useEffect(() => {
+    if (activeEditor !== 'serviceDetail') {
+      setEditingServiceIndex(null);
+    }
+  }, [activeEditor]);
 
   // Show notification
   const showNotification = (type: 'success' | 'error', message: string) => {
@@ -330,7 +345,7 @@ export const AdminPage: React.FC = () => {
   const activeEditorConfig = editorConfig.find((e) => e.id === activeEditor);
   const EditorComponent = activeEditorConfig ? editorComponents[activeEditorConfig.component] : null;
 
-  // NEW: Render the editor component with special handling for PagesEditor
+  // NEW: Render the editor component with special handling for PagesEditor and ServiceDetailEditor
   const renderEditorComponent = () => {
     if (!EditorComponent) {
       return (
@@ -346,6 +361,16 @@ export const AdminPage: React.FC = () => {
         <PagesEditor 
           isDarkMode={isDarkMode} 
           onPageChange={handlePagesTabChange}
+        />
+      );
+    }
+
+    // Special handling for ServiceDetailEditor to pass the editing index callback
+    if (activeEditor === 'serviceDetail') {
+      return (
+        <ServiceDetailEditor 
+          isDarkMode={isDarkMode} 
+          onEditingIndexChange={handleServiceEditingIndexChange}
         />
       );
     }
@@ -893,6 +918,7 @@ export const AdminPage: React.FC = () => {
                         device="desktop"
                         refreshKey={previewKey}
                         className="h-full"
+                        editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
                       />
                     </div>
                   </motion.div>
@@ -953,7 +979,8 @@ export const AdminPage: React.FC = () => {
                 <SectionPreviewWrapper 
                   sectionId={effectivePreviewId} 
                   device="desktop" 
-                  refreshKey={previewKey} 
+                  refreshKey={previewKey}
+                  editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
                 />
               </motion.div>
             </div>

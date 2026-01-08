@@ -87,8 +87,8 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   FileText,
 };
 
-// Editor component mapping
-const editorComponents: Record<string, React.FC<{ isDarkMode: boolean }>> = {
+// Editor component mapping - Updated type to support onEditingIndexChange callback
+const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onEditingIndexChange?: (index: number | null) => void }>> = {
   HeroEditor,
   ServicesEditor,
   ServiceDetailEditor,
@@ -146,9 +146,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
 
+  // NEW: ServiceDetail editing index state - tracks which service is being edited
+  const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null);
+
   const resizeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sidebarTimeoutRef = useRef<number | null>(null);
+
+  // NEW: Handler for service editing index change
+  const handleServiceEditingIndexChange = useCallback((index: number | null) => {
+    setEditingServiceIndex(index);
+  }, []);
 
   // Check for mobile/tablet viewport
   useEffect(() => {
@@ -190,6 +198,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     }, 300);
     return () => clearTimeout(timer);
   }, [content, isOpen]);
+
+  // Reset editingServiceIndex when switching away from serviceDetail editor
+  useEffect(() => {
+    if (activeEditor !== 'serviceDetail') {
+      setEditingServiceIndex(null);
+    }
+  }, [activeEditor]);
 
   // Show notification
   const showNotification = (type: 'success' | 'error', message: string) => {
@@ -326,6 +341,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       <p className="text-sm mt-1">Could not load editor for <strong>{activeEditor}</strong>.</p>
     </div>
   ));
+
+  // Render the editor component with special handling for ServiceDetailEditor
+  const renderEditorComponent = () => {
+    // Special handling for ServiceDetailEditor to pass the editing index callback
+    if (activeEditor === 'serviceDetail') {
+      return (
+        <ServiceDetailEditor 
+          isDarkMode={isDarkMode} 
+          onEditingIndexChange={handleServiceEditingIndexChange}
+        />
+      );
+    }
+    // All other editors
+    return <ActiveEditorComponent isDarkMode={isDarkMode} />;
+  };
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -785,7 +815,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     className="flex-shrink-0 flex flex-col overflow-hidden"
                   >
                     <div className={`flex-1 overflow-y-auto p-3 sm:p-4 md:p-5 ${themeClass('bg-background', 'bg-gray-50')}`}>
-                      <ActiveEditorComponent isDarkMode={isDarkMode} />
+                      {renderEditorComponent()}
                     </div>
 
                     {/* Mobile Apply Changes Bar */}
@@ -926,6 +956,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                                 device="desktop"
                                 refreshKey={previewKey}
                                 className="h-full"
+                                editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
                               />
                             </div>
                           </motion.div>
@@ -991,6 +1022,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       device="desktop"
                       refreshKey={previewKey}
                       className="h-full"
+                      editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
                     />
                   </motion.div>
                 </div>

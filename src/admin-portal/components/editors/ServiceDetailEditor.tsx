@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
   Trash2,
-  List,
   Edit,
   ArrowLeft,
   CheckCircle2,
@@ -17,22 +16,28 @@ import { useContent } from '../../context/ContentContext';
 
 interface ServiceDetailEditorProps {
   isDarkMode: boolean;
+  onEditingIndexChange?: (index: number | null) => void; // Callback to notify parent of editing state
 }
 
-export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => {
+export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEditingIndexChange }) => {
   const { updateField } = useContent();
   const content = useServicesContent();
   
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  // Notify parent whenever editingIndex changes
+  useEffect(() => {
+    onEditingIndexChange?.(editingIndex);
+  }, [editingIndex, onEditingIndexChange]);
 
   const handleUpdate = (path: string, value: unknown) => {
     updateField('services', path, value);
   };
 
   // Theme-aware styling helpers using CSS variables
-  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
+  const inputClass = `w-full px-3 py-2.5 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
-  const labelClass = `text-sm font-medium text-muted-foreground`;
+  const labelClass = `block text-xs sm:text-sm font-medium text-muted-foreground mb-1`;
 
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
 
@@ -77,7 +82,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
     <div className={sectionClass}>
       <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border">
         <div className="flex items-center gap-3">
-          <List className="w-5 h-5 text-green-500 flex-shrink-0" />
+
           <div className="min-w-0">
             <h3 className="text-base sm:text-lg font-bold text-foreground truncate">
               Existing Services
@@ -92,7 +97,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
           className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-medium text-sm w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>Add New Service</span>
+          <span className="whitespace-nowrap">Add New Service</span>
         </button>
       </div>
 
@@ -113,11 +118,6 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
                 <p className="font-medium text-foreground truncate">
                   {service.title || 'Untitled Service'}
                 </p>
-                <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-muted-foreground">
-                  <span>₹{service.price?.toLocaleString()}</span>
-                  <span>•</span>
-                  <span>{service.duration || '-'}</span>
-                </div>
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -149,15 +149,13 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
         )}
       </div>
 
-      {/* Desktop Table View */}
+      {/* Desktop Table View - Price and Duration columns removed */}
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="bg-secondary">
               <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground w-20">S.No</th>
               <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Service Name</th>
-              <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Price</th>
-              <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Duration</th>
               <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
             </tr>
           </thead>
@@ -169,12 +167,6 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
                 </td>
                 <td className="px-4 sm:px-6 py-4 font-medium">
                   {service.title || 'Untitled Service'}
-                </td>
-                <td className="px-4 sm:px-6 py-4">
-                  ₹{service.price?.toLocaleString()}
-                </td>
-                <td className="px-4 sm:px-6 py-4">
-                  {service.duration || '-'}
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
@@ -198,7 +190,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
             ))}
             {(!content.items || content.items.length === 0) && (
               <tr>
-                <td colSpan={5} className="px-4 sm:px-6 py-8 text-center">
+                <td colSpan={3} className="px-4 sm:px-6 py-8 text-center">
                   <Wrench className="w-8 h-8 mx-auto mb-2 opacity-50 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground">No services found.</p>
                 </td>
@@ -238,108 +230,117 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
 
         <div className="p-3 sm:p-4 space-y-4 sm:space-y-6">
           {/* --- BASIC INFO --- */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="space-y-2">
-              <label className={labelClass}>Service Title</label>
-              <input
-                type="text"
-                value={service.title || ''}
-                onChange={(e) => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = { ...newItems[index], title: e.target.value };
-                  handleUpdate('items', newItems);
-                }}
-                placeholder="Full Body Denting & Painting"
-                className={inputClass}
-              />
+          <div className="space-y-4">
+            {/* Title & Image - Stack on mobile, side by side on larger screens */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Service Title</label>
+                <input
+                  type="text"
+                  value={service.title || ''}
+                  onChange={(e) => {
+                    const newItems = [...(content.items || [])];
+                    newItems[index] = { ...newItems[index], title: e.target.value };
+                    handleUpdate('items', newItems);
+                  }}
+                  placeholder="Full Body Denting & Painting"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Main Image URL</label>
+                <input
+                  type="text"
+                  value={service.image || ''}
+                  onChange={(e) => {
+                    const newItems = [...(content.items || [])];
+                    newItems[index] = { ...newItems[index], image: e.target.value };
+                    handleUpdate('items', newItems);
+                  }}
+                  placeholder="service-image.jpg"
+                  className={inputClass}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <label className={labelClass}>Main Image URL</label>
-              <input
-                type="text"
-                value={service.image || ''}
-                onChange={(e) => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = { ...newItems[index], image: e.target.value };
-                  handleUpdate('items', newItems);
-                }}
-                placeholder="service-image.jpg"
-                className={inputClass}
-              />
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <label className={labelClass}>Description</label>
-            <textarea
-              value={service.description || ''}
-              onChange={(e) => {
-                const newItems = [...(content.items || [])];
-                newItems[index] = { ...newItems[index], description: e.target.value };
-                handleUpdate('items', newItems);
-              }}
-              rows={3}
-              placeholder="Describe the service in detail..."
-              className={inputClass}
-            />
-          </div>
+            {/* Description - Full width */}
+            <div>
+              <label className={labelClass}>Description</label>
+              <textarea
+                value={service.description || ''}
+                onChange={(e) => {
+                  const newItems = [...(content.items || [])];
+                  newItems[index] = { ...newItems[index], description: e.target.value };
+                  handleUpdate('items', newItems);
+                }}
+                rows={3}
+                placeholder="Describe the service in detail..."
+                className={inputClass}
+              />
+            </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <div className="space-y-2">
-              <label className={labelClass}>Price (₹)</label>
-              <input
-                type="number"
-                value={service.price || ''}
-                onChange={(e) => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = { ...newItems[index], price: Number(e.target.value) };
-                  handleUpdate('items', newItems);
-                }}
-                placeholder="999"
-                className={inputClass}
-              />
+            {/* Price & Original Price - Always 2 columns */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className={labelClass}>Price (₹)</label>
+                <input
+                  type="number"
+                  value={service.price || ''}
+                  onChange={(e) => {
+                    const newItems = [...(content.items || [])];
+                    newItems[index] = { ...newItems[index], price: Number(e.target.value) };
+                    handleUpdate('items', newItems);
+                  }}
+                  placeholder="999"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>MRP (₹)</label>
+                <input
+                  type="number"
+                  value={service.originalPrice || ''}
+                  onChange={(e) => {
+                    const newItems = [...(content.items || [])];
+                    newItems[index] = { ...newItems[index], originalPrice: Number(e.target.value) };
+                    handleUpdate('items', newItems);
+                  }}
+                  placeholder="1499"
+                  className={inputClass}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <label className={labelClass}>Original Price (₹)</label>
-              <input
-                type="number"
-                value={service.originalPrice || ''}
-                onChange={(e) => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = { ...newItems[index], originalPrice: Number(e.target.value) };
-                  handleUpdate('items', newItems);
-                }}
-                placeholder="1499"
-                className={inputClass}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className={labelClass}>Duration</label>
-              <input
-                type="text"
-                value={service.duration || ''}
-                onChange={(e) => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = { ...newItems[index], duration: e.target.value };
-                  handleUpdate('items', newItems);
-                }}
-                placeholder="2-3 hours"
-                className={inputClass}
-              />
-            </div>
-            <div className="space-y-2">
-              <label className={labelClass}>Warranty</label>
-              <input
-                type="text"
-                value={service.warranty || ''}
-                onChange={(e) => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = { ...newItems[index], warranty: e.target.value };
-                  handleUpdate('items', newItems);
-                }}
-                placeholder="6 months"
-                className={inputClass}
-              />
+
+            {/* Duration & Warranty - Always 2 columns */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className={labelClass}>Duration</label>
+                <input
+                  type="text"
+                  value={service.duration || ''}
+                  onChange={(e) => {
+                    const newItems = [...(content.items || [])];
+                    newItems[index] = { ...newItems[index], duration: e.target.value };
+                    handleUpdate('items', newItems);
+                  }}
+                  placeholder="2-3 hours"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Warranty</label>
+                <input
+                  type="text"
+                  value={service.warranty || ''}
+                  onChange={(e) => {
+                    const newItems = [...(content.items || [])];
+                    newItems[index] = { ...newItems[index], warranty: e.target.value };
+                    handleUpdate('items', newItems);
+                  }}
+                  placeholder="6 months"
+                  className={inputClass}
+                />
+              </div>
             </div>
           </div>
 
@@ -350,7 +351,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
             <div className="flex justify-between items-center">
               <label className={subSectionTitleClass}>
                 <CheckCircle2 className="w-4 h-4 text-green-500" />
-                Features
+                Service Features
               </label>
               <button
                 onClick={() => {
@@ -379,7 +380,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
                       handleUpdate('items', newItems);
                     }}
                     className={`flex-1 ${inputClass}`}
-                    placeholder="Feature description..."
+                    placeholder="e.g. Premium oil change"
                   />
                   <button
                     onClick={() => {
@@ -404,7 +405,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
             <div className="flex justify-between items-center">
               <label className={subSectionTitleClass}>
                 <CheckCircle2 className="w-4 h-4 text-blue-500" />
-                What's Included
+                Service Includes
               </label>
               <button
                 onClick={() => {
@@ -417,7 +418,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
                 }}
                 className="text-blue-500 text-xs font-bold uppercase hover:underline"
               >
-                + Add Item
+                + Add Include
               </button>
             </div>
             <div className="space-y-2">
@@ -433,7 +434,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
                       handleUpdate('items', newItems);
                     }}
                     className={`flex-1 ${inputClass}`}
-                    placeholder="Included item..."
+                    placeholder="e.g. Engine oil filter"
                   />
                   <button
                     onClick={() => {
@@ -477,9 +478,9 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ }) => 
             <div className="space-y-3">
               {service.process?.map((step: any, i: number) => (
                 <div key={i} className="flex gap-2 sm:gap-3 items-start">
-                  <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 bg-orange-500/10 text-orange-500">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0 mt-2">
                     {i + 1}
-                  </span>
+                  </div>
                   <div className="flex-1 space-y-2">
                     <input
                       placeholder="Step Title"
