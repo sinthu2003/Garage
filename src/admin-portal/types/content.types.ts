@@ -98,7 +98,7 @@ export interface HeroSavings {
 export interface HeroStat {
   icon: string;
   label: string;
-  value: number;
+  value: string | number;
   prefix?: string;
   suffix?: string;
 }
@@ -108,16 +108,38 @@ export interface HeroScrollingBrand {
   logo?: string;
 }
 
+
+// NEW: Background image for slider
+export interface HeroBackgroundImage {
+  url: string;
+  alt: string;
+}
+
+// NEW: Slider settings
+export interface HeroSliderSettings {
+  duration: number;
+  transition: 'fade' | 'slide' | 'zoom';
+  autoPlay: boolean;
+  showIndicators: boolean;
+}
+
 export interface HeroContent {
   badge: string;
   headline: HeroHeadline;
   subheadline: string;
   savings: HeroSavings;
   cta: HeroCTA;
+  // Legacy single image (backward compatibility)
   backgroundImage: string;
+  // NEW: Multiple background images for slider
+  backgroundImages?: HeroBackgroundImage[];
+  // NEW: Slider settings
+  sliderSettings?: HeroSliderSettings;
   stats: HeroStat[];
   scrollingBrands: HeroScrollingBrand[];
 }
+
+
 
 // ============================================
 // BOOKING WIDGET
@@ -365,6 +387,26 @@ export interface BeforeAfterItem {
   time: string;
   savings: string;
 }
+export interface BusinessHour {
+  day: string;
+  hours: string;
+}
+
+export interface ContactServiceOption {
+  value: string;
+  label: string;
+}
+
+export interface ContactPageSettings {
+  formTitle?: string;
+  formSubtitle?: string;
+  submitButton?: string;
+  successMessage?: string;
+  callNowHref?: string;
+  whatsappHref?: string;
+  emailHref?: string;
+  serviceOptions?: ContactServiceOption[];
+}
 
 export interface BeforeAfterContent {
   badge: string;
@@ -509,6 +551,8 @@ export interface FAQContent {
   mapEmbedUrl: string;
   contactCards: FAQContactCard[];
   items: FAQItem[];
+   businessHours?: BusinessHour[];
+  contactPage?: ContactPageSettings;
 }
 
 // ============================================

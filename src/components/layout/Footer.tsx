@@ -12,6 +12,7 @@ import {
   ArrowUp
 } from 'lucide-react';
 import { useContent } from '../../admin-portal';
+import { useNavigate, useLocation } from 'react-router-dom'; // Import router hooks
 
 // Social icon mapping
 const socialIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -52,6 +53,9 @@ const defaultFooterLinks = {
 export const Footer = () => {
   // Get content from context
   const { content } = useContent();
+  const navigate = useNavigate(); // Hook for navigation
+  const location = useLocation(); // Hook to check current page
+
   const footerContent = content.footer;
   const globalBrand = content.global.brand;
   
@@ -126,16 +130,33 @@ export const Footer = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // 1. Handle Hash Links (e.g., #services, #faq)
     if (href.startsWith('#') && href !== '#') {
       e.preventDefault();
       const targetId = href.replace('#', '');
-      const element = document.getElementById(targetId);
-      if (element) {
-        const offsetTop = element.offsetTop - 80;
-        window.scrollTo({ top: offsetTop, behavior: 'smooth' });
+      
+      if (location.pathname === '/') {
+        // If we are on Home Page - Scroll directly to the section
+        const element = document.getElementById(targetId);
+        if (element) {
+          const offsetTop = element.offsetTop - 80;
+          window.scrollTo({ top: offsetTop, behavior: 'smooth' });
+        }
+      } else {
+        // If we are NOT on Home Page - Navigate to Home first
+        // The URL will become /#services, and standard browser behavior should handle the jump
+        // (Assuming your AppRouter doesn't forcefully scroll to top on hash change)
+        navigate(`/${href}`);
       }
+    } 
+    // 2. Handle Internal Page Links (e.g., /contact, /services)
+    else if (href.startsWith('/')) {
+      e.preventDefault();
+      navigate(href);
+      window.scrollTo(0, 0); // Ensure we start at the top of the new page
     }
+    // 3. External links (http...) will work via default <a> tag behavior
   };
 
   // Process copyright text with year placeholder
@@ -159,7 +180,7 @@ export const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
-            <a href="#" className="flex items-center gap-2.5 mb-6">
+            <a href="/" onClick={(e) => handleLinkClick(e, '/')} className="flex items-center gap-2.5 mb-6">
               <img 
                 src={logoUrl} 
                 alt={brandName} 
@@ -222,7 +243,7 @@ export const Footer = () => {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    onClick={(e) => scrollToSection(e, link.href)}
+                    onClick={(e) => handleLinkClick(e, link.href)}
                     className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm flex items-center gap-1 group"
                   >
                     <ChevronRight className="w-3 h-3 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
@@ -241,6 +262,7 @@ export const Footer = () => {
                 <li key={link.name}>
                   <a
                     href={link.href}
+                    onClick={(e) => handleLinkClick(e, link.href)}
                     className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm flex items-center gap-1 group"
                   >
                     <ChevronRight className="w-3 h-3 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
@@ -259,7 +281,7 @@ export const Footer = () => {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    onClick={(e) => scrollToSection(e, link.href)}
+                    onClick={(e) => handleLinkClick(e, link.href)}
                     className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm flex items-center gap-1 group"
                   >
                     <ChevronRight className="w-3 h-3 opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all" />
@@ -281,6 +303,7 @@ export const Footer = () => {
                 <li key={city}>
                   <a
                     href="#"
+                    onClick={(e) => e.preventDefault()}
                     className="text-gray-400 hover:text-primary transition-colors text-xs sm:text-sm"
                   >
                     {city}
@@ -301,10 +324,18 @@ export const Footer = () => {
             </p>
             
             <div className="flex items-center gap-4 sm:gap-6">
-              <a href={footerContent?.privacyUrl || '#'} className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors">
+              <a 
+                href={footerContent?.privacyUrl || '#'} 
+                onClick={(e) => handleLinkClick(e, footerContent?.privacyUrl || '#')}
+                className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors"
+              >
                 Privacy Policy
               </a>
-              <a href={footerContent?.termsUrl || '#'} className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors">
+              <a 
+                href={footerContent?.termsUrl || '#'} 
+                onClick={(e) => handleLinkClick(e, footerContent?.termsUrl || '#')}
+                className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors"
+              >
                 Terms of Service
               </a>
             </div>

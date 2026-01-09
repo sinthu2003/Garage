@@ -4,6 +4,7 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { HomePage } from '../pages/HomePage';
 import { ServicesPage } from '../pages/Servicespage';
 import { ServiceDetailPage } from '../pages/Servicedetailpage';
+import { ContactUsPage } from '../pages/ContactUsPage';
 import { AdminPage } from '../admin-portal/components/AdminPage';
 import { LoginPage } from '../admin-portal/components/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
@@ -46,6 +47,7 @@ export const AppRouter = () => {
         <Route path="/" element={<AppLayout><HomePage /></AppLayout>} />
         <Route path="/services" element={<AppLayout><ServicesPage /></AppLayout>} />
         <Route path="/services/:serviceSlug" element={<AppLayout><ServiceDetailPage /></AppLayout>} />
+        <Route path="/contact" element={<AppLayout><ContactUsPage /></AppLayout>} />
 
         {/* 404 Route - Catch all */}
         {/* This must be the last route to catch undefined paths */}

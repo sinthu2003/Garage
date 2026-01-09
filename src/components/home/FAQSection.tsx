@@ -42,7 +42,7 @@ export const FAQSection = () => {
   };
 
   return (
-    <section id="contact" ref={sectionRef} className="py-16 sm:py-20 lg:py-24 bg-background relative overflow-hidden">
+    <section id="faq" ref={sectionRef} className="py-16 sm:py-20 lg:py-24 bg-background relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div
@@ -58,7 +58,7 @@ export const FAQSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
 
-          {/* Left - Contact Details & Map */}
+          {/* Left - Contact Details */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }}
@@ -66,69 +66,35 @@ export const FAQSection = () => {
             className="space-y-6"
           >
             <div>
-              <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
-                {content.contactBadge || 'Contact Us'}
-              </span>
+              <motion.span 
+                className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+                transition={{ delay: 0.1 }}
+              >
+                {content.badge || 'FAQ'}
+              </motion.span>
 
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-4">
-                {content.contactHeadline?.line1 || 'Get in'}
-                <span className="text-primary"> {content.contactHeadline?.highlight || ' Touch'}</span>
-              </h2>
-
-              <p className="text-muted-foreground text-base sm:text-lg mb-6 max-w-md">
-                {content.contactDescription || "Visit our service center or reach out to us. We're here to help with all your car service needs."}
-              </p>
-            </div>
-
-            {/* Map */}
-            {content.mapEmbedUrl && (
-              <motion.div
+              <motion.h2 
+                className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
                 transition={{ delay: 0.2 }}
-                className="rounded-2xl overflow-hidden border border-border shadow-lg"
               >
-                {(() => {
-                  let finalUrl = content.mapEmbedUrl;
+                {content.headline?.line1 || 'Frequently Asked'}
+                <br />
+                <span className="text-primary">{content.headline?.highlight || 'Questions'}</span>
+              </motion.h2>
 
-                  // Auto-normalization for standard Google Maps links
-                  if (finalUrl.includes('google.com/maps/place/')) {
-                    // Extract coordinates and name if possible
-                    const parts = finalUrl.split('/place/');
-                    if (parts.length > 1) {
-                      const placeInfo = parts[1].split('/@');
-                      const placeName = placeInfo[0];
-                      if (placeInfo.length > 1) {
-                        const coords = placeInfo[1].split(',');
-                        if (coords.length >= 2) {
-                          // Use a simpler embed format that works for standard links
-                          finalUrl = `https://maps.google.com/maps?q=${placeName || coords.slice(0, 2).join(',')}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-                        }
-                      } else {
-                        finalUrl = `https://maps.google.com/maps?q=${placeName}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-                      }
-                    }
-                  } else if (finalUrl.includes('google.com/maps') && !finalUrl.includes('embed')) {
-                    // General fallback for non-embed google links
-                    finalUrl += '&output=embed';
-                  }
-
-                  return (
-                    <iframe
-                      src={finalUrl}
-                      width="100%"
-                      height="250"
-                      style={{ border: 0 }}
-                      allowFullScreen
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      title="Addax Automotive Location"
-                      className="w-full"
-                    />
-                  );
-                })()}
-              </motion.div>
-            )}
+              <motion.p 
+                className="text-muted-foreground text-base sm:text-lg mb-6 max-w-md"
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+                transition={{ delay: 0.3 }}
+              >
+                {content.description || "Everything you need to know about our car service. Can't find your answer? Contact us."}
+              </motion.p>
+            </div>
 
             {/* Contact Cards */}
             <div className="space-y-3">
@@ -143,7 +109,7 @@ export const FAQSection = () => {
                     rel={card.type === 'whatsapp' || card.type === 'email' ? "noopener noreferrer" : undefined}
                     initial={{ opacity: 0, y: 20 }}
                     animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-                    transition={{ delay: 0.4 + idx * 0.05 }}
+                    transition={{ delay: 0.4 + idx * 0.1 }}
                     className={`flex items-center gap-4 p-4 bg-secondary rounded-xl border border-border transition-all group ${styles.container}`}
                     whileHover={{ x: 5 }}
                   >
@@ -161,27 +127,12 @@ export const FAQSection = () => {
             </div>
           </motion.div>
 
-          {/* Right - FAQ Section */}
+          {/* Right - FAQ Accordion */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <div className="mb-6">
-              <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4">
-                {content.badge || 'FAQ'}
-              </span>
-
-              <h3 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight mb-3">
-                {content.headline?.line1 || 'Frequently Asked'}
-                <span className="text-primary"> {content.headline?.highlight || ' Questions'}</span>
-              </h3>
-
-              <p className="text-muted-foreground text-sm sm:text-base">
-                {content.description || 'Find quick answers to common questions about our services.'}
-              </p>
-            </div>
-
             <div className="space-y-3">
               {faqs.map((faq: FAQItem, index: number) => (
                 <motion.div

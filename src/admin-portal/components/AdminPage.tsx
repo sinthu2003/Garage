@@ -85,7 +85,7 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
 };
 
 // Editor component mapping - Updated type to support onPageChange and onEditingIndexChange callbacks
-const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageChange?: (page: 'services' | 'notFound') => void; onEditingIndexChange?: (index: number | null) => void }>> = {
+const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageChange?: (page: 'services' | 'notFound' | 'faqSection' | 'contactPage') => void; onEditingIndexChange?: (index: number | null) => void }>> = {
   HeroEditor,
   ServicesEditor,
   ServiceDetailEditor,
@@ -145,28 +145,40 @@ export const AdminPage: React.FC = () => {
   const [isResizing, setIsResizing] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
 
-  // NEW: Pages preview state - tracks which page tab is selected
+  // Pages preview state - tracks which page tab is selected
   const [pagesPreviewId, setPagesPreviewId] = useState<'servicesPage' | 'notFoundPage'>('servicesPage');
 
-  // NEW: ServiceDetail editing index state - tracks which service is being edited
+  // NEW: FAQ preview state - tracks which FAQ tab is selected
+  const [faqPreviewId, setFaqPreviewId] = useState<'faqSection' | 'contactPage'>('faqSection');
+
+  // ServiceDetail editing index state - tracks which service is being edited
   const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null);
 
   const resizeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sidebarTimeoutRef = useRef<number | null>(null);
 
-  // NEW: Handler for pages tab change
+  // Handler for pages tab change
   const handlePagesTabChange = useCallback((page: 'services' | 'notFound') => {
     setPagesPreviewId(page === 'services' ? 'servicesPage' : 'notFoundPage');
   }, []);
 
-  // NEW: Handler for service editing index change
+  // NEW: Handler for FAQ tab change
+  const handleFAQTabChange = useCallback((tab: 'faqSection' | 'contactPage') => {
+    setFaqPreviewId(tab);
+  }, []);
+
+  // Handler for service editing index change
   const handleServiceEditingIndexChange = useCallback((index: number | null) => {
     setEditingServiceIndex(index);
   }, []);
 
-  // NEW: Calculate effective preview ID - uses pagesPreviewId when editing pages
-  const effectivePreviewId = activeEditor === 'pages' ? pagesPreviewId : activeEditor;
+  // Calculate effective preview ID - uses pagesPreviewId when editing pages, faqPreviewId when editing FAQ
+  const effectivePreviewId = (() => {
+    if (activeEditor === 'pages') return pagesPreviewId;
+    if (activeEditor === 'faq') return faqPreviewId;
+    return activeEditor;
+  })();
 
   // Filter editors based on search
   const filteredEditors = editorConfig.filter(
@@ -212,6 +224,13 @@ export const AdminPage: React.FC = () => {
   useEffect(() => {
     if (activeEditor !== 'serviceDetail') {
       setEditingServiceIndex(null);
+    }
+  }, [activeEditor]);
+
+  // NEW: Reset faqPreviewId when switching away from FAQ editor
+  useEffect(() => {
+    if (activeEditor !== 'faq') {
+      setFaqPreviewId('faqSection');
     }
   }, [activeEditor]);
 
@@ -345,7 +364,7 @@ export const AdminPage: React.FC = () => {
   const activeEditorConfig = editorConfig.find((e) => e.id === activeEditor);
   const EditorComponent = activeEditorConfig ? editorComponents[activeEditorConfig.component] : null;
 
-  // NEW: Render the editor component with special handling for PagesEditor and ServiceDetailEditor
+  // Render the editor component with special handling for PagesEditor, FAQEditor, and ServiceDetailEditor
   const renderEditorComponent = () => {
     if (!EditorComponent) {
       return (
@@ -361,6 +380,16 @@ export const AdminPage: React.FC = () => {
         <PagesEditor 
           isDarkMode={isDarkMode} 
           onPageChange={handlePagesTabChange}
+        />
+      );
+    }
+
+    // NEW: Special handling for FAQEditor to pass the callback
+    if (activeEditor === 'faq') {
+      return (
+        <FAQEditor 
+          isDarkMode={isDarkMode} 
+          onPageChange={handleFAQTabChange}
         />
       );
     }

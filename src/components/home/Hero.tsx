@@ -1,4 +1,4 @@
-import { motion, animate } from 'framer-motion';
+import { motion, animate, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { BookingWidget } from './BookingWidget';
@@ -16,6 +16,14 @@ const iconMap: Record<string, React.ComponentType<{ className?: string; strokeWi
   Wrench,
   Car,
 };
+
+// Default fallback images if none configured
+const defaultBackgroundImages = [
+  {
+    url: "https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+    alt: "Professional Car Service Garage"
+  }
+];
 
 // Animated counter component
 const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
@@ -37,6 +45,35 @@ export const Hero = () => {
   const location = useLocation();
   const { content } = useContent();
   const heroContent = content.hero;
+  
+  // Background slider state
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Get background images from content or use defaults
+  const backgroundImages = heroContent.backgroundImages && heroContent.backgroundImages.length > 0
+    ? heroContent.backgroundImages
+    : heroContent.backgroundImage 
+      ? [{ url: heroContent.backgroundImage, alt: 'Hero Background' }]
+      : defaultBackgroundImages;
+
+  // Get slider settings from content or use defaults
+  const sliderSettings = {
+    duration: heroContent.sliderSettings?.duration || 5,
+    transition: heroContent.sliderSettings?.transition || 'fade',
+    autoPlay: heroContent.sliderSettings?.autoPlay !== false,
+    showIndicators: heroContent.sliderSettings?.showIndicators !== false,
+  };
+
+  // Auto-slide background images
+  useEffect(() => {
+    if (!sliderSettings.autoPlay || backgroundImages.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
+    }, sliderSettings.duration * 1000);
+
+    return () => clearInterval(interval);
+  }, [backgroundImages.length, sliderSettings.autoPlay, sliderSettings.duration]);
 
   // Handle scroll to booking when coming from another page
   useEffect(() => {
@@ -58,6 +95,33 @@ export const Hero = () => {
       bookingWidget.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
+
+  // Get transition variants based on settings
+  const getImageTransition = () => {
+    switch (sliderSettings.transition) {
+      case 'slide':
+        return {
+          initial: { opacity: 0, x: 100 },
+          animate: { opacity: 1, x: 0 },
+          exit: { opacity: 0, x: -100 },
+        };
+      case 'zoom':
+        return {
+          initial: { opacity: 0, scale: 1.2 },
+          animate: { opacity: 1, scale: 1 },
+          exit: { opacity: 0, scale: 0.9 },
+        };
+      case 'fade':
+      default:
+        return {
+          initial: { opacity: 0, scale: 1.1 },
+          animate: { opacity: 1, scale: 1 },
+          exit: { opacity: 0 },
+        };
+    }
+  };
+
+  const imageTransition = getImageTransition();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -84,25 +148,53 @@ export const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {/* Background Image with Subtle Zoom */}
-      <motion.div 
-        className="absolute inset-0 z-0"
-        initial={{ scale: 1.05 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 1.5, ease: "easeOut" }}
-      >
-        <img 
-          src={heroContent.backgroundImage}
-          alt="Professional Car Service Garage"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/95 to-gray-900/80" />
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-gray-900/50" />
-      </motion.div>
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-gray-900">
+      {/* ============== SLIDING BACKGROUND IMAGES ============== */}
+      <div className="absolute inset-0 z-0">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentImageIndex}
+            initial={imageTransition.initial}
+            animate={imageTransition.animate}
+            exit={imageTransition.exit}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
+            className="absolute inset-0"
+          >
+            <img 
+              src={backgroundImages[currentImageIndex]?.url}
+              alt={backgroundImages[currentImageIndex]?.alt || 'Hero Background'}
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
+        </AnimatePresence>
+        
+        {/* Dark Overlay Gradients - Lighter to show background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/10 via-gray-900/10 to-gray-900/10 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/10 via-transparent to-gray-900/10 z-10" />
+      </div>
 
+      {/* Image Indicators */}
+      {sliderSettings.showIndicators && backgroundImages.length > 1 && (
+        <div className="absolute bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {backgroundImages.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentImageIndex(idx)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                idx === currentImageIndex 
+                  ? 'bg-primary w-6' 
+                  : 'bg-white/40 hover:bg-white/60 w-2'
+              }`}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* ============== FLOATING CONTENT (z-20 to stay above background) ============== */}
+      
       {/* Animated Floating Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-20">
         <motion.div
           className="absolute top-20 left-[10%] text-primary/20"
           animate={{ y: [0, -15, 0] }}
@@ -130,7 +222,7 @@ export const Hero = () => {
 
       {/* Grid Pattern */}
       <div 
-        className="absolute inset-0 opacity-[0.02]"
+        className="absolute inset-0 opacity-[0.02] z-20"
         style={{
           backgroundImage: `
             linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
@@ -140,7 +232,8 @@ export const Hero = () => {
         }}
       />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10 py-20 sm:py-24 lg:py-32">
+      {/* ============== MAIN CONTENT ============== */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-20 py-20 sm:py-24 lg:py-32">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-20 items-center">
           
           {/* Left Content */}
@@ -241,7 +334,7 @@ export const Hero = () => {
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{stat.label}</p>
                       <p className="text-sm sm:text-lg font-bold text-white">
-                        {stat.prefix || ''}<AnimatedCounter value={stat.value} />{stat.suffix || ''}
+                       {stat.prefix || ''}<AnimatedCounter value={parseInt(stat.value.toString()) || 0} />{stat.suffix || ''}
                       </p>
                     </div>
                   </motion.div>
@@ -264,7 +357,7 @@ export const Hero = () => {
 
       {/* Scrolling Brand Logos - Dynamic from content */}
       <motion.div 
-        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/90 to-transparent py-4 sm:py-6"
+        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/90 to-transparent py-4 sm:py-6 z-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8, duration: 0.6 }}

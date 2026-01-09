@@ -85,6 +85,10 @@ const NotFoundPage = lazy(() =>
   import('../../../pages/NotFoundPage').then(m => ({ default: m.NotFoundPage }))
 );
 
+const ContactUsPage = lazy(() => 
+  import('../../../pages/ContactUsPage').then(m => ({ default: m.ContactUsPage }))
+);
+
 
 
 // ============================================================================
@@ -549,6 +553,18 @@ const sectionConfigs: Record<string, SectionPreviewConfig> = {
     wrapperClass: '',
     backgroundColor: 'bg-white',
   },
+  // NEW: FAQ Section preview (for FAQ Section tab in FAQEditor)
+  faqSection: {
+    component: FAQSection,
+    wrapperClass: '',
+    backgroundColor: 'bg-white',
+  },
+  // NEW: Contact Page preview (for Contact Page tab in FAQEditor)
+  contactPage: {
+    component: ContactUsPage,
+    wrapperClass: 'min-h-[800px]',
+    backgroundColor: 'bg-white',
+  },
   features: {
     component: Features,
     wrapperClass: '',
@@ -845,7 +861,7 @@ interface PreviewUrlBarProps {
   isDarkMode?: boolean;
 }
 
-// Preview routes mapping
+// Preview routes mapping - UPDATED with FAQ section routes
 const previewRoutes: Record<string, string> = {
   hero: '/#hero',
   services: '/#services',
@@ -853,6 +869,8 @@ const previewRoutes: Record<string, string> = {
   pricing: '/#pricing',
   testimonials: '/#testimonials',
   faq: '/#faq',
+  faqSection: '/#faq',
+  contactPage: '/contact',
   features: '/#features',
   howItWorks: '/#how-it-works',
   partners: '/#partners',

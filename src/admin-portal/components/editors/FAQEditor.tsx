@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   HelpCircle,
@@ -12,13 +12,17 @@ import {
   GripVertical,
   MapPin,
   Type,
+  Clock,
+  FileText,
+  Send,
 } from 'lucide-react';
 import { useFAQContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
-import type { FAQContactCard, FAQItem } from '../../types/content.types';
+import type { FAQContactCard, FAQItem, BusinessHour, ContactServiceOption } from '../../types/content.types';
 
 interface FAQEditorProps {
   isDarkMode: boolean;
+  onPageChange?: (page: 'faqSection' | 'contactPage') => void;
 }
 
 // Contact type options
@@ -28,13 +32,31 @@ const contactTypeOptions = [
   { value: 'email', label: 'Email', icon: Mail },
 ];
 
-export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
+// Tab configuration
+type TabId = 'faqSection' | 'contactPage';
+
+const tabs: { id: TabId; label: string; icon: React.FC<{ className?: string }> }[] = [
+  { id: 'faqSection', label: 'FAQ Section', icon: HelpCircle },
+  { id: 'contactPage', label: 'Contact Page', icon: Phone },
+];
+
+export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
   const { updateField } = useContent();
   const content = useFAQContent();
+  const [activeTab, setActiveTab] = useState<TabId>('faqSection');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['faqHeader', 'contactHeader', 'map', 'contactCards', 'items'])
+    new Set(['faqHeader', 'contactHeader', 'map', 'contactCards', 'items', 'businessHours', 'contactForm', 'quickButtons'])
   );
   const [expandedFAQs, setExpandedFAQs] = useState<Set<number>>(new Set([0]));
+
+  // Notify parent when tab changes
+  useEffect(() => {
+    onPageChange?.(activeTab);
+  }, [activeTab, onPageChange]);
+
+  const handleTabChange = (tabId: TabId) => {
+    setActiveTab(tabId);
+  };
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -87,28 +109,48 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
     handleUpdate('items', [...(content.items || []), newFAQ]);
   };
 
+  const addNewBusinessHour = () => {
+    const newHour: BusinessHour = {
+      day: 'New Day',
+      hours: '9:00 AM - 5:00 PM',
+    };
+    handleUpdate('businessHours', [...(content.businessHours || []), newHour]);
+  };
+
+  const addNewServiceOption = () => {
+    const newOption: ContactServiceOption = {
+      value: 'new-service',
+      label: 'New Service',
+    };
+    const currentOptions = content.contactPage?.serviceOptions || [];
+    handleUpdate('contactPage.serviceOptions', [...currentOptions, newOption]);
+  };
+
   // Get icon component by type
   const getContactIcon = (type: string) => {
     const option = contactTypeOptions.find(opt => opt.value === type);
     return option?.icon || Phone;
   };
 
-  return (
+  // ============================================================================
+  // FAQ SECTION TAB CONTENT
+  // ============================================================================
+  const renderFAQSectionTab = () => (
     <div className="space-y-4 sm:space-y-6">
-      {/* Contact Header Content */}
+      {/* FAQ Header Content */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('contactHeader')} className={sectionHeaderClass}>
+        <button onClick={() => toggleSection('faqHeader')} className={sectionHeaderClass}>
           <div className="flex items-center gap-2 sm:gap-3">
-            <motion.div animate={{ rotate: expandedSections.has('contactHeader') ? 90 : 0 }}>
+            <motion.div animate={{ rotate: expandedSections.has('faqHeader') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Type className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Contact Section</span>
+            <Type className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">FAQ Header</span>
           </div>
         </button>
 
         <AnimatePresence>
-          {expandedSections.has('contactHeader') && (
+          {expandedSections.has('faqHeader') && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
@@ -117,45 +159,45 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 <div className="space-y-2">
-                  <label className={labelClass}>Contact Badge</label>
+                  <label className={labelClass}>FAQ Badge</label>
                   <input
                     type="text"
-                    value={content.contactBadge || ''}
-                    onChange={(e) => handleUpdate('contactBadge', e.target.value)}
-                    placeholder="Contact Us"
+                    value={content.badge || ''}
+                    onChange={(e) => handleUpdate('badge', e.target.value)}
+                    placeholder="FAQ"
                     className={inputClass}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
-                    <label className={labelClass}>Contact Headline</label>
+                    <label className={labelClass}>FAQ Headline</label>
                     <input
                       type="text"
-                      value={content.contactHeadline?.line1 || ''}
-                      onChange={(e) => handleUpdate('contactHeadline.line1', e.target.value)}
-                      placeholder="Get in"
+                      value={content.headline?.line1 || ''}
+                      onChange={(e) => handleUpdate('headline.line1', e.target.value)}
+                      placeholder="Frequently Asked"
                       className={inputClass}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className={labelClass}>Contact Highlighted Text</label>
+                    <label className={labelClass}>FAQ Highlighted Text</label>
                     <input
                       type="text"
-                      value={content.contactHeadline?.highlight || ''}
-                      onChange={(e) => handleUpdate('contactHeadline.highlight', e.target.value)}
-                      placeholder="Touch"
+                      value={content.headline?.highlight || ''}
+                      onChange={(e) => handleUpdate('headline.highlight', e.target.value)}
+                      placeholder="Questions"
                       className={inputClass}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className={labelClass}>Contact Description</label>
+                  <label className={labelClass}>FAQ Description</label>
                   <textarea
-                    value={content.contactDescription || ''}
-                    onChange={(e) => handleUpdate('contactDescription', e.target.value)}
-                    placeholder="Visit our service center..."
+                    value={content.description || ''}
+                    onChange={(e) => handleUpdate('description', e.target.value)}
+                    placeholder="Find quick answers..."
                     rows={2}
                     className={inputClass}
                   />
@@ -166,47 +208,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
-      {/* Map Section */}
-      <div className={sectionClass}>
-        <button onClick={() => toggleSection('map')} className={sectionHeaderClass}>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <motion.div animate={{ rotate: expandedSections.has('map') ? 90 : 0 }}>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </motion.div>
-            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Google Map Configuration</span>
-          </div>
-        </button>
-
-        <AnimatePresence>
-          {expandedSections.has('map') && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                <div className="space-y-2">
-                  <label className={labelClass}>Map Embed URL</label>
-                  <textarea
-                    value={content.mapEmbedUrl || ''}
-                    onChange={(e) => handleUpdate('mapEmbedUrl', e.target.value)}
-                    placeholder="https://www.google.com/maps/embed?..."
-                    rows={3}
-                    className={inputClass}
-                  />
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    Copy the 'src' attribute from Google Maps 'Embed Map' iframe code.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Contact Cards */}
+      {/* Contact Cards (for FAQ section left side) */}
       <div className={sectionClass}>
         <div
           onClick={() => toggleSection('contactCards')}
@@ -349,20 +351,38 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
-      {/* FAQ Header Content */}
+      {/* Business Hours (for FAQ section left side) */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('faqHeader')} className={sectionHeaderClass}>
+        <div
+          onClick={() => toggleSection('businessHours')}
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('businessHours')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
-            <motion.div animate={{ rotate: expandedSections.has('faqHeader') ? 90 : 0 }}>
+            <motion.div animate={{ rotate: expandedSections.has('businessHours') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Type className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">FAQ Header</span>
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Business Hours</span>
+            <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
+              {content.businessHours?.length || 0}
+            </span>
           </div>
-        </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              addNewBusinessHour();
+            }}
+            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
 
         <AnimatePresence>
-          {expandedSections.has('faqHeader') && (
+          {expandedSections.has('businessHours') && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
@@ -370,50 +390,69 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                <div className="space-y-2">
-                  <label className={labelClass}>FAQ Badge</label>
-                  <input
-                    type="text"
-                    value={content.badge || ''}
-                    onChange={(e) => handleUpdate('badge', e.target.value)}
-                    placeholder="FAQ"
-                    className={inputClass}
-                  />
-                </div>
+                {content.businessHours?.map((hour: BusinessHour, index: number) => (
+                  <div key={index} className="p-3 sm:p-4 rounded-xl bg-secondary/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-foreground">
+                          Schedule #{index + 1}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newHours = content.businessHours?.filter((_: BusinessHour, i: number) => i !== index);
+                          handleUpdate('businessHours', newHours);
+                        }}
+                        className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="space-y-2">
-                    <label className={labelClass}>FAQ Headline</label>
-                    <input
-                      type="text"
-                      value={content.headline?.line1 || ''}
-                      onChange={(e) => handleUpdate('headline.line1', e.target.value)}
-                      placeholder="Frequently Asked"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className={labelClass}>FAQ Highlighted Text</label>
-                    <input
-                      type="text"
-                      value={content.headline?.highlight || ''}
-                      onChange={(e) => handleUpdate('headline.highlight', e.target.value)}
-                      placeholder="Questions"
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="space-y-2">
+                        <label className={labelClass}>Day(s)</label>
+                        <input
+                          type="text"
+                          value={hour.day || ''}
+                          onChange={(e) => {
+                            const newHours = [...(content.businessHours || [])];
+                            newHours[index] = { ...newHours[index], day: e.target.value };
+                            handleUpdate('businessHours', newHours);
+                          }}
+                          placeholder="Monday - Friday"
+                          className={inputClass}
+                        />
+                      </div>
 
-                <div className="space-y-2">
-                  <label className={labelClass}>FAQ Description</label>
-                  <textarea
-                    value={content.description || ''}
-                    onChange={(e) => handleUpdate('description', e.target.value)}
-                    placeholder="Find quick answers..."
-                    rows={2}
-                    className={inputClass}
-                  />
-                </div>
+                      <div className="space-y-2">
+                        <label className={labelClass}>Hours</label>
+                        <input
+                          type="text"
+                          value={hour.hours || ''}
+                          onChange={(e) => {
+                            const newHours = [...(content.businessHours || [])];
+                            newHours[index] = { ...newHours[index], hours: e.target.value };
+                            handleUpdate('businessHours', newHours);
+                          }}
+                          placeholder="8:00 AM - 7:00 PM"
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {(!content.businessHours || content.businessHours.length === 0) && (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No business hours added</p>
+                    <button onClick={addNewBusinessHour} className="mt-2 text-primary text-sm font-medium">
+                      + Add business hours
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -555,6 +594,350 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
           )}
         </AnimatePresence>
       </div>
+    </div>
+  );
+
+  // ============================================================================
+  // CONTACT PAGE TAB CONTENT
+  // ============================================================================
+  const renderContactPageTab = () => (
+    <div className="space-y-4 sm:space-y-6">
+      {/* Contact Page Header Content */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('contactHeader')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('contactHeader') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <Type className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Page Header</span>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('contactHeader') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="space-y-2">
+                  <label className={labelClass}>Contact Badge</label>
+                  <input
+                    type="text"
+                    value={content.contactBadge || ''}
+                    onChange={(e) => handleUpdate('contactBadge', e.target.value)}
+                    placeholder="Contact Us"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>Contact Headline</label>
+                    <input
+                      type="text"
+                      value={content.contactHeadline?.line1 || ''}
+                      onChange={(e) => handleUpdate('contactHeadline.line1', e.target.value)}
+                      placeholder="Get in"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Contact Highlighted Text</label>
+                    <input
+                      type="text"
+                      value={content.contactHeadline?.highlight || ''}
+                      onChange={(e) => handleUpdate('contactHeadline.highlight', e.target.value)}
+                      placeholder="Touch"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>Contact Description</label>
+                  <textarea
+                    value={content.contactDescription || ''}
+                    onChange={(e) => handleUpdate('contactDescription', e.target.value)}
+                    placeholder="Visit our service center..."
+                    rows={2}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Google Map Section */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('map')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('map') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Google Map</span>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('map') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="space-y-2">
+                  <label className={labelClass}>Map Embed URL</label>
+                  <textarea
+                    value={content.mapEmbedUrl || ''}
+                    onChange={(e) => handleUpdate('mapEmbedUrl', e.target.value)}
+                    placeholder="https://www.google.com/maps/embed?..."
+                    rows={3}
+                    className={inputClass}
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Copy the 'src' attribute from Google Maps 'Embed Map' iframe code.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Contact Form Settings */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('contactForm')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('contactForm') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Contact Form</span>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('contactForm') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>Form Title</label>
+                    <input
+                      type="text"
+                      value={content.contactPage?.formTitle || ''}
+                      onChange={(e) => handleUpdate('contactPage.formTitle', e.target.value)}
+                      placeholder="Send us a Message"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Form Subtitle</label>
+                    <input
+                      type="text"
+                      value={content.contactPage?.formSubtitle || ''}
+                      onChange={(e) => handleUpdate('contactPage.formSubtitle', e.target.value)}
+                      placeholder="We'll get back to you within 24 hours"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>Submit Button Text</label>
+                    <input
+                      type="text"
+                      value={content.contactPage?.submitButton || ''}
+                      onChange={(e) => handleUpdate('contactPage.submitButton', e.target.value)}
+                      placeholder="Send Message"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>Success Message</label>
+                    <input
+                      type="text"
+                      value={content.contactPage?.successMessage || ''}
+                      onChange={(e) => handleUpdate('contactPage.successMessage', e.target.value)}
+                      placeholder="Thank you for contacting us..."
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                {/* Service Options */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <label className={labelClass}>Service Options (Dropdown)</label>
+                    <button
+                      onClick={addNewServiceOption}
+                      className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {content.contactPage?.serviceOptions?.map((option: ContactServiceOption, index: number) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={option.value || ''}
+                        onChange={(e) => {
+                          const newOptions = [...(content.contactPage?.serviceOptions || [])];
+                          newOptions[index] = { ...newOptions[index], value: e.target.value };
+                          handleUpdate('contactPage.serviceOptions', newOptions);
+                        }}
+                        placeholder="value-slug"
+                        className={`${inputClass} flex-1`}
+                      />
+                      <input
+                        type="text"
+                        value={option.label || ''}
+                        onChange={(e) => {
+                          const newOptions = [...(content.contactPage?.serviceOptions || [])];
+                          newOptions[index] = { ...newOptions[index], label: e.target.value };
+                          handleUpdate('contactPage.serviceOptions', newOptions);
+                        }}
+                        placeholder="Display Label"
+                        className={`${inputClass} flex-1`}
+                      />
+                      <button
+                        onClick={() => {
+                          const newOptions = content.contactPage?.serviceOptions?.filter((_: ContactServiceOption, i: number) => i !== index);
+                          handleUpdate('contactPage.serviceOptions', newOptions);
+                        }}
+                        className="p-2 rounded-lg text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {(!content.contactPage?.serviceOptions || content.contactPage.serviceOptions.length === 0) && (
+                    <p className="text-xs text-muted-foreground text-center py-2">
+                      No service options. Click + to add.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Quick Contact Buttons */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('quickButtons')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('quickButtons') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <Send className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Quick Contact Buttons</span>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('quickButtons') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="space-y-2">
+                  <label className={labelClass}>Call Now Link</label>
+                  <input
+                    type="text"
+                    value={content.contactPage?.callNowHref || ''}
+                    onChange={(e) => handleUpdate('contactPage.callNowHref', e.target.value)}
+                    placeholder="tel:+919876543210"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>WhatsApp Link</label>
+                  <input
+                    type="text"
+                    value={content.contactPage?.whatsappHref || ''}
+                    onChange={(e) => handleUpdate('contactPage.whatsappHref', e.target.value)}
+                    placeholder="https://wa.me/919876543210"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>Email Link</label>
+                  <input
+                    type="text"
+                    value={content.contactPage?.emailHref || ''}
+                    onChange={(e) => handleUpdate('contactPage.emailHref', e.target.value)}
+                    placeholder="mailto:info@example.com"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      {/* Tab Navigation */}
+      <div className="flex gap-2 p-1 rounded-xl bg-secondary/50">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id)}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                isActive
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab Content */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+        >
+          {activeTab === 'faqSection' && renderFAQSectionTab()}
+          {activeTab === 'contactPage' && renderContactPageTab()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

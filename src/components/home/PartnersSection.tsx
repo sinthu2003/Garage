@@ -28,7 +28,7 @@ export const PartnersSection = () => {
   const secondRowPartners = partners.slice(Math.ceil(partners.length / 2));
 
   return (
-    <section ref={sectionRef} className="py-12 sm:py-16 lg:py-20 bg-background relative overflow-hidden">
+    <section ref={sectionRef} id='partners' className="py-12 sm:py-16 lg:py-20 bg-background relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div

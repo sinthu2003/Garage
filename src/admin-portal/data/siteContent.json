@@ -56,7 +56,7 @@
         },
         {
           "label": "Contact",
-          "href": "#faq",
+          "href": "/contact",
           "isRoute": false
         }
       ],
@@ -2834,61 +2834,85 @@
       }
     ]
   },
-  "faq": {
-    "badge": "FAQ",
-    "headline": {
-      "line1": "Frequently Asked",
-      "highlight": " Questions"
-    },
-    "description": "Find quick answers to common questions about our services.",
-    "contactBadge": "Contact Us",
-    "contactHeadline": {
-      "line1": "Get in",
-      "highlight": " Touch"
-    },
-    "contactDescription": "Visit our service center or reach out to us. We're here to help with all your car service needs.",
-    "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.2!2d80.1462!3d13.0545583!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a52610f527eee05%3A0xf0228105c8d0de9f!2sADDAX%20AUTOMOTIVE!5e0!3m2!1sen!2sin!4v1699000000000!5m2!1sen!2sin",
-    "contactCards": [
-      {
-        "type": "phone",
-        "label": "Call us at",
-        "value": "+91 98765 43210",
-        "href": "tel:+919876543210"
-      },
-      {
-        "type": "whatsapp",
-        "label": "Chat with us",
-        "value": "WhatsApp Support",
-        "href": "https://wa.me/919363039969"
-      }
-    ],
-    "items": [
-      {
-        "question": "How does doorstep car service work?",
-        "answer": "Simply book a service through our app or website. Our mechanic will arrive at your location with all tools and equipment. After service completion, pay online or cash."
-      },
-      {
-        "question": "What warranty do you provide?",
-        "answer": "We provide 6-month/10,000 km warranty on all services and parts. Any defects in workmanship or parts are fixed free of charge."
-      },
-      {
-        "question": "Are your mechanics certified?",
-        "answer": "Yes! All mechanics are trained and certified with 5+ years average experience. They undergo background checks and continuous training."
-      },
-      {
-        "question": "Do you use genuine spare parts?",
-        "answer": "We source parts directly from authorized dealers and OEM suppliers. Every part comes with documentation and warranty."
-      },
-      {
-        "question": "Can I track my service in real-time?",
-        "answer": "Yes! Get real-time updates with photos and videos of service progress. Chat directly with your mechanic through our app."
-      },
-      {
-        "question": "How much can I save compared to authorized centers?",
-        "answer": "Save 30-40% on average compared to authorized service centers while maintaining the same quality standards."
-      }
-    ]
+"faq": {
+  "badge": "FAQ",
+  "headline": {
+    "line1": "Frequently Asked",
+    "highlight": " Questions"
   },
+  "description": "Find quick answers to common questions about our services.",
+  "contactBadge": "Contact Us",
+  "contactHeadline": {
+    "line1": "Get in",
+    "highlight": " Touch"
+  },
+  "contactDescription": "Visit our service center or reach out to us. We're here to help with all your car service needs.",
+  "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.2!2d80.1462!3d13.0545583!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a52610f527eee05%3A0xf0228105c8d0de9f!2sADDAX%20AUTOMOTIVE!5e0!3m2!1sen!2sin!4v1699000000000!5m2!1sen!2sin",
+  "contactCards": [
+    {
+      "type": "phone",
+      "label": "Call us at",
+      "value": "+91 98765 43210",
+      "href": "tel:+919876543210"
+    },
+    {
+      "type": "whatsapp",
+      "label": "Chat with us",
+      "value": "WhatsApp Support",
+      "href": "https://wa.me/919363039969"
+    }
+  ],
+  "items": [
+    {
+      "question": "How does doorstep car service work?",
+      "answer": "Simply book a service through our app or website. Our mechanic will arrive at your location with all tools and equipment. After service completion, pay online or cash."
+    },
+    {
+      "question": "What warranty do you provide?",
+      "answer": "We provide 6-month/10,000 km warranty on all services and parts. Any defects in workmanship or parts are fixed free of charge."
+    },
+    {
+      "question": "Are your mechanics certified?",
+      "answer": "Yes! All mechanics are trained and certified with 5+ years average experience. They undergo background checks and continuous training."
+    },
+    {
+      "question": "Do you use genuine spare parts?",
+      "answer": "We source parts directly from authorized dealers and OEM suppliers. Every part comes with documentation and warranty."
+    },
+    {
+      "question": "Can I track my service in real-time?",
+      "answer": "Yes! Get real-time updates with photos and videos of service progress. Chat directly with your mechanic through our app."
+    },
+    {
+      "question": "How much can I save compared to authorized centers?",
+      "answer": "Save 30-40% on average compared to authorized service centers while maintaining the same quality standards."
+    }
+  ],
+  "businessHours": [
+    { "day": "Monday - Friday", "hours": "8:00 AM - 7:00 PM" },
+    { "day": "Saturday", "hours": "9:00 AM - 5:00 PM" },
+    { "day": "Sunday", "hours": "Closed" }
+  ],
+  "contactPage": {
+    "formTitle": "Send us a Message",
+    "formSubtitle": "We'll get back to you within 24 hours",
+    "submitButton": "Send Message",
+    "successMessage": "Thank you for contacting us. We'll respond soon.",
+    "callNowHref": "tel:+919876543210",
+    "whatsappHref": "https://wa.me/919876543210",
+    "emailHref": "mailto:info@addaxauto.com",
+    "serviceOptions": [
+      { "value": "general-service", "label": "General Service" },
+      { "value": "ac-service", "label": "AC Service & Repair" },
+      { "value": "brake-service", "label": "Brake Service" },
+      { "value": "battery-replacement", "label": "Battery Replacement" },
+      { "value": "tyre-service", "label": "Tyre Service" },
+      { "value": "denting-painting", "label": "Denting & Painting" },
+      { "value": "engine-repair", "label": "Engine Repair" },
+      { "value": "other", "label": "Other" }
+    ]
+  }
+},
   "footer": {
     "brandName": "Addax",
     "tagline": "Automotive",
@@ -2933,23 +2957,17 @@
       "company": [
         {
           "name": "About Us",
-          "href": "#"
+          "href": "#features"
         },
-        {
-          "name": "Careers",
-          "href": "#"
-        },
+        
         {
           "name": "Blog",
           "href": "#"
         },
-        {
-          "name": "Press",
-          "href": "#"
-        },
+       
         {
           "name": "Partners",
-          "href": "#"
+          "href": "#partners"
         }
       ],
       "support": [
@@ -2959,7 +2977,7 @@
         },
         {
           "name": "Contact Us",
-          "href": "#"
+          "href": "/contact"
         },
         {
           "name": "FAQs",
@@ -2967,14 +2985,6 @@
         },
         {
           "name": "Warranty Policy",
-          "href": "#"
-        },
-        {
-          "name": "Privacy Policy",
-          "href": "#"
-        },
-        {
-          "name": "Terms of Service",
           "href": "#"
         }
       ],

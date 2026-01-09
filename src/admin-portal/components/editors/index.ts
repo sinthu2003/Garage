@@ -89,11 +89,11 @@ export const editorConfig = [
   },
   {
     id: 'faq',
-    label: 'FAQ',
+    label: 'FAQ & Contact',
     icon: 'HelpCircle',
     color: 'from-green-500 to-emerald-500',
     component: 'FAQEditor',
-    description: 'Frequently asked questions and contact info',
+    description: 'FAQ section and Contact page settings',
     previewRoute: '/#faq',
     category: 'content',
   },
@@ -204,7 +204,7 @@ export const editorConfig = [
 // ============================================================================
 
 // Type for editor IDs (includes dynamic page previews)
-export type EditorId = typeof editorConfig[number]['id'] | 'servicesPage' | 'notFoundPage';
+export type EditorId = typeof editorConfig[number]['id'] | 'servicesPage' | 'notFoundPage' | 'faqSection' | 'contactPage';
 
 // Type for editor config items
 export type EditorConfigItem = typeof editorConfig[number];
@@ -213,7 +213,10 @@ export type EditorConfigItem = typeof editorConfig[number];
 export type EditorCategory = 'content' | 'sections' | 'layout' | 'settings';
 
 // Type for page preview mapping
-export type PagePreviewId = 'servicesPage' | 'notFoundPage';
+export type PagePreviewId = 'servicesPage' | 'notFoundPage' | 'contactPage';
+
+// Type for FAQ editor page
+export type FAQEditorPage = 'faqSection' | 'contactPage';
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -233,6 +236,8 @@ export const getEditorPreviewRoute = (id: EditorId): string => {
   // Handle dynamic page previews
   if (id === 'servicesPage') return '/services';
   if (id === 'notFoundPage') return '/404';
+  if (id === 'faqSection') return '/#faq';
+  if (id === 'contactPage') return '/contact';
   
   const config = getEditorConfig(id);
   return config?.previewRoute || '/';
@@ -271,7 +276,7 @@ export const categoryLabels: Record<EditorCategory, string> = {
  */
 export const hasDirectPreview = (id: EditorId): boolean => {
   const noPreviewIds: string[] = ['serviceDetail', 'global'];
-  // 'pages' has dynamic preview based on selected tab
+  // 'pages' and 'faq' have dynamic preview based on selected tab
   return !noPreviewIds.includes(id);
 };
 
@@ -284,8 +289,23 @@ export const getPagesPreviewId = (selectedPage: 'services' | 'notFound'): PagePr
 };
 
 /**
+ * Get the preview section ID for the FAQ editor based on selected tab
+ * This is used by AdminPage to dynamically switch preview when FAQEditor tab changes
+ */
+export const getFAQPreviewId = (selectedPage: FAQEditorPage): string => {
+  return selectedPage === 'faqSection' ? 'faqSection' : 'contactPage';
+};
+
+/**
  * Check if an editor ID is a dynamic page preview
  */
 export const isDynamicPagePreview = (id: EditorId): boolean => {
-  return id === 'servicesPage' || id === 'notFoundPage';
+  return id === 'servicesPage' || id === 'notFoundPage' || id === 'faqSection' || id === 'contactPage';
+};
+
+/**
+ * Check if an editor supports tab-based preview switching
+ */
+export const hasTabBasedPreview = (id: EditorId): boolean => {
+  return id === 'pages' || id === 'faq';
 };

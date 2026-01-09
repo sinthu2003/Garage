@@ -2,19 +2,25 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Type,
-  Image,
   Play,
   BarChart3,
   ChevronRight,
   Plus,
   Trash2,
   GripVertical,
-  Eye,
-  EyeOff,
+  Images,
+  Clock,
 } from 'lucide-react';
 import { useHeroContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload, MultiImageUpload } from '../shared/ImageUpload';
 import type { HeroStat, HeroScrollingBrand } from '../../types/content.types';
+
+// Type for background images
+interface BackgroundImage {
+  url: string;
+  alt: string;
+}
 
 interface HeroEditorProps {
   isDarkMode: boolean;
@@ -26,7 +32,6 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['headline', 'stats'])
   );
-  const [showImagePreview, setShowImagePreview] = useState(false);
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -50,6 +55,9 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
 
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
+
+  // Get background images array or initialize empty
+  const backgroundImages: BackgroundImage[] = content.backgroundImages || [];
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -230,63 +238,160 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
-      {/* Background Image */}
+      {/* ============== BACKGROUND IMAGES SLIDER (Using MultiImageUpload) ============== */}
       <div className={sectionClass}>
         <div 
-          onClick={() => toggleSection('image')} 
-          onKeyDown={(e) => e.key === 'Enter' && toggleSection('image')}
+          onClick={() => toggleSection('backgroundImages')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('backgroundImages')}
           role="button"
           tabIndex={0}
           className={`${sectionHeaderClass} cursor-pointer`}
         >
           <div className="flex items-center gap-2 sm:gap-3">
-            <motion.div animate={{ rotate: expandedSections.has('image') ? 90 : 0 }}>
+            <motion.div animate={{ rotate: expandedSections.has('backgroundImages') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Image className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Background Image</span>
+            <Images className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Background Slider Images</span>
+            <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
+              {backgroundImages.length}
+            </span>
           </div>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setShowImagePreview(!showImagePreview);
+              // Add a new empty image slot
+              if (backgroundImages.length < 10) {
+                const newIndex = backgroundImages.length;
+                const newImage: BackgroundImage = { url: '', alt: '' };
+                handleUpdate('backgroundImages', [...backgroundImages, newImage]);
+                
+                // Check if section is closed
+                const wasClosed = !expandedSections.has('backgroundImages');
+                
+                // Open section if closed
+                if (wasClosed) {
+                  const newExpanded = new Set(expandedSections);
+                  newExpanded.add('backgroundImages');
+                  setExpandedSections(newExpanded);
+                }
+                
+                // Scroll to the newly added image slot
+                // Use longer delay if section was closed to wait for animation
+                setTimeout(() => {
+                  const newSlot = document.getElementById(`background-image-${newIndex}`);
+                  if (newSlot) {
+                    newSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }, wasClosed ? 400 : 100);
+              }
             }}
-            className="p-2 rounded-lg hover:bg-secondary text-muted-foreground"
+            disabled={backgroundImages.length >= 10}
+            className={`p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground ${
+              backgroundImages.length >= 10 ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            title={backgroundImages.length >= 10 ? 'Maximum 10 images allowed' : 'Add new image'}
           >
-            {showImagePreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            <Plus className="w-4 h-4" />
           </button>
         </div>
 
         <AnimatePresence>
-          {expandedSections.has('image') && (
+          {expandedSections.has('backgroundImages') && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                <div className="space-y-2">
-                  <label className={labelClass}>Image URL or Path</label>
-                  <input
-                    type="text"
-                    value={content.backgroundImage || ''}
-                    onChange={(e) => handleUpdate('backgroundImage', e.target.value)}
-                    placeholder="hero-bg.jpg or https://..."
-                    className={inputClass}
+              <div className="p-3 sm:p-4 pt-0 space-y-4 border-t border-border">
+                {/* Slider Settings */}
+                <div className="p-3 rounded-xl bg-secondary/30 border border-border">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">Slider Settings</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Slide Duration (seconds)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="30"
+                        value={content.sliderSettings?.duration || 5}
+                        onChange={(e) => handleUpdate('sliderSettings.duration', parseInt(e.target.value) || 5)}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-muted-foreground">Transition Effect</label>
+                      <select
+                        value={content.sliderSettings?.transition || 'fade'}
+                        onChange={(e) => handleUpdate('sliderSettings.transition', e.target.value)}
+                        className={inputClass}
+                      >
+                        <option value="fade">Fade</option>
+                        <option value="slide">Slide</option>
+                        <option value="zoom">Zoom</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={content.sliderSettings?.autoPlay !== false}
+                        onChange={(e) => handleUpdate('sliderSettings.autoPlay', e.target.checked)}
+                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20"
+                      />
+                      <span className="text-sm text-muted-foreground">Auto Play</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={content.sliderSettings?.showIndicators !== false}
+                        onChange={(e) => handleUpdate('sliderSettings.showIndicators', e.target.checked)}
+                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20"
+                      />
+                      <span className="text-sm text-muted-foreground">Show Indicators</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Multi Image Upload Component */}
+                <div id="background-images-upload">
+                  <MultiImageUpload
+                    value={backgroundImages}
+                    onChange={(images) => handleUpdate('backgroundImages', images)}
+                    maxImages={10}
+                    showAltInput={true}
+                    previewHeight="h-40"
+                    maxSizeMB={2}
+                    maxWidthOrHeight={1920}
+                    enableMultiSelect={true}
+                    helperText="Upload high-quality images for the hero slider. Images are auto-compressed to 2MB max. First image is the default."
                   />
                 </div>
 
-                {showImagePreview && content.backgroundImage && (
-                  <div className="rounded-xl overflow-hidden border border-border">
-                    <img
-                      src={content.backgroundImage}
-                      alt="Hero background preview"
-                      className="w-full h-32 sm:h-48 object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/800x400?text=Image+Not+Found';
+                {/* Empty State with Default Images Option */}
+                {backgroundImages.length === 0 && (
+                  <div className="text-center py-4">
+                    <button
+                      onClick={() => {
+                        const defaultImages: BackgroundImage[] = [
+                          { url: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=1920&q=80', alt: 'Professional Car Service Garage' },
+                          { url: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1920&q=80', alt: 'Car Engine Repair' },
+                          { url: 'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=1920&q=80', alt: 'Auto Mechanic Working' },
+                        ];
+                        handleUpdate('backgroundImages', defaultImages);
                       }}
-                    />
+                      className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors"
+                    >
+                      + Load Sample Images
+                    </button>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Quick start with sample garage images
+                    </p>
                   </div>
                 )}
               </div>
@@ -294,6 +399,64 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Legacy Single Background Image (Using ImageUpload) */}
+      {backgroundImages.length === 0 && (
+        <div className={sectionClass}>
+          <div 
+            onClick={() => toggleSection('image')} 
+            onKeyDown={(e) => e.key === 'Enter' && toggleSection('image')}
+            role="button"
+            tabIndex={0}
+            className={`${sectionHeaderClass} cursor-pointer`}
+          >
+            <div className="flex items-center gap-2 sm:gap-3">
+              <motion.div animate={{ rotate: expandedSections.has('image') ? 90 : 0 }}>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </motion.div>
+              <Images className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+              <span className="font-medium text-foreground text-sm sm:text-base">Single Background Image</span>
+              <span className="px-2 py-0.5 rounded-full text-xs bg-orange-500/20 text-orange-500">
+                Legacy
+              </span>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {expandedSections.has('image') && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                  <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                    <p className="text-xs text-orange-500">
+                      💡 Tip: Use the "Background Slider Images" section above for multiple rotating images. This single image option is for backward compatibility.
+                    </p>
+                  </div>
+                  
+                  {/* Single Image Upload Component */}
+                  <ImageUpload
+                    value={content.backgroundImage || ''}
+                    onChange={(url) => handleUpdate('backgroundImage', url)}
+                    label="Background Image"
+                    placeholder="Enter image URL or upload a file"
+                    showPreviewDefault={true}
+                    maxSizeMB={2}
+                    maxWidthOrHeight={1920}
+                    previewHeight="h-48"
+                    showImageInfo={true}
+                    enablePaste={true}
+                    helperText="Recommended size: 1920x1080px. Auto-compressed to 2MB max."
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       {/* Statistics */}
       <div className={sectionClass}>
@@ -364,12 +527,13 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
                           className={inputClass}
                         >
                           <option value="Award">Award</option>
-                          <option value="Shield">Shield</option>
+                          <option value="ShieldCheck">Shield</option>
                           <option value="Star">Star</option>
                           <option value="Users">Users</option>
-                          <option value="Clock">Clock</option>
+                          <option value="Zap">Zap</option>
                           <option value="MapPin">Location</option>
                           <option value="Wrench">Wrench</option>
+                          <option value="Car">Car</option>
                         </select>
                       </div>
 
@@ -524,12 +688,21 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
                     <p className="text-sm">No brands added yet</p>
                     <button
                       onClick={() => {
-                        const newBrand: HeroScrollingBrand = { name: 'Maruti Suzuki' };
-                        handleUpdate('scrollingBrands', [newBrand]);
+                        const defaultBrands: HeroScrollingBrand[] = [
+                          { name: 'Maruti Suzuki' },
+                          { name: 'Hyundai' },
+                          { name: 'Honda' },
+                          { name: 'Tata' },
+                          { name: 'Toyota' },
+                          { name: 'Mahindra' },
+                          { name: 'Kia' },
+                          { name: 'MG' },
+                        ];
+                        handleUpdate('scrollingBrands', defaultBrands);
                       }}
                       className="mt-2 text-primary text-sm font-medium"
                     >
-                      + Add your first brand
+                      + Add default brands
                     </button>
                   </div>
                 )}
