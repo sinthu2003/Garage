@@ -356,7 +356,7 @@ export const Hero = () => {
       </div>
 
       {/* Scrolling Brand Logos - Dynamic from content */}
-      <motion.div 
+      {/* <motion.div 
         className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900/90 to-transparent py-4 sm:py-6 z-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -382,7 +382,7 @@ export const Hero = () => {
             ))}
           </motion.div>
         </div>
-      </motion.div>
+      </motion.div> */}
     </section>
   );
 };

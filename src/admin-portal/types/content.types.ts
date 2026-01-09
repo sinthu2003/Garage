@@ -129,8 +129,8 @@ export interface HeroContent {
   subheadline: string;
   savings: HeroSavings;
   cta: HeroCTA;
-  // Legacy single image (backward compatibility)
-  backgroundImage: string;
+  // Legacy single image (backward compatibility) - now optional since we use backgroundImages array
+  backgroundImage?: string;
   // NEW: Multiple background images for slider
   backgroundImages?: HeroBackgroundImage[];
   // NEW: Slider settings
@@ -320,7 +320,7 @@ export interface ServiceItem {
 }
 
 // Alias for backward compatibility with data.ts
-export interface Service extends ServiceItem {}
+export interface Service extends ServiceItem { }
 
 export interface ServicesContent {
   badge: string;
@@ -551,7 +551,7 @@ export interface FAQContent {
   mapEmbedUrl: string;
   contactCards: FAQContactCard[];
   items: FAQItem[];
-   businessHours?: BusinessHour[];
+  businessHours?: BusinessHour[];
   contactPage?: ContactPageSettings;
 }
 
