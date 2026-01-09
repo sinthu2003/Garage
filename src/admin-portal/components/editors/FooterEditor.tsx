@@ -59,7 +59,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
     path,
     addLabel,
   }: {
-    links: Array<{ name: string; href: string }> | undefined;
+    links: Array<{ name?: string; href: string }> | undefined;
     path: string;
     addLabel: string;
   }) => (
@@ -432,8 +432,8 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
 
       {/* Cities */}
       <div className={sectionClass}>
-        <div 
-          onClick={() => toggleSection('cities')} 
+        <div
+          onClick={() => toggleSection('cities')}
           onKeyDown={(e) => e.key === 'Enter' && toggleSection('cities')}
           role="button"
           tabIndex={0}
@@ -532,7 +532,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                   <label className={labelClass}>Copyright Text</label>
                   <input
                     type="text"
-                    value={content.copyright || ''}
+                    value={typeof content.copyright === 'string' ? content.copyright : (content.copyright?.text || '')}
                     onChange={(e) => handleUpdate('copyright', e.target.value)}
                     placeholder="© {year} Addax Automotive. All rights reserved."
                     className={inputClass}
