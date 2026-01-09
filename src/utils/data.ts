@@ -8,12 +8,12 @@
  */
 
 import siteContent from '../admin-portal/data/siteContent.json';
-import type { 
-  Service, 
-  Testimonial, 
+import type {
+  Service,
+  Testimonial,
   Workshop,
   ServiceItem,
-  TestimonialItem 
+  TestimonialItem
 } from '../admin-portal/types/content.types';
 
 // ============================================
@@ -37,7 +37,7 @@ const resolveImage = (path: string | undefined): string => {
   // Since siteContent uses "../assets/...", and data.ts is in src/utils,
   // "../assets/..." maps correctly to src/assets.
   const imageModule = images[path] as { default: string } | undefined;
-  
+
   if (imageModule && imageModule.default) {
     return imageModule.default;
   }
@@ -202,7 +202,7 @@ export const getTotalSavings = (): { market: number; ours: number; savings: numb
     }),
     { market: 0, ours: 0 }
   );
-  
+
   return {
     ...totals,
     savings: totals.market - totals.ours,
@@ -277,7 +277,10 @@ export const seoData = siteContent.global.seo;
 
 export const heroContent = {
   ...siteContent.hero,
-  backgroundImage: resolveImage(siteContent.hero.backgroundImage)
+  backgroundImages: siteContent.hero.backgroundImages?.map(img => ({
+    ...img,
+    url: resolveImage(img.url)
+  })) || []
 };
 
 export const bookingContent = {
