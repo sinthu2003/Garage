@@ -503,6 +503,10 @@ export interface FAQContent {
   badge: string;
   headline: FAQHeadline;
   description: string;
+  contactBadge: string;
+  contactHeadline: FAQHeadline;
+  contactDescription: string;
+  mapEmbedUrl: string;
   contactCards: FAQContactCard[];
   items: FAQItem[];
 }

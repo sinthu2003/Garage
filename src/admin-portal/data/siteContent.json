@@ -102,53 +102,191 @@
       }
     ],
     "scrollingBrands": [
-  { "name": "Maruti Suzuki", "logo": "../assets/brand/suzuki-logo.png" },
-  { "name": "Hyundai", "logo": "../assets/brand/hyundai-logo.png" },
-  { "name": "Honda", "logo": "../assets/brand/honda-logo.png" },
-  { "name": "Tata", "logo": "../assets/brand/tata-logo.png" },
-  { "name": "Toyota", "logo": "../assets/brand/toyota-logo.png" },
-  { "name": "Mahindra", "logo": "../assets/brand/mahindra-logo.png" },
-  { "name": "Kia", "logo": "../assets/brand/kia-logo.png" },
-  { "name": "MG", "logo": "../assets/brand/mg-logo.png" },
-  { "name": "Volkswagen", "logo": "../assets/brand/volkswagen-logo.png" },
-  { "name": "Skoda", "logo": "../assets/brand/skoda-logo.png" },
-  { "name": "Renault", "logo": "../assets/brand/renault-logo.png" },
-  { "name": "Nissan", "logo": "../assets/brand/nissan-logo.png" },
-  { "name": "Ford", "logo": "../assets/brand/ford-logo.png" },
-  { "name": "Chevrolet", "logo": "../assets/brand/chevrolet-logo.png" },
-  { "name": "Jeep", "logo": "../assets/brand/jeep-logo.png" },
-  { "name": "Citroen", "logo": "../assets/brand/citroen-logo.png" },
-  { "name": "Isuzu", "logo": "../assets/brand/isuzu-logo.png" },
-  { "name": "Datsun", "logo": "../assets/brand/datsun-logo.png" },
-  { "name": "Fiat", "logo": "../assets/brand/fiat-logo.png" },
-  { "name": "Force Motors", "logo": "../assets/brand/force-logo.png" },
-  { "name": "Hindustan Motors", "logo": "../assets/brand/hindustan-logo.png" },
-  { "name": "Premier", "logo": "../assets/brand/premier-logo.png" },
-  { "name": "Daewoo", "logo": "../assets/brand/daewoo-logo.png" },
-  { "name": "Opel", "logo": "../assets/brand/opel-logo.png" },
-  { "name": "Mitsubishi", "logo": "../assets/brand/mitsubishi-logo.png" },
-  { "name": "SsangYong", "logo": "../assets/brand/ssangyong-logo.png" },
-  { "name": "Foton", "logo": "../assets/brand/foton-logo.png" },
-  { "name": "BYD", "logo": "../assets/brand/byd-logo.png" },
-  { "name": "Mercedes-Benz", "logo": "../assets/brand/mercedes-benz-logo.png" },
-  { "name": "BMW", "logo": "../assets/brand/bmw-logo.png" },
-  { "name": "Audi", "logo": "../assets/brand/audi-logo.png" },
-  { "name": "Volvo", "logo": "../assets/brand/volvo-logo.png" },
-  { "name": "Jaguar", "logo": "../assets/brand/jaguar-logo.png" },
-  { "name": "Land Rover", "logo": "../assets/brand/land-rover-logo.png" },
-  { "name": "Porsche", "logo": "../assets/brand/porsche-logo.png" },
-  { "name": "Lexus", "logo": "../assets/brand/lexus-logo.png" },
-  { "name": "Mini", "logo": "../assets/brand/mini-logo.png" },
-  { "name": "Bentley", "logo": "../assets/brand/bentley-logo.png" },
-  { "name": "Rolls-Royce", "logo": "../assets/brand/rolls-royce-logo.png" },
-  { "name": "Aston Martin", "logo": "../assets/brand/aston-martin-logo.png" },
-  { "name": "Ferrari", "logo": "../assets/brand/ferrari-logo.png" },
-  { "name": "Lamborghini", "logo": "../assets/brand/lamborghini-logo.png" },
-  { "name": "Maserati", "logo": "../assets/brand/maserati-logo.png" },
-  { "name": "McLaren", "logo": "../assets/brand/mclaren-logo.png" },
-  { "name": "Lotus", "logo": "../assets/brand/lotus-logo.png" },
-  { "name": "Hummer", "logo": "../assets/brand/hummer-logo.png" }
-]
+      {
+        "name": "Maruti Suzuki",
+        "logo": "../assets/brand/suzuki-logo.png"
+      },
+      {
+        "name": "Hyundai",
+        "logo": "../assets/brand/hyundai-logo.png"
+      },
+      {
+        "name": "Honda",
+        "logo": "../assets/brand/honda-logo.png"
+      },
+      {
+        "name": "Tata",
+        "logo": "../assets/brand/tata-logo.png"
+      },
+      {
+        "name": "Toyota",
+        "logo": "../assets/brand/toyota-logo.png"
+      },
+      {
+        "name": "Mahindra",
+        "logo": "../assets/brand/mahindra-logo.png"
+      },
+      {
+        "name": "Kia",
+        "logo": "../assets/brand/kia-logo.png"
+      },
+      {
+        "name": "MG",
+        "logo": "../assets/brand/mg-logo.png"
+      },
+      {
+        "name": "Volkswagen",
+        "logo": "../assets/brand/volkswagen-logo.png"
+      },
+      {
+        "name": "Skoda",
+        "logo": "../assets/brand/skoda-logo.png"
+      },
+      {
+        "name": "Renault",
+        "logo": "../assets/brand/renault-logo.png"
+      },
+      {
+        "name": "Nissan",
+        "logo": "../assets/brand/nissan-logo.png"
+      },
+      {
+        "name": "Ford",
+        "logo": "../assets/brand/ford-logo.png"
+      },
+      {
+        "name": "Chevrolet",
+        "logo": "../assets/brand/chevrolet-logo.png"
+      },
+      {
+        "name": "Jeep",
+        "logo": "../assets/brand/jeep-logo.png"
+      },
+      {
+        "name": "Citroen",
+        "logo": "../assets/brand/citroen-logo.png"
+      },
+      {
+        "name": "Isuzu",
+        "logo": "../assets/brand/isuzu-logo.png"
+      },
+      {
+        "name": "Datsun",
+        "logo": "../assets/brand/datsun-logo.png"
+      },
+      {
+        "name": "Fiat",
+        "logo": "../assets/brand/fiat-logo.png"
+      },
+      {
+        "name": "Force Motors",
+        "logo": "../assets/brand/force-logo.png"
+      },
+      {
+        "name": "Hindustan Motors",
+        "logo": "../assets/brand/hindustan-logo.png"
+      },
+      {
+        "name": "Premier",
+        "logo": "../assets/brand/premier-logo.png"
+      },
+      {
+        "name": "Daewoo",
+        "logo": "../assets/brand/daewoo-logo.png"
+      },
+      {
+        "name": "Opel",
+        "logo": "../assets/brand/opel-logo.png"
+      },
+      {
+        "name": "Mitsubishi",
+        "logo": "../assets/brand/mitsubishi-logo.png"
+      },
+      {
+        "name": "SsangYong",
+        "logo": "../assets/brand/ssangyong-logo.png"
+      },
+      {
+        "name": "Foton",
+        "logo": "../assets/brand/foton-logo.png"
+      },
+      {
+        "name": "BYD",
+        "logo": "../assets/brand/byd-logo.png"
+      },
+      {
+        "name": "Mercedes-Benz",
+        "logo": "../assets/brand/mercedes-benz-logo.png"
+      },
+      {
+        "name": "BMW",
+        "logo": "../assets/brand/bmw-logo.png"
+      },
+      {
+        "name": "Audi",
+        "logo": "../assets/brand/audi-logo.png"
+      },
+      {
+        "name": "Volvo",
+        "logo": "../assets/brand/volvo-logo.png"
+      },
+      {
+        "name": "Jaguar",
+        "logo": "../assets/brand/jaguar-logo.png"
+      },
+      {
+        "name": "Land Rover",
+        "logo": "../assets/brand/land-rover-logo.png"
+      },
+      {
+        "name": "Porsche",
+        "logo": "../assets/brand/porsche-logo.png"
+      },
+      {
+        "name": "Lexus",
+        "logo": "../assets/brand/lexus-logo.png"
+      },
+      {
+        "name": "Mini",
+        "logo": "../assets/brand/mini-logo.png"
+      },
+      {
+        "name": "Bentley",
+        "logo": "../assets/brand/bentley-logo.png"
+      },
+      {
+        "name": "Rolls-Royce",
+        "logo": "../assets/brand/rolls-royce-logo.png"
+      },
+      {
+        "name": "Aston Martin",
+        "logo": "../assets/brand/aston-martin-logo.png"
+      },
+      {
+        "name": "Ferrari",
+        "logo": "../assets/brand/ferrari-logo.png"
+      },
+      {
+        "name": "Lamborghini",
+        "logo": "../assets/brand/lamborghini-logo.png"
+      },
+      {
+        "name": "Maserati",
+        "logo": "../assets/brand/maserati-logo.png"
+      },
+      {
+        "name": "McLaren",
+        "logo": "../assets/brand/mclaren-logo.png"
+      },
+      {
+        "name": "Lotus",
+        "logo": "../assets/brand/lotus-logo.png"
+      },
+      {
+        "name": "Hummer",
+        "logo": "../assets/brand/hummer-logo.png"
+      }
+    ]
   },
   "bookingWidget": {
     "title": "Book Your Service",
@@ -346,28 +484,138 @@
         "logo": "../assets/brand/mitsubishi-logo.png",
         "urlName": "mitsubishi"
       },
-      { "id": "citroen", "name": "Citroen", "logo": "../assets/brand/citroen-logo.png", "urlName": "citroen" },
-{ "id": "isuzu", "name": "Isuzu", "logo": "../assets/brand/isuzu-logo.png", "urlName": "isuzu" },
-{ "id": "datsun", "name": "Datsun", "logo": "../assets/brand/datsun-logo.png", "urlName": "datsun" },
-{ "id": "fiat", "name": "Fiat", "logo": "../assets/brand/fiat-logo.png", "urlName": "fiat" },
-{ "id": "force", "name": "Force Motors", "logo": "../assets/brand/force-logo.png", "urlName": "force-motors" },
-{ "id": "hindustan", "name": "Hindustan Motors", "logo": "../assets/brand/hindustan-logo.png", "urlName": "hindustan-motors" },
-{ "id": "premier", "name": "Premier", "logo": "../assets/brand/premier-logo.png", "urlName": "premier" },
-{ "id": "daewoo", "name": "Daewoo", "logo": "../assets/brand/daewoo-logo.png", "urlName": "daewoo" },
-{ "id": "opel", "name": "Opel", "logo": "../assets/brand/opel-logo.png", "urlName": "opel" },
-{ "id": "ssangyong", "name": "SsangYong", "logo": "../assets/brand/ssangyong-logo.png", "urlName": "ssangyong" },
-{ "id": "foton", "name": "Foton", "logo": "../assets/brand/foton-logo.png", "urlName": "foton" },
-{ "id": "byd", "name": "BYD", "logo": "../assets/brand/byd-logo.png", "urlName": "byd" },
-{ "id": "mini", "name": "Mini", "logo": "../assets/brand/mini-logo.png", "urlName": "mini" },
-{ "id": "bentley", "name": "Bentley", "logo": "../assets/brand/bentley-logo.png", "urlName": "bentley" },
-{ "id": "rollsroyce", "name": "Rolls-Royce", "logo": "../assets/brand/rolls-royce-logo.png", "urlName": "rolls-royce" },
-{ "id": "astonmartin", "name": "Aston Martin", "logo": "../assets/brand/aston-martin-logo.png", "urlName": "aston-martin" },
-{ "id": "ferrari", "name": "Ferrari", "logo": "../assets/brand/ferrari-logo.png", "urlName": "ferrari" },
-{ "id": "lamborghini", "name": "Lamborghini", "logo": "../assets/brand/lamborghini-logo.png", "urlName": "lamborghini" },
-{ "id": "maserati", "name": "Maserati", "logo": "../assets/brand/maserati-logo.png", "urlName": "maserati" },
-{ "id": "mclaren", "name": "McLaren", "logo": "../assets/brand/mclaren-logo.png", "urlName": "mclaren" },
-{ "id": "lotus", "name": "Lotus", "logo": "../assets/brand/lotus-logo.png", "urlName": "lotus" },
-{ "id": "hummer", "name": "Hummer", "logo": "../assets/brand/hummer-logo.png", "urlName": "hummer" }
+      {
+        "id": "citroen",
+        "name": "Citroen",
+        "logo": "../assets/brand/citroen-logo.png",
+        "urlName": "citroen"
+      },
+      {
+        "id": "isuzu",
+        "name": "Isuzu",
+        "logo": "../assets/brand/isuzu-logo.png",
+        "urlName": "isuzu"
+      },
+      {
+        "id": "datsun",
+        "name": "Datsun",
+        "logo": "../assets/brand/datsun-logo.png",
+        "urlName": "datsun"
+      },
+      {
+        "id": "fiat",
+        "name": "Fiat",
+        "logo": "../assets/brand/fiat-logo.png",
+        "urlName": "fiat"
+      },
+      {
+        "id": "force",
+        "name": "Force Motors",
+        "logo": "../assets/brand/force-logo.png",
+        "urlName": "force-motors"
+      },
+      {
+        "id": "hindustan",
+        "name": "Hindustan Motors",
+        "logo": "../assets/brand/hindustan-logo.png",
+        "urlName": "hindustan-motors"
+      },
+      {
+        "id": "premier",
+        "name": "Premier",
+        "logo": "../assets/brand/premier-logo.png",
+        "urlName": "premier"
+      },
+      {
+        "id": "daewoo",
+        "name": "Daewoo",
+        "logo": "../assets/brand/daewoo-logo.png",
+        "urlName": "daewoo"
+      },
+      {
+        "id": "opel",
+        "name": "Opel",
+        "logo": "../assets/brand/opel-logo.png",
+        "urlName": "opel"
+      },
+      {
+        "id": "ssangyong",
+        "name": "SsangYong",
+        "logo": "../assets/brand/ssangyong-logo.png",
+        "urlName": "ssangyong"
+      },
+      {
+        "id": "foton",
+        "name": "Foton",
+        "logo": "../assets/brand/foton-logo.png",
+        "urlName": "foton"
+      },
+      {
+        "id": "byd",
+        "name": "BYD",
+        "logo": "../assets/brand/byd-logo.png",
+        "urlName": "byd"
+      },
+      {
+        "id": "mini",
+        "name": "Mini",
+        "logo": "../assets/brand/mini-logo.png",
+        "urlName": "mini"
+      },
+      {
+        "id": "bentley",
+        "name": "Bentley",
+        "logo": "../assets/brand/bentley-logo.png",
+        "urlName": "bentley"
+      },
+      {
+        "id": "rollsroyce",
+        "name": "Rolls-Royce",
+        "logo": "../assets/brand/rolls-royce-logo.png",
+        "urlName": "rolls-royce"
+      },
+      {
+        "id": "astonmartin",
+        "name": "Aston Martin",
+        "logo": "../assets/brand/aston-martin-logo.png",
+        "urlName": "aston-martin"
+      },
+      {
+        "id": "ferrari",
+        "name": "Ferrari",
+        "logo": "../assets/brand/ferrari-logo.png",
+        "urlName": "ferrari"
+      },
+      {
+        "id": "lamborghini",
+        "name": "Lamborghini",
+        "logo": "../assets/brand/lamborghini-logo.png",
+        "urlName": "lamborghini"
+      },
+      {
+        "id": "maserati",
+        "name": "Maserati",
+        "logo": "../assets/brand/maserati-logo.png",
+        "urlName": "maserati"
+      },
+      {
+        "id": "mclaren",
+        "name": "McLaren",
+        "logo": "../assets/brand/mclaren-logo.png",
+        "urlName": "mclaren"
+      },
+      {
+        "id": "lotus",
+        "name": "Lotus",
+        "logo": "../assets/brand/lotus-logo.png",
+        "urlName": "lotus"
+      },
+      {
+        "id": "hummer",
+        "name": "Hummer",
+        "logo": "../assets/brand/hummer-logo.png",
+        "urlName": "hummer"
+      }
     ],
     "carModels": {
       "maruti": [
@@ -461,8 +709,16 @@
           "type": "MPV",
           "image": "../assets/model/maruti-suzuki/invicto-exterior-right-front-three-quarter-68.avif"
         },
-        { "name": "S-Cross", "type": "SUV", "image": "../assets/model/maruti-suzuki/s-cross-petrol-exterior-right-front-three-quarter.avif" },
-{ "name": "Victoris", "type": "Sedan", "image": "../assets/model/maruti-suzuki/victoris-exterior-right-front-three-quarter-8.avif" }
+        {
+          "name": "S-Cross",
+          "type": "SUV",
+          "image": "../assets/model/maruti-suzuki/s-cross-petrol-exterior-right-front-three-quarter.avif"
+        },
+        {
+          "name": "Victoris",
+          "type": "Sedan",
+          "image": "../assets/model/maruti-suzuki/victoris-exterior-right-front-three-quarter-8.avif"
+        }
       ],
       "hyundai": [
         {
@@ -691,8 +947,16 @@
           "type": "SUV",
           "image": "../assets/model/toyoto/taisor-exterior-right-front-three-quarter-41.avif"
         },
-        { "name": "Corolla Altis", "type": "Sedan", "image": "../assets/model/toyoto/Toyota-Corolla-Altis-Exterior-92974.avif" },
-{ "name": "Yaris", "type": "Sedan", "image": "../assets/model/toyoto/yaris-exterior-right-front-three-quarter-2.avif" }
+        {
+          "name": "Corolla Altis",
+          "type": "Sedan",
+          "image": "../assets/model/toyoto/Toyota-Corolla-Altis-Exterior-92974.avif"
+        },
+        {
+          "name": "Yaris",
+          "type": "Sedan",
+          "image": "../assets/model/toyoto/yaris-exterior-right-front-three-quarter-2.avif"
+        }
       ],
       "mahindra": [
         {
@@ -760,9 +1024,21 @@
           "type": "Electric",
           "image": "../assets/model/mahindra/xev-9e-exterior-right-front-three-quarter-2.avif"
         },
-        { "name": "TUV300", "type": "SUV", "image": "../assets/model/mahindra/Mahindra-TUV300-Right-Front-Three-Quarter-155763.avif" },
-{ "name": "KUV100 NXT", "type": "SUV", "image": "../assets/model/mahindra/kuv100-nxt-exterior-right-front-three-quarter-64047.avif" },
-{ "name": "XEV9s", "type": "Electric", "image": "../assets/model/mahindra/xev9s-exterior-right-front-three-quarter-11.avif" }
+        {
+          "name": "TUV300",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/Mahindra-TUV300-Right-Front-Three-Quarter-155763.avif"
+        },
+        {
+          "name": "KUV100 NXT",
+          "type": "SUV",
+          "image": "../assets/model/mahindra/kuv100-nxt-exterior-right-front-three-quarter-64047.avif"
+        },
+        {
+          "name": "XEV9s",
+          "type": "Electric",
+          "image": "../assets/model/mahindra/xev9s-exterior-right-front-three-quarter-11.avif"
+        }
       ],
       "kia": [
         {
@@ -795,7 +1071,11 @@
           "type": "Electric",
           "image": "../assets/model/kia/ev9-exterior-right-front-three-quarter-6.avif"
         },
-        { "name": "Carens Clavis", "type": "SUV", "image": "../assets/model/kia/carens-clavis-exterior-right-front-three-quarter-3.avif" }
+        {
+          "name": "Carens Clavis",
+          "type": "SUV",
+          "image": "../assets/model/kia/carens-clavis-exterior-right-front-three-quarter-3.avif"
+        }
       ],
       "mg": [
         {
@@ -830,7 +1110,11 @@
         }
       ],
       "volkswagen": [
-        { "name": "Golf GTI", "type": "Hatchback", "image": "../assets/model/volkswagen/golf-gti-exterior-right-front-three-quarter-4.avif" },
+        {
+          "name": "Golf GTI",
+          "type": "Hatchback",
+          "image": "../assets/model/volkswagen/golf-gti-exterior-right-front-three-quarter-4.avif"
+        },
         {
           "name": "Taigun",
           "type": "SUV",
@@ -877,7 +1161,12 @@
           "name": "Kylaq",
           "type": "SUV",
           "image": "../assets/model/skoda/kylaq-exterior-right-front-three-quarter-10.avif"
-        },{ "name": "Octavia RS", "type": "Sedan", "image": "../assets/model/skoda/octaviars-exterior-right-front-three-quarter-2.avif" }
+        },
+        {
+          "name": "Octavia RS",
+          "type": "Sedan",
+          "image": "../assets/model/skoda/octaviars-exterior-right-front-three-quarter-2.avif"
+        }
       ],
       "renault": [
         {
@@ -912,10 +1201,18 @@
           "type": "SUV",
           "image": "../assets/model/nissan/x-trail-exterior-right-front-three-quarter-28.avif"
         },
-        { "name": "Kicks", "type": "SUV", "image": "../assets/model/nissan/Nissan-Kicks-Right-Front-Three-Quarter-159680.avif" }
+        {
+          "name": "Kicks",
+          "type": "SUV",
+          "image": "../assets/model/nissan/Nissan-Kicks-Right-Front-Three-Quarter-159680.avif"
+        }
       ],
       "ford": [
-        { "name": "Freestyle", "type": "Hatchback", "image": "../assets/model/ford/freestyle-exterior-right-front-three-quarter-2.avif" },
+        {
+          "name": "Freestyle",
+          "type": "Hatchback",
+          "image": "../assets/model/ford/freestyle-exterior-right-front-three-quarter-2.avif"
+        },
         {
           "name": "EcoSport",
           "type": "SUV",
@@ -938,8 +1235,16 @@
         }
       ],
       "chevrolet": [
-        { "name": "Enjoy", "type": "MPV", "image": "../assets/model/chevrolet/Chevrolet-Enjoy-Right-Front-Three-Quarter-49907_ol.avif" },
-{ "name": "Tavera", "type": "MPV", "image": "../assets/model/chevrolet/Chevrolet-Tavera-Right-Front-Three-Quarter-49908_ol.avif" },
+        {
+          "name": "Enjoy",
+          "type": "MPV",
+          "image": "../assets/model/chevrolet/Chevrolet-Enjoy-Right-Front-Three-Quarter-49907_ol.avif"
+        },
+        {
+          "name": "Tavera",
+          "type": "MPV",
+          "image": "../assets/model/chevrolet/Chevrolet-Tavera-Right-Front-Three-Quarter-49908_ol.avif"
+        },
         {
           "name": "Beat",
           "type": "Hatchback",
@@ -962,8 +1267,16 @@
           "type": "Sedan",
           "image": "../assets/model/bmw/3-series-exterior-right-front-three-quarter-10.avif"
         },
-        { "name": "2 Series", "type": "Sedan", "image": "../assets/model/bmw/2-series-gran-coupe-exterior-right-front-three-quarter-4.avif" },
-{ "name": "iX1", "type": "Electric", "image": "../assets/model/bmw/ix1-lwb-exterior-right-front-three-quarter-2.avif" },
+        {
+          "name": "2 Series",
+          "type": "Sedan",
+          "image": "../assets/model/bmw/2-series-gran-coupe-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "iX1",
+          "type": "Electric",
+          "image": "../assets/model/bmw/ix1-lwb-exterior-right-front-three-quarter-2.avif"
+        },
         {
           "name": "5 Series",
           "type": "Sedan",
@@ -1051,7 +1364,11 @@
           "type": "Electric",
           "image": "../assets/model/audi/e-tron-gt-exterior-right-front-three-quarter-2.avif"
         },
-        { "name": "RS5", "type": "Sports", "image": "../assets/model/audi/rs5-exterior-right-front-three-quarter-4.avif" }
+        {
+          "name": "RS5",
+          "type": "Sports",
+          "image": "../assets/model/audi/rs5-exterior-right-front-three-quarter-4.avif"
+        }
       ],
       "mercedes": [
         {
@@ -1104,11 +1421,31 @@
           "type": "Electric",
           "image": "../assets/model/mercedes/eqs-exterior-right-front-three-quarter-31.avif"
         },
-        { "name": "AMG CLE", "type": "Sports", "image": "../assets/model/mercedes/amg-cle-exterior-right-front-three-quarter-33.avif" },
-{ "name": "EQE SUV", "type": "Electric", "image": "../assets/model/mercedes/eqe-suv-exterior-right-front-three-quarter-4.avif" },
-{ "name": "GLB", "type": "SUV", "image": "../assets/model/mercedes/glb-exterior-right-front-three-quarter-2.avif" },
-{ "name": "Maybach GLS", "type": "SUV", "image": "../assets/model/mercedes/maybach-gls-exterior-right-front-three-quarter-5.avif" },
-{ "name": "Maybach S-Class", "type": "Sedan", "image": "../assets/model/mercedes/maybach-s-class-exterior-right-front-three-quarter-6.avif" }
+        {
+          "name": "AMG CLE",
+          "type": "Sports",
+          "image": "../assets/model/mercedes/amg-cle-exterior-right-front-three-quarter-33.avif"
+        },
+        {
+          "name": "EQE SUV",
+          "type": "Electric",
+          "image": "../assets/model/mercedes/eqe-suv-exterior-right-front-three-quarter-4.avif"
+        },
+        {
+          "name": "GLB",
+          "type": "SUV",
+          "image": "../assets/model/mercedes/glb-exterior-right-front-three-quarter-2.avif"
+        },
+        {
+          "name": "Maybach GLS",
+          "type": "SUV",
+          "image": "../assets/model/mercedes/maybach-gls-exterior-right-front-three-quarter-5.avif"
+        },
+        {
+          "name": "Maybach S-Class",
+          "type": "Sedan",
+          "image": "../assets/model/mercedes/maybach-s-class-exterior-right-front-three-quarter-6.avif"
+        }
       ],
       "jeep": [
         {
@@ -1200,7 +1537,11 @@
           "type": "MPV",
           "image": "../assets/model/lexus/lm-exterior-right-front-three-quarter-5.avif"
         },
-        { "name": "LC 500h", "type": "Sports", "image": "../assets/model/lexus/lexus-lc-500h-right-front-three-quarter10.avif" }
+        {
+          "name": "LC 500h",
+          "type": "Sports",
+          "image": "../assets/model/lexus/lexus-lc-500h-right-front-three-quarter10.avif"
+        }
       ],
       "porsche": [
         {
@@ -1294,7 +1635,11 @@
         }
       ],
       "mitsubishi": [
-        { "name": "Montero", "type": "SUV", "image": "../assets/model/mitshubitsi/Mitsubishi-Montero-Right-Front-Three-Quarter-74529.avif" },
+        {
+          "name": "Montero",
+          "type": "SUV",
+          "image": "../assets/model/mitshubitsi/Mitsubishi-Montero-Right-Front-Three-Quarter-74529.avif"
+        },
         {
           "name": "Outlander",
           "type": "SUV",
@@ -2437,13 +2782,34 @@
         "name": "Datsun",
         "logo": "../assets/brand/datsun-logo.png"
       },
-      { "name": "Hummer", "logo": "../assets/brand/hummer-logo.png" },
-{ "name": "SsangYong", "logo": "../assets/brand/ssangyong-logo.png" },
-{ "name": "Foton", "logo": "../assets/brand/foton-logo.png" },
-{ "name": "Opel", "logo": "../assets/brand/opel-logo.png" },
-{ "name": "Daewoo", "logo": "../assets/brand/daewoo-logo.png" },
-{ "name": "Hindustan Motors", "logo": "../assets/brand/hindustan-logo.png" },
-{ "name": "Premier", "logo": "../assets/brand/premier-logo.png" }
+      {
+        "name": "Hummer",
+        "logo": "../assets/brand/hummer-logo.png"
+      },
+      {
+        "name": "SsangYong",
+        "logo": "../assets/brand/ssangyong-logo.png"
+      },
+      {
+        "name": "Foton",
+        "logo": "../assets/brand/foton-logo.png"
+      },
+      {
+        "name": "Opel",
+        "logo": "../assets/brand/opel-logo.png"
+      },
+      {
+        "name": "Daewoo",
+        "logo": "../assets/brand/daewoo-logo.png"
+      },
+      {
+        "name": "Hindustan Motors",
+        "logo": "../assets/brand/hindustan-logo.png"
+      },
+      {
+        "name": "Premier",
+        "logo": "../assets/brand/premier-logo.png"
+      }
     ],
     "trustBadges": [
       {
@@ -2472,9 +2838,16 @@
     "badge": "FAQ",
     "headline": {
       "line1": "Frequently Asked",
-      "highlight": "Questions"
+      "highlight": " Questions"
     },
-    "description": "Everything you need to know about our car service. Can't find your answer? Contact us.",
+    "description": "Find quick answers to common questions about our services.",
+    "contactBadge": "Contact Us",
+    "contactHeadline": {
+      "line1": "Get in",
+      "highlight": " Touch"
+    },
+    "contactDescription": "Visit our service center or reach out to us. We're here to help with all your car service needs.",
+    "mapEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.2!2d80.1462!3d13.0545583!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a52610f527eee05%3A0xf0228105c8d0de9f!2sADDAX%20AUTOMOTIVE!5e0!3m2!1sen!2sin!4v1699000000000!5m2!1sen!2sin",
     "contactCards": [
       {
         "type": "phone",
@@ -2486,7 +2859,7 @@
         "type": "whatsapp",
         "label": "Chat with us",
         "value": "WhatsApp Support",
-        "href": "https://wa.me/919876543210"
+        "href": "https://wa.me/919363039969"
       }
     ],
     "items": [
@@ -2606,9 +2979,7 @@
         }
       ],
       "cities": [
-        
         "Chennai"
-        
       ]
     },
     "copyright": "© {year} Addax Automotive. All rights reserved.",

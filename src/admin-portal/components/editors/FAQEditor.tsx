@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   HelpCircle,
-  Type,
   Phone,
   MessageCircle,
   Mail,
@@ -11,6 +10,8 @@ import {
   Plus,
   Trash2,
   GripVertical,
+  MapPin,
+  Type,
 } from 'lucide-react';
 import { useFAQContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
@@ -31,7 +32,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
   const { updateField } = useContent();
   const content = useFAQContent();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['header', 'contactCards', 'items'])
+    new Set(['faqHeader', 'contactHeader', 'map', 'contactCards', 'items'])
   );
   const [expandedFAQs, setExpandedFAQs] = useState<Set<number>>(new Set([0]));
 
@@ -94,20 +95,20 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Section Header Content */}
+      {/* Contact Header Content */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
+        <button onClick={() => toggleSection('contactHeader')} className={sectionHeaderClass}>
           <div className="flex items-center gap-2 sm:gap-3">
-            <motion.div animate={{ rotate: expandedSections.has('header') ? 90 : 0 }}>
+            <motion.div animate={{ rotate: expandedSections.has('contactHeader') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
             <Type className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Section Header</span>
+            <span className="font-medium text-foreground text-sm sm:text-base">Contact Section</span>
           </div>
         </button>
 
         <AnimatePresence>
-          {expandedSections.has('header') && (
+          {expandedSections.has('contactHeader') && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
@@ -116,45 +117,45 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 <div className="space-y-2">
-                  <label className={labelClass}>Badge Text</label>
+                  <label className={labelClass}>Contact Badge</label>
                   <input
                     type="text"
-                    value={content.badge || ''}
-                    onChange={(e) => handleUpdate('badge', e.target.value)}
-                    placeholder="FAQ"
+                    value={content.contactBadge || ''}
+                    onChange={(e) => handleUpdate('contactBadge', e.target.value)}
+                    placeholder="Contact Us"
                     className={inputClass}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
-                    <label className={labelClass}>Headline Line 1</label>
+                    <label className={labelClass}>Contact Headline</label>
                     <input
                       type="text"
-                      value={content.headline?.line1 || ''}
-                      onChange={(e) => handleUpdate('headline.line1', e.target.value)}
-                      placeholder="Frequently Asked"
+                      value={content.contactHeadline?.line1 || ''}
+                      onChange={(e) => handleUpdate('contactHeadline.line1', e.target.value)}
+                      placeholder="Get in"
                       className={inputClass}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className={labelClass}>Highlighted Text</label>
+                    <label className={labelClass}>Contact Highlighted Text</label>
                     <input
                       type="text"
-                      value={content.headline?.highlight || ''}
-                      onChange={(e) => handleUpdate('headline.highlight', e.target.value)}
-                      placeholder="Questions"
+                      value={content.contactHeadline?.highlight || ''}
+                      onChange={(e) => handleUpdate('contactHeadline.highlight', e.target.value)}
+                      placeholder="Touch"
                       className={inputClass}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className={labelClass}>Description</label>
+                  <label className={labelClass}>Contact Description</label>
                   <textarea
-                    value={content.description || ''}
-                    onChange={(e) => handleUpdate('description', e.target.value)}
-                    placeholder="Everything you need to know..."
+                    value={content.contactDescription || ''}
+                    onChange={(e) => handleUpdate('contactDescription', e.target.value)}
+                    placeholder="Visit our service center..."
                     rows={2}
                     className={inputClass}
                   />
@@ -165,10 +166,50 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
+      {/* Map Section */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('map')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('map') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Google Map Configuration</span>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('map') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="space-y-2">
+                  <label className={labelClass}>Map Embed URL</label>
+                  <textarea
+                    value={content.mapEmbedUrl || ''}
+                    onChange={(e) => handleUpdate('mapEmbedUrl', e.target.value)}
+                    placeholder="https://www.google.com/maps/embed?..."
+                    rows={3}
+                    className={inputClass}
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Copy the 'src' attribute from Google Maps 'Embed Map' iframe code.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       {/* Contact Cards */}
       <div className={sectionClass}>
-        <div 
-          onClick={() => toggleSection('contactCards')} 
+        <div
+          onClick={() => toggleSection('contactCards')}
           onKeyDown={(e) => e.key === 'Enter' && toggleSection('contactCards')}
           role="button"
           tabIndex={0}
@@ -308,10 +349,81 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
+      {/* FAQ Header Content */}
+      <div className={sectionClass}>
+        <button onClick={() => toggleSection('faqHeader')} className={sectionHeaderClass}>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <motion.div animate={{ rotate: expandedSections.has('faqHeader') ? 90 : 0 }}>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </motion.div>
+            <Type className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">FAQ Header</span>
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {expandedSections.has('faqHeader') && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="space-y-2">
+                  <label className={labelClass}>FAQ Badge</label>
+                  <input
+                    type="text"
+                    value={content.badge || ''}
+                    onChange={(e) => handleUpdate('badge', e.target.value)}
+                    placeholder="FAQ"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>FAQ Headline</label>
+                    <input
+                      type="text"
+                      value={content.headline?.line1 || ''}
+                      onChange={(e) => handleUpdate('headline.line1', e.target.value)}
+                      placeholder="Frequently Asked"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>FAQ Highlighted Text</label>
+                    <input
+                      type="text"
+                      value={content.headline?.highlight || ''}
+                      onChange={(e) => handleUpdate('headline.highlight', e.target.value)}
+                      placeholder="Questions"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>FAQ Description</label>
+                  <textarea
+                    value={content.description || ''}
+                    onChange={(e) => handleUpdate('description', e.target.value)}
+                    placeholder="Find quick answers..."
+                    rows={2}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       {/* FAQ Items */}
       <div className={sectionClass}>
-        <div 
-          onClick={() => toggleSection('items')} 
+        <div
+          onClick={() => toggleSection('items')}
           onKeyDown={(e) => e.key === 'Enter' && toggleSection('items')}
           role="button"
           tabIndex={0}
