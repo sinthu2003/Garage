@@ -98,7 +98,8 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
       value: '+91 98765 43210',
       href: 'tel:+919876543210',
     };
-    handleUpdate('contactCards', [...(content.contactCards || []), newCard]);
+    // Add at the beginning of the array
+    handleUpdate('contactCards', [newCard, ...(content.contactCards || [])]);
   };
 
   const addNewFAQ = () => {
@@ -106,7 +107,10 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
       question: 'New Question?',
       answer: 'Answer to the question goes here.',
     };
-    handleUpdate('items', [...(content.items || []), newFAQ]);
+    // Add at the beginning of the array
+    handleUpdate('items', [newFAQ, ...(content.items || [])]);
+    // Auto-expand the newly added item (now at index 0)
+    setExpandedFAQs(new Set([0]));
   };
 
   const addNewBusinessHour = () => {
@@ -114,7 +118,8 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
       day: 'New Day',
       hours: '9:00 AM - 5:00 PM',
     };
-    handleUpdate('businessHours', [...(content.businessHours || []), newHour]);
+    // Add at the beginning of the array
+    handleUpdate('businessHours', [newHour, ...(content.businessHours || [])]);
   };
 
   const addNewServiceOption = () => {
@@ -123,7 +128,8 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
       label: 'New Service',
     };
     const currentOptions = content.contactPage?.serviceOptions || [];
-    handleUpdate('contactPage.serviceOptions', [...currentOptions, newOption]);
+    // Add at the beginning of the array
+    handleUpdate('contactPage.serviceOptions', [newOption, ...currentOptions]);
   };
 
   // Get icon component by type
@@ -504,9 +510,12 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                     className="rounded-xl border overflow-hidden border-border bg-card"
                   >
                     {/* FAQ Header */}
-                    <button
+                    <div
                       onClick={() => toggleFAQ(index)}
-                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
+                      onKeyDown={(e) => e.key === 'Enter' && toggleFAQ(index)}
+                      role="button"
+                      tabIndex={0}
+                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50 cursor-pointer"
                     >
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                         <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
@@ -532,7 +541,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                           <ChevronDown className="w-4 h-4 text-muted-foreground" />
                         </motion.div>
                       </div>
-                    </button>
+                    </div>
 
                     {/* FAQ Details */}
                     <AnimatePresence>

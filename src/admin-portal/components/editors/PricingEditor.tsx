@@ -4,16 +4,27 @@ import {
   DollarSign,
   Type,
   ChevronRight,
+  ChevronDown,
   Plus,
   Trash2,
   Percent,
   TrendingDown,
+  GripVertical,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { usePricingContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload } from '../shared/ImageUpload';
 
 interface PricingEditorProps {
   isDarkMode: boolean;
+}
+
+interface PriceItem {
+  service: string;
+  market: number;
+  ours: number;
+  image?: string;
 }
 
 export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
@@ -22,6 +33,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'items'])
   );
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -31,6 +43,16 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
       newExpanded.add(section);
     }
     setExpandedSections(newExpanded);
+  };
+
+  const toggleItem = (index: number) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedItems(newExpanded);
   };
 
   const handleUpdate = (path: string, value: unknown) => {
@@ -47,13 +69,16 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
   const addNewPriceItem = () => {
-    const newItem = {
+    const newItem: PriceItem = {
       service: 'New Service',
       market: 1000,
       ours: 700,
       image: '',
     };
-    handleUpdate('items', [...(content.items || []), newItem]);
+    // Add at the beginning of the array
+    handleUpdate('items', [newItem, ...(content.items || [])]);
+    // Auto-expand the newly added item (now at index 0)
+    setExpandedItems(new Set([0]));
   };
 
   // Calculate savings
@@ -158,7 +183,13 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
 
       {/* Price Items */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('items')} className={sectionHeaderClass}>
+        <div
+          onClick={() => toggleSection('items')}
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('items')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('items') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -178,7 +209,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('items') && (
@@ -189,165 +220,159 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                {/* Table Header - Desktop Only */}
-                <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
-                  <div className="col-span-4">Service</div>
-                  <div className="col-span-2 text-center">Market ₹</div>
-                  <div className="col-span-2 text-center">Our ₹</div>
-                  <div className="col-span-2 text-center">Savings</div>
-                  <div className="col-span-2 text-center">Actions</div>
-                </div>
-
-                {content.items?.map((item: { service: string; market: number; ours: number; image?: string }, index: number) => (
-                  <div key={index} className="rounded-xl bg-secondary/50 p-3 sm:p-4">
-                    {/* Mobile Layout */}
-                    <div className="sm:hidden space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-foreground">Item #{index + 1}</span>
-                        <button
-                          onClick={() => {
-                            const newItems = content.items?.filter((_: unknown, i: number) => i !== index);
-                            handleUpdate('items', newItems);
-                          }}
-                          className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] text-muted-foreground">Service Name</label>
-                        <input
-                          type="text"
-                          value={item.service || ''}
-                          onChange={(e) => {
-                            const newItems = [...(content.items || [])];
-                            newItems[index] = { ...newItems[index], service: e.target.value };
-                            handleUpdate('items', newItems);
-                          }}
-                          placeholder="Service name"
-                          className={inputClass}
-                        />
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-muted-foreground">Market ₹</label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={item.market !== undefined && item.market !== null ? String(item.market) : ''}
-                            onChange={(e) => {
-                              const newItems = [...(content.items || [])];
-                              const numValue = e.target.value === '' ? 0 : Number(e.target.value);
-                              newItems[index] = { ...newItems[index], market: numValue };
-                              handleUpdate('items', newItems);
-                            }}
-                            placeholder="0"
-                            className={`${inputClass} py-2 text-center`}
-                          />
+                {content.items?.map((item: PriceItem, index: number) => (
+                  <div
+                    key={index}
+                    className="rounded-xl border overflow-hidden border-border bg-card"
+                  >
+                    {/* Item Header */}
+                    <div
+                      onClick={() => toggleItem(index)}
+                      onKeyDown={(e) => e.key === 'Enter' && toggleItem(index)}
+                      role="button"
+                      tabIndex={0}
+                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center">
+                          {item.image ? (
+                            <img
+                              src={item.image.startsWith('http') || item.image.startsWith('data:') ? item.image : `${item.image}`}
+                              alt={item.service || ''}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                          )}
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-muted-foreground">Our ₹</label>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={item.ours !== undefined && item.ours !== null ? String(item.ours) : ''}
-                            onChange={(e) => {
-                              const newItems = [...(content.items || [])];
-                              const numValue = e.target.value === '' ? 0 : Number(e.target.value);
-                              newItems[index] = { ...newItems[index], ours: numValue };
-                              handleUpdate('items', newItems);
-                            }}
-                            placeholder="0"
-                            className={`${inputClass} py-2 text-center`}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[10px] text-muted-foreground">Savings</label>
-                          <div className="flex items-center justify-center h-[42px]">
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground text-sm truncate">
+                            {item.service || 'Untitled Service'}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>₹{item.ours?.toLocaleString() || 0}</span>
+                            <span className="inline-flex items-center gap-0.5 text-green-600">
                               <TrendingDown className="w-3 h-3" />
                               {calculateSavings(item.market, item.ours)}%
                             </span>
                           </div>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Desktop Layout */}
-                    <div className="hidden sm:grid grid-cols-12 gap-2 items-center">
-                      <div className="col-span-4">
-                        <input
-                          type="text"
-                          value={item.service || ''}
-                          onChange={(e) => {
-                            const newItems = [...(content.items || [])];
-                            newItems[index] = { ...newItems[index], service: e.target.value };
-                            handleUpdate('items', newItems);
-                          }}
-                          placeholder="Service name"
-                          className={`${inputClass} py-2`}
-                        />
-                      </div>
-
-                      <div className="col-span-2">
-  <input
-    type="text"
-    inputMode="numeric"
-    value={
-      item.market !== undefined && item.market !== null
-        ? String(item.market)
-        : ''
-    }
-    onChange={(e) => {
-      const newItems = [...(content.items || [])];
-      const numValue = e.target.value === '' ? 0 : Number(e.target.value);
-      newItems[index] = {
-        ...newItems[index],
-        market: numValue,
-      };
-      handleUpdate('items', newItems);
-    }}
-    placeholder="0"
-    className={`${inputClass} py-2 text-center`}
-  />
-</div>
-
-
-                      <div className="col-span-2">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={item.ours !== undefined && item.ours !== null ? String(item.ours) : ''}
-                          onChange={(e) => {
-                            const newItems = [...(content.items || [])];
-                            const numValue = e.target.value === '' ? 0 : Number(e.target.value);
-                            newItems[index] = { ...newItems[index], ours: numValue };
-                            handleUpdate('items', newItems);
-                          }}
-                          placeholder="0"
-                          className={`${inputClass} py-2 text-center`}
-                        />
-                      </div>
-
-                      <div className="col-span-2 text-center">
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">
-                          <TrendingDown className="w-3 h-3" />
-                          {calculateSavings(item.market, item.ours)}%
-                        </span>
-                      </div>
-
-                      <div className="col-span-2 flex justify-center gap-1">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                         <button
-                          onClick={() => {
-                            const newItems = content.items?.filter((_: unknown, i: number) => i !== index);
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newItems = content.items?.filter((_: PriceItem, i: number) => i !== index);
                             handleUpdate('items', newItems);
                           }}
-                          className="p-2 rounded-lg text-destructive hover:bg-destructive/10"
+                          className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        <motion.div animate={{ rotate: expandedItems.has(index) ? 180 : 0 }}>
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        </motion.div>
                       </div>
                     </div>
+
+                    {/* Item Details */}
+                    <AnimatePresence>
+                      {expandedItems.has(index) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden border-t border-border"
+                        >
+                          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                            {/* Service Image Upload */}
+                            <ImageUpload
+                              value={item.image || ''}
+                              onChange={(url) => {
+                                const newItems = [...(content.items || [])];
+                                newItems[index] = { ...newItems[index], image: url };
+                                handleUpdate('items', newItems);
+                              }}
+                              label="Service Image"
+                              placeholder="Upload image or enter URL"
+                              previewHeight="h-40"
+                              maxSizeMB={2}
+                              maxWidthOrHeight={1920}
+                              helperText="Image displayed on the pricing card"
+                              showAltInput={false}
+                              compact={false}
+                            />
+
+                            {/* Service Name */}
+                            <div className="space-y-2">
+                              <label className={labelClass}>Service Name</label>
+                              <input
+                                type="text"
+                                value={item.service || ''}
+                                onChange={(e) => {
+                                  const newItems = [...(content.items || [])];
+                                  newItems[index] = { ...newItems[index], service: e.target.value };
+                                  handleUpdate('items', newItems);
+                                }}
+                                placeholder="Service name"
+                                className={inputClass}
+                              />
+                            </div>
+
+                            {/* Pricing */}
+                            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                              <div className="space-y-2">
+                                <label className={labelClass}>Market Price (₹)</label>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={item.market !== undefined && item.market !== null ? String(item.market) : ''}
+                                  onChange={(e) => {
+                                    const newItems = [...(content.items || [])];
+                                    const numValue = e.target.value === '' ? 0 : Number(e.target.value);
+                                    newItems[index] = { ...newItems[index], market: numValue };
+                                    handleUpdate('items', newItems);
+                                  }}
+                                  placeholder="0"
+                                  className={inputClass}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className={labelClass}>Our Price (₹)</label>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={item.ours !== undefined && item.ours !== null ? String(item.ours) : ''}
+                                  onChange={(e) => {
+                                    const newItems = [...(content.items || [])];
+                                    const numValue = e.target.value === '' ? 0 : Number(e.target.value);
+                                    newItems[index] = { ...newItems[index], ours: numValue };
+                                    handleUpdate('items', newItems);
+                                  }}
+                                  placeholder="0"
+                                  className={inputClass}
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className={labelClass}>Savings</label>
+                                <div className="flex items-center h-[42px] sm:h-[46px]">
+                                  <span className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-green-100 text-green-700 text-sm font-medium">
+                                    <TrendingDown className="w-4 h-4" />
+                                    {calculateSavings(item.market, item.ours)}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 ))}
 
@@ -370,7 +395,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                           Total Potential Savings
                         </p>
                         <p className="text-xl sm:text-2xl font-bold text-green-800 dark:text-green-300">
-                          ₹{content.items.reduce((acc: number, item: { market: number; ours: number }) => acc + (item.market - item.ours), 0).toLocaleString()}
+                          ₹{content.items.reduce((acc: number, item: PriceItem) => acc + (item.market - item.ours), 0).toLocaleString()}
                         </p>
                       </div>
                       <Percent className="w-8 h-8 sm:w-10 sm:h-10 text-green-500" />

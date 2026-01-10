@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useGlobalContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload } from '../shared/ImageUpload';
 
 interface NavbarEditorProps {
   isDarkMode: boolean;
@@ -110,19 +111,22 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className={labelClass}>Logo Image URL</label>
-                  <input
-                    type="text"
-                    value={content.brand?.logo || content.brand?.logoUrl || ''}
-                    onChange={(e) => {
-                      handleUpdate('brand.logo', e.target.value);
-                      handleUpdate('brand.logoUrl', e.target.value);
-                    }}
-                    placeholder="/assets/Logo.jpg or https://..."
-                    className={inputClass}
-                  />
-                </div>
+                {/* Logo Image Upload */}
+                <ImageUpload
+                  value={content.brand?.logo || content.brand?.logoUrl || ''}
+                  onChange={(url) => {
+                    handleUpdate('brand.logo', url);
+                    handleUpdate('brand.logoUrl', url);
+                  }}
+                  label="Logo Image"
+                  placeholder="Upload image or enter URL"
+                  previewHeight="h-40"
+                  maxSizeMB={2}
+                  maxWidthOrHeight={1920}
+                  helperText="Recommended: Transparent PNG or SVG logo"
+                  showAltInput={false}
+                  compact={false}
+                />
               </div>
             </motion.div>
           )}
@@ -182,7 +186,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
             <motion.div animate={{ rotate: expandedSections.has('navigation') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+            <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-violet-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Navigation Links</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {defaultNavLinks.length}
@@ -191,8 +195,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              const newLink: NavLink = { label: 'New Link', href: '#', isRoute: false };
-              handleUpdate('navbar.links', [...defaultNavLinks, newLink]);
+              handleUpdate('navbar.links', [...defaultNavLinks, { label: 'New Link', href: '#' }]);
             }}
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
@@ -212,20 +215,22 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                 {defaultNavLinks.map((link, index) => (
                   <div
                     key={index}
-                    className="p-3 sm:p-4 rounded-xl border border-border bg-card"
+                    className="p-3 rounded-xl border border-border bg-secondary/30"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                        <LinkIcon className="w-4 h-4 text-primary" />
-                        <span className="font-medium text-foreground text-sm">Link #{index + 1}</span>
+                        <LinkIcon className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-foreground">
+                          {link.label || 'Untitled Link'}
+                        </span>
                       </div>
                       <button
                         onClick={() => {
                           const newLinks = defaultNavLinks.filter((_: NavLink, i: number) => i !== index);
                           handleUpdate('navbar.links', newLinks);
                         }}
-                        className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
+                        className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

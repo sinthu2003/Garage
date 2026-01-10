@@ -216,7 +216,8 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                 title: 'New Badge',
                 subtitle: 'Subtitle',
               };
-              handleUpdate('trustBadges', [...(content.trustBadges || []), newBadge]);
+              // Add at the beginning of the array
+              handleUpdate('trustBadges', [newBadge, ...(content.trustBadges || [])]);
             }}
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useGalleryContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload } from '../shared/ImageUpload';
 import type { GalleryCategory, GalleryImage, GalleryStat } from '../../types/content.types';
 
 interface GalleryEditorProps {
@@ -86,7 +87,10 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
       title: 'New Image',
       description: 'Image description',
     };
-    handleUpdate('images', [...(content.images || []), newImage]);
+    // Add at the beginning of the array
+    handleUpdate('images', [newImage, ...(content.images || [])]);
+    // Auto-expand the newly added image (now at index 0)
+    setExpandedImages(new Set([0]));
   };
 
   const addNewCategory = () => {
@@ -94,10 +98,9 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
       id: `category-${Date.now()}`,
       label: 'New Category',
     };
-    handleUpdate('categories', [...(content.categories || []), newCategory]);
+    // Add at the beginning of the array
+    handleUpdate('categories', [newCategory, ...(content.categories || [])]);
   };
-
-  // Get icon component by name
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -311,16 +314,19 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                     className="rounded-xl border overflow-hidden border-border bg-card"
                   >
                     {/* Image Header */}
-                    <button
+                    <div
                       onClick={() => toggleImage(index)}
-                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
+                      onKeyDown={(e) => e.key === 'Enter' && toggleImage(index)}
+                      role="button"
+                      tabIndex={0}
+                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50 cursor-pointer"
                     >
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
                         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
                           {image.src ? (
                             <img
-                              src={image.src.startsWith('http') ? image.src : `/assets/${image.src}`}
+                              src={image.src.startsWith('http') || image.src.startsWith('data:') ? image.src : `${image.src}`}
                               alt={image.alt || ''}
                               className="w-full h-full object-cover"
                               onError={(e) => {
@@ -368,7 +374,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                           <ChevronDown className="w-4 h-4 text-muted-foreground" />
                         </motion.div>
                       </div>
-                    </button>
+                    </div>
 
                     {/* Image Details */}
                     <AnimatePresence>
@@ -380,18 +386,36 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                           className="overflow-hidden border-t border-border"
                         >
                           <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                            {/* Image Upload */}
+                            <ImageUpload
+                              value={image.src || ''}
+                              onChange={(url) => {
+                                const newImages = [...(content.images || [])];
+                                newImages[index] = { ...newImages[index], src: url };
+                                handleUpdate('images', newImages);
+                              }}
+                              label="Gallery Image"
+                              placeholder="Upload image or enter URL"
+                              previewHeight="h-40"
+                              maxSizeMB={2}
+                              maxWidthOrHeight={1920}
+                              helperText="Recommended: High-quality images, 1920x1080px or similar"
+                              showAltInput={false}
+                              compact={false}
+                            />
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div className="space-y-1">
-                                <label className="text-xs text-muted-foreground">Image Source</label>
+                                <label className="text-xs text-muted-foreground">Title</label>
                                 <input
                                   type="text"
-                                  value={image.src || ''}
+                                  value={image.title || ''}
                                   onChange={(e) => {
                                     const newImages = [...(content.images || [])];
-                                    newImages[index] = { ...newImages[index], src: e.target.value };
+                                    newImages[index] = { ...newImages[index], title: e.target.value };
                                     handleUpdate('images', newImages);
                                   }}
-                                  placeholder="image.jpg or https://..."
+                                  placeholder="Engine Repair"
                                   className={inputClass}
                                 />
                               </div>
@@ -416,22 +440,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                             </div>
 
                             <div className="space-y-1">
-                              <label className="text-xs text-muted-foreground">Title</label>
-                              <input
-                                type="text"
-                                value={image.title || ''}
-                                onChange={(e) => {
-                                  const newImages = [...(content.images || [])];
-                                  newImages[index] = { ...newImages[index], title: e.target.value };
-                                  handleUpdate('images', newImages);
-                                }}
-                                placeholder="Engine Repair"
-                                className={inputClass}
-                              />
-                            </div>
-
-                            <div className="space-y-1">
-                              <label className="text-xs text-muted-foreground">Alt Text</label>
+                              <label className="text-xs text-muted-foreground">Alt Text (SEO)</label>
                               <input
                                 type="text"
                                 value={image.alt || ''}
@@ -504,7 +513,8 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
             onClick={(e) => {
               e.stopPropagation();
               const newStat: GalleryStat = { icon: 'Wrench', value: '100+', label: 'New Stat' };
-              handleUpdate('stats', [...(content.stats || []), newStat]);
+              // Add at the beginning of the array
+              handleUpdate('stats', [newStat, ...(content.stats || [])]);
             }}
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
@@ -613,7 +623,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              src={previewImage.startsWith('http') ? previewImage : `/assets/${previewImage}`}
+              src={previewImage.startsWith('http') || previewImage.startsWith('data:') ? previewImage : `/assets/${previewImage}`}
               alt="Preview"
               className="max-w-full max-h-full rounded-xl"
             />

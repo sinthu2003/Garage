@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Zap,
   Type,
-  Image,
   ChevronRight,
   ChevronDown,
   Plus,
@@ -21,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useFeaturesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload } from '../shared/ImageUpload';
 import type { FeatureItem } from '../../types/content.types';
 
 interface FeaturesEditorProps {
@@ -89,7 +89,10 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
       color: '#3B82F6',
       image: '',
     };
-    handleUpdate('items', [...(content.items || []), newFeature]);
+    // Add at the beginning of the array
+    handleUpdate('items', [newFeature, ...(content.items || [])]);
+    // Auto-expand the newly added item (now at index 0)
+    setExpandedItems(new Set([0]));
   };
 
   // Get icon component by name
@@ -203,40 +206,42 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="space-y-2">
-                    <label className={labelClass}>
-                      <Image className="w-4 h-4 inline mr-1" />
-                      Image
-                    </label>
+                {/* Feature Image */}
+                <ImageUpload
+                  value={content.mainFeature?.image || ''}
+                  onChange={(url) => handleUpdate('mainFeature.image', url)}
+                  label="Feature Image"
+                  placeholder="Upload image or enter URL"
+                  previewHeight="h-48"
+                  maxSizeMB={2}
+                  maxWidthOrHeight={1920}
+                  helperText="Main feature card image"
+                  showAltInput={false}
+                  compact={false}
+                />
+
+                {/* Gradient Color */}
+                <div className="space-y-2">
+                  <label className={labelClass}>
+                    <Palette className="w-4 h-4 inline mr-1" />
+                    Gradient Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={content.mainFeature?.gradient?.startsWith('#') ? content.mainFeature.gradient : '#3B82F6'}
+                      onChange={(e) => handleUpdate('mainFeature.gradient', e.target.value)}
+                      className="w-10 h-10 rounded-lg cursor-pointer border-0"
+                    />
                     <input
                       type="text"
-                      value={content.mainFeature?.image || ''}
-                      onChange={(e) => handleUpdate('mainFeature.image', e.target.value)}
-                      placeholder="warranty.jpg"
-                      className={inputClass}
+                      value={content.mainFeature?.gradient || '#3B82F6'}
+                      onChange={(e) => handleUpdate('mainFeature.gradient', e.target.value)}
+                      placeholder="#3B82F6"
+                      className={`flex-1 ${inputClass}`}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className={labelClass}>
-                      <Palette className="w-4 h-4 inline mr-1" />
-                      Gradient Color
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={content.mainFeature?.gradient || '#3B82F6'}
-                        onChange={(e) => handleUpdate('mainFeature.gradient', e.target.value)}
-                        className="w-10 h-10 rounded-lg cursor-pointer border-0"
-                      />
-                      <input
-                        type="text"
-                        value={content.mainFeature?.gradient || '#3B82F6'}
-                        onChange={(e) => handleUpdate('mainFeature.gradient', e.target.value)}
-                        className={`flex-1 ${inputClass}`}
-                      />
-                    </div>
-                  </div>
+                  <p className="text-xs text-muted-foreground">Use hex color format (e.g., #3B82F6)</p>
                 </div>
               </div>
             </motion.div>
@@ -291,21 +296,43 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                       className="rounded-xl border overflow-hidden border-border bg-card"
                     >
                       {/* Feature Header */}
-                      <button
+                      <div
                         onClick={() => toggleItem(index)}
-                        className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
+                        onKeyDown={(e) => e.key === 'Enter' && toggleItem(index)}
+                        role="button"
+                        tabIndex={0}
+                        className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50 cursor-pointer"
                       >
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                          <div
-                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: `${feature.color}20` }}
-                          >
-                            <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: feature.color }} />
+                          {/* Image thumbnail or icon */}
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center border border-border">
+                            {feature.image ? (
+                              <img
+                                src={feature.image.startsWith('http') || feature.image.startsWith('data:') ? feature.image : `${feature.image}`}
+                                alt={feature.title || ''}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div
+                                className="w-full h-full flex items-center justify-center"
+                                style={{ backgroundColor: feature.color?.startsWith('#') ? `${feature.color}20` : '#3B82F620' }}
+                              >
+                                <IconComponent className="w-5 h-5" style={{ color: feature.color?.startsWith('#') ? feature.color : '#3B82F6' }} />
+                              </div>
+                            )}
                           </div>
-                          <span className="font-medium text-foreground text-sm sm:text-base truncate">
-                            {feature.title || 'New Feature'}
-                          </span>
+                          <div className="min-w-0">
+                            <span className="font-medium text-foreground text-sm sm:text-base truncate block">
+                              {feature.title || 'New Feature'}
+                            </span>
+                            <span className="text-xs text-muted-foreground truncate block">
+                              {feature.description?.slice(0, 40) || 'No description'}...
+                            </span>
+                          </div>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                           <button
@@ -322,7 +349,7 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                             <ChevronDown className="w-4 h-4 text-muted-foreground" />
                           </motion.div>
                         </div>
-                      </button>
+                      </div>
 
                       {/* Feature Details */}
                       <AnimatePresence>
@@ -360,7 +387,7 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                                   <div className="flex items-center gap-2">
                                     <input
                                       type="color"
-                                      value={feature.color || '#3B82F6'}
+                                      value={feature.color?.startsWith('#') ? feature.color : '#3B82F6'}
                                       onChange={(e) => {
                                         const newItems = [...(content.items || [])];
                                         newItems[index] = { ...newItems[index], color: e.target.value };
@@ -376,6 +403,7 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                                         newItems[index] = { ...newItems[index], color: e.target.value };
                                         handleUpdate('items', newItems);
                                       }}
+                                      placeholder="#3B82F6"
                                       className={`flex-1 ${inputClass}`}
                                     />
                                   </div>
@@ -412,23 +440,22 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                                 />
                               </div>
 
-                              <div className="space-y-2">
-                                <label className={labelClass}>
-                                  <Image className="w-4 h-4 inline mr-1" />
-                                  Image (Optional)
-                                </label>
-                                <input
-                                  type="text"
-                                  value={feature.image || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], image: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
-                                  placeholder="6-month-warranty.png"
-                                  className={inputClass}
-                                />
-                              </div>
+                              <ImageUpload
+                                value={feature.image || ''}
+                                onChange={(url) => {
+                                  const newItems = [...(content.items || [])];
+                                  newItems[index] = { ...newItems[index], image: url };
+                                  handleUpdate('items', newItems);
+                                }}
+                                label="Feature Image (Optional)"
+                                placeholder="Upload image or enter URL"
+                                previewHeight="h-40"
+                                maxSizeMB={2}
+                                maxWidthOrHeight={1920}
+                                helperText="Optional image for this feature"
+                                showAltInput={false}
+                                compact={false}
+                              />
                             </div>
                           </motion.div>
                         )}

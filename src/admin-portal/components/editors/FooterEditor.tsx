@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useFooterContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload } from '../shared/ImageUpload';
 
 interface FooterEditorProps {
   isDarkMode: boolean;
@@ -106,7 +107,8 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
       ))}
       <button
         onClick={() => {
-          handleUpdate(path, [...(links || []), { name: 'New Link', href: '#' }]);
+          // Add at the beginning of the array
+          handleUpdate(path, [{ name: 'New Link', href: '#' }, ...(links || [])]);
         }}
         className="text-sm text-primary font-medium"
       >
@@ -161,16 +163,19 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className={labelClass}>Logo Image URL</label>
-                  <input
-                    type="text"
-                    value={content.logoUrl || ''}
-                    onChange={(e) => handleUpdate('logoUrl', e.target.value)}
-                    placeholder="/assets/Logo.jpg or https://..."
-                    className={inputClass}
-                  />
-                </div>
+                {/* Logo Image Upload */}
+                <ImageUpload
+                  value={content.logoUrl || ''}
+                  onChange={(url) => handleUpdate('logoUrl', url)}
+                  label="Footer Logo"
+                  placeholder="Upload image or enter URL"
+                  previewHeight="h-40"
+                  maxSizeMB={2}
+                  maxWidthOrHeight={1920}
+                  helperText="Recommended: Transparent PNG or SVG logo"
+                  showAltInput={false}
+                  compact={false}
+                />
 
                 <div className="space-y-2">
                   <label className={labelClass}>Footer Description</label>
@@ -211,30 +216,45 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 <div className="space-y-2">
                   <label className={labelClass}>
-                    <Phone className="w-4 h-4 inline mr-1" />
-                    Phone Number
+                    <MapPin className="w-4 h-4 inline mr-1" />
+                    Address
                   </label>
-                  <input
-                    type="text"
-                    value={content.phone || '+91 98765 43210'}
-                    onChange={(e) => handleUpdate('phone', e.target.value)}
-                    placeholder="+91 98765 43210"
+                  <textarea
+                    value={content.contact?.address || ''}
+                    onChange={(e) => handleUpdate('contact.address', e.target.value)}
+                    placeholder="123 Auto Street, Coimbatore, Tamil Nadu 641001"
+                    rows={2}
                     className={inputClass}
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className={labelClass}>
-                    <Mail className="w-4 h-4 inline mr-1" />
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={content.email || 'support@addaxautomotive.in'}
-                    onChange={(e) => handleUpdate('email', e.target.value)}
-                    placeholder="support@addaxautomotive.in"
-                    className={inputClass}
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <Phone className="w-4 h-4 inline mr-1" />
+                      Phone
+                    </label>
+                    <input
+                      type="text"
+                      value={content.contact?.phone || ''}
+                      onChange={(e) => handleUpdate('contact.phone', e.target.value)}
+                      placeholder="+91 98765 43210"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <Mail className="w-4 h-4 inline mr-1" />
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={content.contact?.email || ''}
+                      onChange={(e) => handleUpdate('contact.email', e.target.value)}
+                      placeholder="hello@addax.auto"
+                      className={inputClass}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -244,9 +264,9 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                   </label>
                   <input
                     type="text"
-                    value={content.workingHours || 'Mon-Sun: 8AM - 8PM'}
-                    onChange={(e) => handleUpdate('workingHours', e.target.value)}
-                    placeholder="Mon-Sun: 8AM - 8PM"
+                    value={content.contact?.hours || ''}
+                    onChange={(e) => handleUpdate('contact.hours', e.target.value)}
+                    placeholder="Mon - Sat: 8:00 AM - 7:00 PM"
                     className={inputClass}
                   />
                 </div>
@@ -256,7 +276,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
-      {/* Social Links */}
+      {/* Social Media Links */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('social')} className={sectionHeaderClass}>
           <div className="flex items-center gap-2 sm:gap-3">
@@ -264,7 +284,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
             <Share2 className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Social Links</span>
+            <span className="font-medium text-foreground text-sm sm:text-base">Social Media</span>
           </div>
         </button>
 
@@ -281,7 +301,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                   <div className="space-y-2">
                     <label className={labelClass}>Facebook</label>
                     <input
-                      type="url"
+                      type="text"
                       value={content.social?.facebook || ''}
                       onChange={(e) => handleUpdate('social.facebook', e.target.value)}
                       placeholder="https://facebook.com/..."
@@ -289,19 +309,9 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className={labelClass}>Twitter / X</label>
-                    <input
-                      type="url"
-                      value={content.social?.twitter || ''}
-                      onChange={(e) => handleUpdate('social.twitter', e.target.value)}
-                      placeholder="https://twitter.com/..."
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="space-y-2">
                     <label className={labelClass}>Instagram</label>
                     <input
-                      type="url"
+                      type="text"
                       value={content.social?.instagram || ''}
                       onChange={(e) => handleUpdate('social.instagram', e.target.value)}
                       placeholder="https://instagram.com/..."
@@ -309,12 +319,42 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                     />
                   </div>
                   <div className="space-y-2">
+                    <label className={labelClass}>Twitter / X</label>
+                    <input
+                      type="text"
+                      value={content.social?.twitter || ''}
+                      onChange={(e) => handleUpdate('social.twitter', e.target.value)}
+                      placeholder="https://twitter.com/..."
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <label className={labelClass}>YouTube</label>
                     <input
-                      type="url"
+                      type="text"
                       value={content.social?.youtube || ''}
                       onChange={(e) => handleUpdate('social.youtube', e.target.value)}
                       placeholder="https://youtube.com/..."
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>LinkedIn</label>
+                    <input
+                      type="text"
+                      value={(content.social as any)?.linkedin || ''}
+                      onChange={(e) => handleUpdate('social.linkedin', e.target.value)}
+                      placeholder="https://linkedin.com/..."
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>WhatsApp</label>
+                    <input
+                      type="text"
+                      value={(content.social as any)?.whatsapp || ''}
+                      onChange={(e) => handleUpdate('social.whatsapp', e.target.value)}
+                      placeholder="https://wa.me/919876543210"
                       className={inputClass}
                     />
                   </div>
@@ -452,7 +492,8 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleUpdate('links.cities', [...(content.links?.cities || []), 'New City']);
+              // Add at the beginning of the array
+              handleUpdate('links.cities', ['New City', ...(content.links?.cities || [])]);
             }}
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
