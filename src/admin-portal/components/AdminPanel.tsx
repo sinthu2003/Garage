@@ -36,10 +36,12 @@ import {
   Maximize2,
   Save,
   AlertCircle,
+  Shield,
+  BookOpen
 } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
-import { 
-  editorConfig, 
+import {
+  editorConfig,
   type EditorId,
   SectionPreviewWrapper,
   getPreviewUrl,
@@ -85,6 +87,8 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   Globe,
   CalendarCheck,
   FileText,
+  Shield,
+  BookOpen
 };
 
 // Editor component mapping - Updated type to support onEditingIndexChange callback
@@ -164,9 +168,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       const width = window.innerWidth;
       const mobile = width < 768;
       const tablet = width >= 768 && width < 1024;
-      
+
       setIsMobile(mobile);
-      
+
       if (mobile) {
         setSidebarCollapsed(true);
         setPreviewVisible(false);
@@ -177,7 +181,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
         setEditorPanelWidth(30);
       }
     };
-    
+
     checkViewport();
     window.addEventListener('resize', checkViewport);
     return () => window.removeEventListener('resize', checkViewport);
@@ -215,7 +219,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   // Handle Apply Changes
   const handleApplyChanges = async () => {
     if (!hasUnsavedChanges) return;
-    
+
     setIsApplying(true);
     try {
       await applyChanges();
@@ -287,14 +291,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !containerRef.current) return;
-      
+
       const container = containerRef.current;
       const containerRect = container.getBoundingClientRect();
       const sidebarWidth = (sidebarCollapsed && !sidebarHovered) ? 56 : 220;
       const availableWidth = containerRect.width - sidebarWidth;
       const mouseX = e.clientX - containerRect.left - sidebarWidth;
       const newWidth = (mouseX / availableWidth) * 100;
-      
+
       setEditorPanelWidth(Math.min(Math.max(newWidth, 25), 50));
     };
 
@@ -319,7 +323,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
   // Preview actions
   const refreshPreview = () => setPreviewKey((k) => k + 1);
-  
+
   const copyPreviewUrl = () => {
     const url = window.location.origin + getPreviewUrl(activeEditor);
     navigator.clipboard.writeText(url);
@@ -347,8 +351,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     // Special handling for ServiceDetailEditor to pass the editing index callback
     if (activeEditor === 'serviceDetail') {
       return (
-        <ServiceDetailEditor 
-          isDarkMode={isDarkMode} 
+        <ServiceDetailEditor
+          isDarkMode={isDarkMode}
           onEditingIndexChange={handleServiceEditingIndexChange}
         />
       );
@@ -422,7 +426,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className={`fixed right-0 top-0 bottom-0 z-[9999] flex ${themeClass('bg-background', 'bg-gray-50')} shadow-2xl`}
-            style={{ 
+            style={{
               width: isMobile ? '100%' : 'min(100%, 1600px)',
               maxWidth: '100vw'
             }}
@@ -528,11 +532,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                           <button
                             key={editor.id}
                             onClick={() => handleEditorSelect(editor.id)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 transition-all ${
-                              isActive
+                            className={`w-full flex items-center gap-3 px-4 py-3 transition-all ${isActive
                                 ? 'bg-primary/10 border-r-2 border-primary'
                                 : 'hover:bg-secondary/50'
-                            }`}
+                              }`}
                           >
                             <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                             <span className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>
@@ -625,11 +628,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                         key={editor.id}
                         onClick={() => handleEditorSelect(editor.id)}
                         title={!isSidebarExpanded ? editor.label : undefined}
-                        className={`w-full flex items-center gap-2.5 py-2.5 transition-all ${
-                          isActive
+                        className={`w-full flex items-center gap-2.5 py-2.5 transition-all ${isActive
                             ? 'bg-primary/10 border-r-2 border-primary'
                             : 'hover:bg-secondary/50'
-                        } ${isSidebarExpanded ? 'px-3' : 'justify-center px-2'}`}
+                          } ${isSidebarExpanded ? 'px-3' : 'justify-center px-2'}`}
                       >
                         <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                         {isSidebarExpanded && (
@@ -719,11 +721,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     <motion.button
                       onClick={handleApplyChanges}
                       disabled={!hasUnsavedChanges || isApplying}
-                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                        hasUnsavedChanges && !isApplying
+                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${hasUnsavedChanges && !isApplying
                           ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
                           : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
-                      }`}
+                        }`}
                       title="Apply Changes (Ctrl+S)"
                       whileTap={hasUnsavedChanges && !isApplying ? { scale: 0.95 } : {}}
                     >
@@ -745,11 +746,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     {/* Preview Toggle */}
                     <button
                       onClick={() => setPreviewVisible(!previewVisible)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        previewVisible 
-                          ? 'bg-primary text-primary-foreground' 
+                      className={`p-2 rounded-lg transition-colors ${previewVisible
+                          ? 'bg-primary text-primary-foreground'
                           : 'hover:bg-secondary text-muted-foreground'
-                      }`}
+                        }`}
                       title={`${previewVisible ? 'Hide' : 'Show'} Preview (Ctrl+P)`}
                     >
                       {previewVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
@@ -807,7 +807,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                   {/* Editor Panel - 30% width */}
                   <motion.div
-                    animate={{ 
+                    animate={{
                       width: isMobile ? '100%' : (previewVisible ? `${editorPanelWidth}%` : '100%'),
                       display: (isMobile && previewVisible) ? 'none' : 'flex'
                     }}
@@ -860,9 +860,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     <div
                       ref={resizeRef}
                       onMouseDown={handleMouseDown}
-                      className={`hidden md:flex w-1 hover:w-2 cursor-col-resize items-center justify-center transition-all ${
-                        isResizing ? 'w-2 bg-primary' : themeClass('bg-border hover:bg-primary/50', 'bg-gray-200 hover:bg-primary/50')
-                      }`}
+                      className={`hidden md:flex w-1 hover:w-2 cursor-col-resize items-center justify-center transition-all ${isResizing ? 'w-2 bg-primary' : themeClass('bg-border hover:bg-primary/50', 'bg-gray-200 hover:bg-primary/50')
+                        }`}
                     >
                       <div className={`w-1 h-8 rounded-full ${isResizing ? 'bg-primary-foreground' : 'bg-muted-foreground/30'}`} />
                     </div>
@@ -873,9 +872,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     {previewVisible && (
                       <motion.div
                         initial={{ opacity: 0, width: 0 }}
-                        animate={{ 
-                          opacity: 1, 
-                          width: isMobile ? '100%' : `${100 - editorPanelWidth}%` 
+                        animate={{
+                          opacity: 1,
+                          width: isMobile ? '100%' : `${100 - editorPanelWidth}%`
                         }}
                         exit={{ opacity: 0, width: 0 }}
                         transition={{ duration: 0.2 }}
@@ -1133,11 +1132,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 50 }}
-                className={`fixed bottom-4 right-4 left-4 sm:left-auto z-[10200] flex items-center justify-center sm:justify-start gap-3 px-4 py-3 rounded-xl shadow-lg ${
-                  notification.type === 'success'
+                className={`fixed bottom-4 right-4 left-4 sm:left-auto z-[10200] flex items-center justify-center sm:justify-start gap-3 px-4 py-3 rounded-xl shadow-lg ${notification.type === 'success'
                     ? 'bg-green-500 text-white'
                     : 'bg-destructive text-destructive-foreground'
-                }`}
+                  }`}
               >
                 {notification.type === 'success' ? (
                   <Check className="w-5 h-5 flex-shrink-0" />

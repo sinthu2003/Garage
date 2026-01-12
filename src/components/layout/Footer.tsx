@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
-import { 
-  MapPin, 
-  Phone, 
-  Mail, 
+import {
+  MapPin,
+  Phone,
+  Mail,
   Clock,
   Facebook,
   Twitter,
@@ -35,7 +35,7 @@ const defaultFooterLinks = {
   company: [
     { name: 'About Us', href: '#' },
     { name: 'Careers', href: '#' },
-    { name: 'Blog', href: '#' },
+    { name: 'Blog', href: '/blog' },
     { name: 'Press', href: '#' },
     { name: 'Partners', href: '#' },
   ],
@@ -43,9 +43,9 @@ const defaultFooterLinks = {
     { name: 'Help Center', href: '#' },
     { name: 'Contact Us', href: '#' },
     { name: 'FAQs', href: '#faq' },
-    { name: 'Warranty Policy', href: '#' },
-    { name: 'Privacy Policy', href: '#' },
-    { name: 'Terms of Service', href: '#' },
+    { name: 'Terms of Service', href: '/terms-of-service' },
+    { name: 'Privacy Policy', href: '/privacy-policy' },
+    { name: 'Warranty Policy', href: '/warranty-policy' },
   ],
   cities: ['Coimbatore', 'Chennai', 'Bangalore', 'Hyderabad', 'Mumbai', 'Delhi', 'Pune', 'Kolkata']
 };
@@ -58,7 +58,7 @@ export const Footer = () => {
 
   const footerContent = content.footer;
   const globalBrand = content.global.brand;
-  
+
   // Use footer content with fallback to global brand
   const brandName = footerContent?.brandName || globalBrand?.name || 'Addax';
   const brandTagline = footerContent?.tagline || globalBrand?.tagline || 'Automotive';
@@ -67,7 +67,7 @@ export const Footer = () => {
   const phoneNumber = footerContent?.phone || globalBrand?.phone || '+91 98765 43210';
   const email = footerContent?.email || globalBrand?.email || 'support@addaxautomotive.in';
   const workingHours = footerContent?.workingHours || 'Mon-Sun: 8AM - 8PM';
-  
+
   // Handle copyright - can be string or object
   const getCopyrightText = (): string => {
     const copyrightValue = footerContent?.copyright;
@@ -83,44 +83,44 @@ export const Footer = () => {
     }
     return `© ${new Date().getFullYear()} ${brandName} ${brandTagline}. All rights reserved.`;
   };
-  
+
   const copyright = getCopyrightText();
-  
+
   // Get links from footer content with proper typing
   const getFooterLinks = () => {
     const links = footerContent?.links;
     if (!links) return defaultFooterLinks;
-    
+
     // Normalize services links
-    const services = Array.isArray(links.services) 
+    const services = Array.isArray(links.services)
       ? links.services.map((link: { name?: string; label?: string; href?: string }) => ({
-          name: link.name || link.label || '',
-          href: link.href || '#'
-        }))
+        name: link.name || link.label || '',
+        href: link.href || '#'
+      }))
       : defaultFooterLinks.services;
-    
+
     // Normalize company links
     const company = Array.isArray(links.company)
       ? links.company.map((link: { name?: string; label?: string; href?: string }) => ({
-          name: link.name || link.label || '',
-          href: link.href || '#'
-        }))
+        name: link.name || link.label || '',
+        href: link.href || '#'
+      }))
       : defaultFooterLinks.company;
-    
+
     // Normalize support links
     const support = Array.isArray(links.support)
       ? links.support.map((link: { name?: string; label?: string; href?: string }) => ({
-          name: link.name || link.label || '',
-          href: link.href || '#'
-        }))
+        name: link.name || link.label || '',
+        href: link.href || '#'
+      }))
       : defaultFooterLinks.support;
-    
+
     // Cities can be string array or undefined
     const cities = Array.isArray(links.cities) ? links.cities : defaultFooterLinks.cities;
-    
+
     return { services, company, support, cities };
   };
-  
+
   const footerLinks = getFooterLinks();
 
   // Get social links from footer or global
@@ -135,7 +135,7 @@ export const Footer = () => {
     if (href.startsWith('#') && href !== '#') {
       e.preventDefault();
       const targetId = href.replace('#', '');
-      
+
       if (location.pathname === '/') {
         // If we are on Home Page - Scroll directly to the section
         const element = document.getElementById(targetId);
@@ -149,7 +149,7 @@ export const Footer = () => {
         // (Assuming your AppRouter doesn't forcefully scroll to top on hash change)
         navigate(`/${href}`);
       }
-    } 
+    }
     // 2. Handle Internal Page Links (e.g., /contact, /services)
     else if (href.startsWith('/')) {
       e.preventDefault();
@@ -166,7 +166,7 @@ export const Footer = () => {
     <footer className="bg-gray-900 text-white relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
-        <div 
+        <div
           className="absolute inset-0"
           style={{
             backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
@@ -181,9 +181,9 @@ export const Footer = () => {
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
             <a href="/" onClick={(e) => handleLinkClick(e, '/')} className="flex items-center gap-2.5 mb-6">
-              <img 
-                src={logoUrl} 
-                alt={brandName} 
+              <img
+                src={logoUrl}
+                alt={brandName}
                 className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-contain bg-white p-1"
               />
               <div className="flex flex-col">
@@ -191,7 +191,7 @@ export const Footer = () => {
                 <span className="text-[10px] sm:text-xs font-semibold text-primary tracking-wider uppercase">{brandTagline}</span>
               </div>
             </a>
-            
+
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
               {description}
             </p>
@@ -217,7 +217,7 @@ export const Footer = () => {
               {Object.entries(socialLinks).map(([platform, url]) => {
                 const IconComponent = socialIconMap[platform.toLowerCase()];
                 if (!IconComponent || !url) return null;
-                
+
                 return (
                   <motion.a
                     key={platform}
@@ -322,17 +322,17 @@ export const Footer = () => {
             <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
               {processedCopyright}
             </p>
-            
+
             <div className="flex items-center gap-4 sm:gap-6">
-              <a 
-                href={footerContent?.privacyUrl || '#'} 
+              <a
+                href={footerContent?.privacyUrl || '#'}
                 onClick={(e) => handleLinkClick(e, footerContent?.privacyUrl || '#')}
                 className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors"
               >
                 Privacy Policy
               </a>
-              <a 
-                href={footerContent?.termsUrl || '#'} 
+              <a
+                href={footerContent?.termsUrl || '#'}
                 onClick={(e) => handleLinkClick(e, footerContent?.termsUrl || '#')}
                 className="text-gray-400 hover:text-white text-xs sm:text-sm transition-colors"
               >

@@ -598,7 +598,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                     <label className={labelClass}>Terms of Service URL</label>
                     <input
                       type="text"
-                      value={content.termsUrl || '#'}
+                      value={content.termsUrl || 'terms-of-service'}
                       onChange={(e) => handleUpdate('termsUrl', e.target.value)}
                       placeholder="/terms-of-service"
                       className={inputClass}

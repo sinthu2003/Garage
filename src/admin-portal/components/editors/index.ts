@@ -20,15 +20,17 @@ export { FooterEditor } from './FooterEditor';
 export { GlobalSettingsEditor } from './GlobalSettingsEditor';
 export { BookingWidgetEditor } from './BookingWidgetEditor';
 export { PagesEditor } from './PagesEditor';
+export { PrivacyPolicyEditor } from './PrivacyPolicyEditor';
+export { BlogEditor } from './BlogEditor';
 
 // Export preview components
-export { 
-  SectionPreviewWrapper, 
-  PreviewPanelHeader, 
+export {
+  SectionPreviewWrapper,
+  PreviewPanelHeader,
   PreviewUrlBar,
   devicePresets,
   getPreviewUrl,
-  type DeviceType 
+  type DeviceType
 } from './SectionPreviewWrapper';
 
 // ============================================================================
@@ -197,6 +199,26 @@ export const editorConfig = [
     previewRoute: '/',
     category: 'settings',
   },
+  {
+    id: 'legal',
+    label: 'Legal Documents',
+    icon: 'Shield',
+    color: 'from-slate-500 to-slate-700',
+    component: 'PrivacyPolicyEditor',
+    description: 'Manage privacy policy and terms',
+    previewRoute: '/privacy-policy',
+    category: 'settings',
+  },
+  {
+    id: 'blog',
+    label: 'Blog',
+    icon: 'BookOpen',
+    color: 'from-orange-400 to-pink-500',
+    component: 'BlogEditor',
+    description: 'Manage blog posts',
+    previewRoute: '/blog',
+    category: 'content',
+  },
 ] as const;
 
 // ============================================================================
@@ -204,7 +226,7 @@ export const editorConfig = [
 // ============================================================================
 
 // Type for editor IDs (includes dynamic page previews)
-export type EditorId = typeof editorConfig[number]['id'] | 'servicesPage' | 'notFoundPage' | 'faqSection' | 'contactPage';
+export type EditorId = typeof editorConfig[number]['id'] | 'servicesPage' | 'notFoundPage' | 'faqSection' | 'contactPage' | 'privacyPolicyPage' | 'termsPage' | 'warrantyPolicyPage' | 'blogPage';
 
 // Type for editor config items
 export type EditorConfigItem = typeof editorConfig[number];
@@ -213,10 +235,14 @@ export type EditorConfigItem = typeof editorConfig[number];
 export type EditorCategory = 'content' | 'sections' | 'layout' | 'settings';
 
 // Type for page preview mapping
-export type PagePreviewId = 'servicesPage' | 'notFoundPage' | 'contactPage';
+// Type for page preview mapping
+export type PagePreviewId = 'servicesPage' | 'notFoundPage' | 'contactPage' | 'privacyPolicyPage' | 'termsPage' | 'warrantyPolicyPage' | 'blogPage';
 
 // Type for FAQ editor page
 export type FAQEditorPage = 'faqSection' | 'contactPage';
+
+// Type for Legal editor page
+export type LegalEditorPage = 'privacyPolicy' | 'termsOfService' | 'warrantyPolicy';
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -238,7 +264,10 @@ export const getEditorPreviewRoute = (id: EditorId): string => {
   if (id === 'notFoundPage') return '/404';
   if (id === 'faqSection') return '/#faq';
   if (id === 'contactPage') return '/contact';
-  
+  if (id === 'privacyPolicyPage') return '/privacy-policy';
+  if (id === 'termsPage') return '/terms-of-service';
+  if (id === 'warrantyPolicyPage') return '/warranty-policy';
+
   const config = getEditorConfig(id);
   return config?.previewRoute || '/';
 };
@@ -247,10 +276,10 @@ export const getEditorPreviewRoute = (id: EditorId): string => {
  * Get editors grouped by category
  */
 export const editorCategories: Record<EditorCategory, readonly string[]> = {
-  content: ['hero', 'services', 'serviceDetail', 'pricing', 'testimonials', 'faq'],
+  content: ['hero', 'services', 'serviceDetail', 'pricing', 'testimonials', 'faq', 'blog'],
   sections: ['features', 'howItWorks', 'partners', 'gallery', 'beforeAfter'],
   layout: ['navbar', 'footer'],
-  settings: ['global', 'bookingWidget', 'pages'],
+  settings: ['global', 'bookingWidget', 'pages', 'legal'],
 } as const;
 
 /**
@@ -266,7 +295,7 @@ export const getEditorsByCategory = (category: EditorCategory): EditorConfigItem
  */
 export const categoryLabels: Record<EditorCategory, string> = {
   content: 'Content Sections',
-  sections: 'Additional Sections', 
+  sections: 'Additional Sections',
   layout: 'Layout Components',
   settings: 'Settings & Configuration',
 };
@@ -276,7 +305,7 @@ export const categoryLabels: Record<EditorCategory, string> = {
  */
 export const hasDirectPreview = (id: EditorId): boolean => {
   const noPreviewIds: string[] = ['serviceDetail', 'global'];
-  // 'pages' and 'faq' have dynamic preview based on selected tab
+  // 'pages', 'faq', and 'legal' have dynamic preview based on selected tab
   return !noPreviewIds.includes(id);
 };
 
@@ -297,15 +326,26 @@ export const getFAQPreviewId = (selectedPage: FAQEditorPage): string => {
 };
 
 /**
+ * Get the preview section ID for the Legal editor based on selected tab
+ */
+export const getLegalPreviewId = (selectedPage: LegalEditorPage): PagePreviewId => {
+  return selectedPage === 'privacyPolicy'
+    ? 'privacyPolicyPage'
+    : selectedPage === 'termsOfService'
+      ? 'termsPage'
+      : 'warrantyPolicyPage';
+};
+
+/**
  * Check if an editor ID is a dynamic page preview
  */
 export const isDynamicPagePreview = (id: EditorId): boolean => {
-  return id === 'servicesPage' || id === 'notFoundPage' || id === 'faqSection' || id === 'contactPage';
+  return id === 'servicesPage' || id === 'notFoundPage' || id === 'faqSection' || id === 'contactPage' || id === 'privacyPolicyPage' || id === 'termsPage' || id === 'warrantyPolicyPage' || id === 'blogPage';
 };
 
 /**
  * Check if an editor supports tab-based preview switching
  */
 export const hasTabBasedPreview = (id: EditorId): boolean => {
-  return id === 'pages' || id === 'faq';
+  return id === 'pages' || id === 'faq' || id === 'legal';
 };

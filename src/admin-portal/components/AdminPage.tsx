@@ -40,8 +40,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../context/ContentContext';
-import { 
-  editorConfig, 
+import {
+  editorConfig,
   type EditorId,
   SectionPreviewWrapper,
   getPreviewUrl,
@@ -63,6 +63,8 @@ import {
   GlobalSettingsEditor,
   BookingWidgetEditor,
   PagesEditor,
+  PrivacyPolicyEditor,
+  BlogEditor,
 } from './editors';
 
 // Icon mapping
@@ -85,7 +87,7 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
 };
 
 // Editor component mapping - Updated type to support onPageChange and onEditingIndexChange callbacks
-const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageChange?: (page: 'services' | 'notFound' | 'faqSection' | 'contactPage') => void; onEditingIndexChange?: (index: number | null) => void }>> = {
+const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageChange?: (page: any) => void; onEditingIndexChange?: (index: number | null) => void }>> = {
   HeroEditor,
   ServicesEditor,
   ServiceDetailEditor,
@@ -102,6 +104,8 @@ const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageCha
   GlobalSettingsEditor,
   BookingWidgetEditor,
   PagesEditor,
+  PrivacyPolicyEditor,
+  BlogEditor,
 };
 
 /**
@@ -146,10 +150,15 @@ export const AdminPage: React.FC = () => {
   const [copiedUrl, setCopiedUrl] = useState(false);
 
   // Pages preview state - tracks which page tab is selected
-  const [pagesPreviewId, setPagesPreviewId] = useState<'servicesPage' | 'notFoundPage'>('servicesPage');
+  const [pagesPreviewId, setPagesPreviewId] = useState<'servicesPage' | 'notFoundPage' | 'privacyPolicyPage'>('servicesPage');
 
   // NEW: FAQ preview state - tracks which FAQ tab is selected
+  // NEW: FAQ preview state - tracks which FAQ tab is selected
   const [faqPreviewId, setFaqPreviewId] = useState<'faqSection' | 'contactPage'>('faqSection');
+
+  // NEW: Legal preview state - tracks which legal tab is selected
+  // NEW: Legal preview state - tracks which legal tab is selected
+  const [legalPreviewId, setLegalPreviewId] = useState<'privacyPolicyPage' | 'termsPage' | 'warrantyPolicyPage'>('privacyPolicyPage');
 
   // ServiceDetail editing index state - tracks which service is being edited
   const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null);
@@ -159,13 +168,22 @@ export const AdminPage: React.FC = () => {
   const sidebarTimeoutRef = useRef<number | null>(null);
 
   // Handler for pages tab change
-  const handlePagesTabChange = useCallback((page: 'services' | 'notFound') => {
-    setPagesPreviewId(page === 'services' ? 'servicesPage' : 'notFoundPage');
+  const handlePagesTabChange = useCallback((page: 'services' | 'notFound' | 'privacyPolicy') => {
+    if (page === 'privacyPolicy') {
+      setPagesPreviewId('privacyPolicyPage');
+    } else {
+      setPagesPreviewId(page === 'services' ? 'servicesPage' : 'notFoundPage');
+    }
   }, []);
 
   // NEW: Handler for FAQ tab change
   const handleFAQTabChange = useCallback((tab: 'faqSection' | 'contactPage') => {
     setFaqPreviewId(tab);
+  }, []);
+
+  // NEW: Handler for Legal tab change
+  const handleLegalTabChange = useCallback((tab: 'privacyPolicy' | 'termsOfService' | 'warrantyPolicy') => {
+    setLegalPreviewId(tab === 'privacyPolicy' ? 'privacyPolicyPage' : tab === 'termsOfService' ? 'termsPage' : 'warrantyPolicyPage');
   }, []);
 
   // Handler for service editing index change
@@ -177,6 +195,7 @@ export const AdminPage: React.FC = () => {
   const effectivePreviewId = (() => {
     if (activeEditor === 'pages') return pagesPreviewId;
     if (activeEditor === 'faq') return faqPreviewId;
+    if (activeEditor === 'legal') return legalPreviewId;
     return activeEditor;
   })();
 
@@ -193,9 +212,9 @@ export const AdminPage: React.FC = () => {
       const width = window.innerWidth;
       const mobile = width < 768;
       const tablet = width >= 768 && width < 1024;
-      
+
       setIsMobile(mobile);
-      
+
       if (mobile) {
         setSidebarCollapsed(true);
         setPreviewVisible(false);
@@ -206,7 +225,7 @@ export const AdminPage: React.FC = () => {
         setEditorPanelWidth(30);
       }
     };
-    
+
     checkViewport();
     window.addEventListener('resize', checkViewport);
     return () => window.removeEventListener('resize', checkViewport);
@@ -243,7 +262,7 @@ export const AdminPage: React.FC = () => {
   // Handle Apply Changes
   const handleApplyChanges = async () => {
     if (!hasUnsavedChanges) return;
-    
+
     setIsApplying(true);
     try {
       await applyChanges();
@@ -315,14 +334,14 @@ export const AdminPage: React.FC = () => {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !containerRef.current) return;
-      
+
       const container = containerRef.current;
       const containerRect = container.getBoundingClientRect();
       const sidebarWidth = (sidebarCollapsed && !sidebarHovered) ? 56 : 220;
       const availableWidth = containerRect.width - sidebarWidth;
       const mouseX = e.clientX - containerRect.left - sidebarWidth;
       const newWidth = (mouseX / availableWidth) * 100;
-      
+
       setEditorPanelWidth(Math.min(Math.max(newWidth, 25), 50));
     };
 
@@ -347,7 +366,7 @@ export const AdminPage: React.FC = () => {
 
   // Preview actions - UPDATED to use effectivePreviewId
   const refreshPreview = () => setPreviewKey((k) => k + 1);
-  
+
   const copyPreviewUrl = () => {
     const url = window.location.origin + getPreviewUrl(effectivePreviewId);
     navigator.clipboard.writeText(url);
@@ -377,8 +396,8 @@ export const AdminPage: React.FC = () => {
     // Special handling for PagesEditor to pass the callback
     if (activeEditor === 'pages') {
       return (
-        <PagesEditor 
-          isDarkMode={isDarkMode} 
+        <PagesEditor
+          isDarkMode={isDarkMode}
           onPageChange={handlePagesTabChange}
         />
       );
@@ -387,9 +406,20 @@ export const AdminPage: React.FC = () => {
     // NEW: Special handling for FAQEditor to pass the callback
     if (activeEditor === 'faq') {
       return (
-        <FAQEditor 
-          isDarkMode={isDarkMode} 
+        <FAQEditor
+          isDarkMode={isDarkMode}
           onPageChange={handleFAQTabChange}
+        />
+      );
+    }
+
+    // NEW: Special handling for PrivacyPolicyEditor (Legal) to pass the callback
+    if (activeEditor === 'legal') {
+      return (
+        <PrivacyPolicyEditor
+          isDarkMode={isDarkMode}
+          // @ts-ignore
+          onPageChange={handleLegalTabChange}
         />
       );
     }
@@ -397,8 +427,8 @@ export const AdminPage: React.FC = () => {
     // Special handling for ServiceDetailEditor to pass the editing index callback
     if (activeEditor === 'serviceDetail') {
       return (
-        <ServiceDetailEditor 
-          isDarkMode={isDarkMode} 
+        <ServiceDetailEditor
+          isDarkMode={isDarkMode}
           onEditingIndexChange={handleServiceEditingIndexChange}
         />
       );
@@ -449,7 +479,7 @@ export const AdminPage: React.FC = () => {
   const isSidebarExpanded = !sidebarCollapsed || sidebarHovered;
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`h-screen flex overflow-hidden ${themeClass('bg-background text-foreground', 'bg-gray-50 text-gray-900')}`}
     >
@@ -514,11 +544,10 @@ export const AdminPage: React.FC = () => {
                     <button
                       key={editor.id}
                       onClick={() => handleEditorSelect(editor.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 transition-all ${
-                        isActive
-                          ? 'bg-primary/10 border-r-2 border-primary'
-                          : 'hover:bg-secondary/50'
-                      }`}
+                      className={`w-full flex items-center gap-3 px-4 py-3 transition-all ${isActive
+                        ? 'bg-primary/10 border-r-2 border-primary'
+                        : 'hover:bg-secondary/50'
+                        }`}
                     >
                       <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                       <span className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>
@@ -531,15 +560,15 @@ export const AdminPage: React.FC = () => {
 
               {/* Mobile Footer */}
               <div className="p-4 border-t border-border space-y-2">
-                <button 
-                  onClick={() => setShowResetConfirm(true)} 
+                <button
+                  onClick={() => setShowResetConfirm(true)}
                   className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl text-sm font-medium bg-destructive/10 text-destructive hover:bg-destructive/20"
                 >
                   <RotateCcw className="w-4 h-4" />
                   Reset
                 </button>
-                <button 
-                  onClick={() => navigate('/')} 
+                <button
+                  onClick={() => navigate('/')}
                   className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground"
                 >
                   <Home className="w-4 h-4" />
@@ -618,11 +647,10 @@ export const AdminPage: React.FC = () => {
                 key={editor.id}
                 onClick={() => handleEditorSelect(editor.id)}
                 title={!isSidebarExpanded ? editor.label : undefined}
-                className={`w-full flex items-center gap-2.5 py-2.5 transition-all ${
-                  isActive
-                    ? 'bg-primary/10 border-r-2 border-primary'
-                    : 'hover:bg-secondary/50'
-                } ${isSidebarExpanded ? 'px-3' : 'justify-center px-2'}`}
+                className={`w-full flex items-center gap-2.5 py-2.5 transition-all ${isActive
+                  ? 'bg-primary/10 border-r-2 border-primary'
+                  : 'hover:bg-secondary/50'
+                  } ${isSidebarExpanded ? 'px-3' : 'justify-center px-2'}`}
               >
                 <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                 {isSidebarExpanded && (
@@ -639,15 +667,15 @@ export const AdminPage: React.FC = () => {
         <div className={`p-2 border-t ${themeClass('border-border', 'border-gray-200')}`}>
           {isSidebarExpanded ? (
             <div className="space-y-1">
-              <button 
-                onClick={() => setShowResetConfirm(true)} 
+              <button
+                onClick={() => setShowResetConfirm(true)}
                 className="w-full flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs bg-destructive/10 text-destructive hover:bg-destructive/20"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 Reset
               </button>
-              <button 
-                onClick={() => navigate('/')} 
+              <button
+                onClick={() => navigate('/')}
                 className="w-full flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Home className="w-3.5 h-3.5" />
@@ -656,16 +684,16 @@ export const AdminPage: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-1">
-              <button 
-                onClick={() => setShowResetConfirm(true)} 
-                className="p-2 rounded-lg hover:bg-destructive/10 text-destructive" 
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"
                 title="Reset"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
-              <button 
-                onClick={() => navigate('/')} 
-                className="p-2 rounded-lg bg-primary text-primary-foreground" 
+              <button
+                onClick={() => navigate('/')}
+                className="p-2 rounded-lg bg-primary text-primary-foreground"
                 title="View Site"
               >
                 <Home className="w-4 h-4" />
@@ -681,8 +709,8 @@ export const AdminPage: React.FC = () => {
         <header className={`flex items-center justify-between px-3 py-2 border-b ${themeClass('bg-card border-border', 'bg-white border-gray-200')}`}>
           <div className="flex items-center gap-2">
             {/* Mobile Menu Button */}
-            <button 
-              onClick={() => setMobileSidebarOpen(true)} 
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
               className="md:hidden p-2 rounded-lg hover:bg-secondary text-foreground"
             >
               <Menu className="w-5 h-5" />
@@ -712,18 +740,18 @@ export const AdminPage: React.FC = () => {
           <div className="flex items-center gap-1">
             {/* Undo/Redo */}
             <div className="hidden sm:flex items-center gap-0.5 mr-1">
-              <button 
-                onClick={undo} 
-                disabled={!canUndo} 
-                className={`p-1.5 rounded-lg ${canUndo ? 'hover:bg-secondary text-foreground' : 'opacity-30 cursor-not-allowed'}`} 
+              <button
+                onClick={undo}
+                disabled={!canUndo}
+                className={`p-1.5 rounded-lg ${canUndo ? 'hover:bg-secondary text-foreground' : 'opacity-30 cursor-not-allowed'}`}
                 title="Undo"
               >
                 <Undo2 className="w-4 h-4" />
               </button>
-              <button 
-                onClick={redo} 
-                disabled={!canRedo} 
-                className={`p-1.5 rounded-lg ${canRedo ? 'hover:bg-secondary text-foreground' : 'opacity-30 cursor-not-allowed'}`} 
+              <button
+                onClick={redo}
+                disabled={!canRedo}
+                className={`p-1.5 rounded-lg ${canRedo ? 'hover:bg-secondary text-foreground' : 'opacity-30 cursor-not-allowed'}`}
                 title="Redo"
               >
                 <Redo2 className="w-4 h-4" />
@@ -746,11 +774,10 @@ export const AdminPage: React.FC = () => {
             <motion.button
               onClick={handleApplyChanges}
               disabled={!hasUnsavedChanges || isApplying}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                hasUnsavedChanges && !isApplying
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
-                  : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${hasUnsavedChanges && !isApplying
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
+                }`}
               title="Apply Changes (Ctrl+S)"
               whileTap={hasUnsavedChanges && !isApplying ? { scale: 0.95 } : {}}
             >
@@ -788,9 +815,9 @@ export const AdminPage: React.FC = () => {
             </button> */}
 
             {/* Exit */}
-            <button 
-              onClick={() => navigate('/')} 
-              className="hidden sm:flex p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
+            <button
+              onClick={() => navigate('/')}
+              className="hidden sm:flex p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
               title="Exit Admin"
             >
               <LogOut className="w-4 h-4" />
@@ -802,7 +829,7 @@ export const AdminPage: React.FC = () => {
         <div className="flex-1 flex overflow-hidden">
           {/* Editor Panel - 30% */}
           <motion.div
-            animate={{ 
+            animate={{
               width: isMobile ? '100%' : (previewVisible ? `${editorPanelWidth}%` : '100%'),
               display: (isMobile && previewVisible) ? 'none' : 'flex'
             }}
@@ -855,9 +882,8 @@ export const AdminPage: React.FC = () => {
             <div
               ref={resizeRef}
               onMouseDown={handleMouseDown}
-              className={`hidden md:flex w-1 hover:w-1.5 cursor-col-resize items-center justify-center transition-all ${
-                isResizing ? 'w-1.5 bg-primary' : themeClass('bg-border hover:bg-primary/50', 'bg-gray-200 hover:bg-primary/50')
-              }`}
+              className={`hidden md:flex w-1 hover:w-1.5 cursor-col-resize items-center justify-center transition-all ${isResizing ? 'w-1.5 bg-primary' : themeClass('bg-border hover:bg-primary/50', 'bg-gray-200 hover:bg-primary/50')
+                }`}
             >
               <div className={`w-0.5 h-10 rounded-full ${isResizing ? 'bg-primary-foreground' : 'bg-muted-foreground/20'}`} />
             </div>
@@ -882,30 +908,30 @@ export const AdminPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <button 
-                      onClick={refreshPreview} 
-                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
+                    <button
+                      onClick={refreshPreview}
+                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
                       title="Refresh"
                     >
                       <RefreshCw className="w-3.5 h-3.5" />
                     </button>
-                    <button 
-                      onClick={copyPreviewUrl} 
-                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
+                    <button
+                      onClick={copyPreviewUrl}
+                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
                       title="Copy URL"
                     >
                       {copiedUrl ? <CheckCircle className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
-                    <button 
-                      onClick={openInNewTab} 
-                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
+                    <button
+                      onClick={openInNewTab}
+                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
                       title="Open in New Tab"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                     </button>
-                    <button 
-                      onClick={() => setPreviewFullscreen(true)} 
-                      className="hidden md:flex p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
+                    <button
+                      onClick={() => setPreviewFullscreen(true)}
+                      className="hidden md:flex p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
                       title="Fullscreen"
                     >
                       <Maximize2 className="w-3.5 h-3.5" />
@@ -936,7 +962,7 @@ export const AdminPage: React.FC = () => {
                     animate={{ width: '100%' }}
                     transition={{ duration: 0.3 }}
                     className="relative rounded-lg overflow-hidden shadow-xl bg-white"
-                    style={{ 
+                    style={{
                       minHeight: '400px',
                       maxWidth: '100%',
                     }}
@@ -956,8 +982,8 @@ export const AdminPage: React.FC = () => {
                 {/* Mobile Back Button */}
                 {isMobile && (
                   <div className="p-3 border-t border-border">
-                    <button 
-                      onClick={() => setPreviewVisible(false)} 
+                    <button
+                      onClick={() => setPreviewVisible(false)}
                       className="w-full py-2.5 rounded-xl bg-secondary text-foreground font-medium"
                     >
                       Back to Editor
@@ -1005,9 +1031,9 @@ export const AdminPage: React.FC = () => {
                 animate={{ width: '100%' }}
                 className="h-full rounded-xl overflow-hidden shadow-2xl bg-white"
               >
-                <SectionPreviewWrapper 
-                  sectionId={effectivePreviewId} 
-                  device="desktop" 
+                <SectionPreviewWrapper
+                  sectionId={effectivePreviewId}
+                  device="desktop"
                   refreshKey={previewKey}
                   editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
                 />
@@ -1047,14 +1073,14 @@ export const AdminPage: React.FC = () => {
                 All content changes will be lost and reset to defaults.
               </p>
               <div className="flex gap-3">
-                <button 
-                  onClick={() => setShowResetConfirm(false)} 
+                <button
+                  onClick={() => setShowResetConfirm(false)}
                   className="flex-1 py-2.5 rounded-xl font-medium bg-secondary text-foreground"
                 >
                   Cancel
                 </button>
-                <button 
-                  onClick={handleReset} 
+                <button
+                  onClick={handleReset}
                   className="flex-1 py-2.5 rounded-xl font-medium bg-destructive text-destructive-foreground"
                 >
                   Reset
@@ -1095,14 +1121,14 @@ export const AdminPage: React.FC = () => {
                 Are you sure you want to discard all unsaved changes? This action cannot be undone.
               </p>
               <div className="flex gap-3">
-                <button 
-                  onClick={() => setShowDiscardConfirm(false)} 
+                <button
+                  onClick={() => setShowDiscardConfirm(false)}
                   className="flex-1 py-2.5 rounded-xl font-medium bg-secondary text-foreground"
                 >
                   Keep Editing
                 </button>
-                <button 
-                  onClick={handleDiscardChanges} 
+                <button
+                  onClick={handleDiscardChanges}
                   className="flex-1 py-2.5 rounded-xl font-medium bg-amber-500 text-white hover:bg-amber-600"
                 >
                   Discard
@@ -1120,9 +1146,8 @@ export const AdminPage: React.FC = () => {
             initial={{ opacity: 0, y: 50, x: '-50%' }}
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, y: 50, x: '-50%' }}
-            className={`fixed bottom-6 left-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-lg ${
-              notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-destructive text-destructive-foreground'
-            }`}
+            className={`fixed bottom-6 left-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-lg ${notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-destructive text-destructive-foreground'
+              }`}
           >
             {notification.type === 'success' ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
             <span className="font-medium">{notification.message}</span>
