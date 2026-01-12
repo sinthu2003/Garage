@@ -216,9 +216,10 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                 </div>
                 <button
                   onClick={() => {
+                    // Add at the beginning of the array
                     handleUpdate('services.categories', [
-                      ...categories,
-                      { id: `cat-${Date.now()}`, label: 'New Category', icon: 'Sparkles' }
+                      { id: `cat-${Date.now()}`, label: 'New Category', icon: 'Sparkles' },
+                      ...categories
                     ]);
                   }}
                   className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
@@ -563,9 +564,10 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                 </div>
                 <button
                   onClick={() => {
+                    // Add at the beginning of the array
                     handleUpdate('notFound.quickLinks', [
-                      ...quickLinks,
-                      { name: 'New Link', href: '/' }
+                      { name: 'New Link', href: '/' },
+                      ...quickLinks
                     ]);
                   }}
                   className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"

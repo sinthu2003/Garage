@@ -5,10 +5,11 @@ import {
   ChevronRight,
   Globe,
   FileText,
-  Image,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useGlobalContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import ImageUpload from '../shared/ImageUpload';
 
 interface GlobalSettingsEditorProps {
   isDarkMode: boolean;
@@ -250,22 +251,19 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className={labelClass}>
-                    <Image className="w-4 h-4 inline mr-1" />
-                    OG Image URL
-                  </label>
-                  <input
-                    type="text"
-                    value={content.seo?.ogImage || ''}
-                    onChange={(e) => handleUpdate('seo.ogImage', e.target.value)}
-                    placeholder="https://yoursite.com/og-image.jpg"
-                    className={inputClass}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Recommended size: 1200x630 pixels
-                  </p>
-                </div>
+                {/* OG Image Upload */}
+                <ImageUpload
+                  value={content.seo?.ogImage || ''}
+                  onChange={(url) => handleUpdate('seo.ogImage', url)}
+                  label="OG Image"
+                  placeholder="Upload image or enter URL"
+                  previewHeight="h-48"
+                  maxSizeMB={2}
+                  maxWidthOrHeight={1920}
+                  helperText="Recommended size: 1200x630 pixels for optimal social sharing"
+                  showAltInput={false}
+                  compact={false}
+                />
 
                 <div className="space-y-2">
                   <label className={labelClass}>Canonical URL</label>
@@ -288,7 +286,7 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
                     <div className="h-32 sm:h-40 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
                       {content.seo?.ogImage ? (
                         <img 
-                          src={content.seo.ogImage} 
+                          src={content.seo.ogImage.startsWith('http') || content.seo.ogImage.startsWith('data:') ? content.seo.ogImage : `${content.seo.ogImage}`} 
                           alt="OG Preview" 
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -296,7 +294,7 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
                           }}
                         />
                       ) : (
-                        <Image className="w-12 h-12 text-muted-foreground/50" />
+                        <ImageIcon className="w-12 h-12 text-muted-foreground/50" />
                       )}
                     </div>
                     <div className="p-3">

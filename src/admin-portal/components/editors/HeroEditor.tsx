@@ -5,6 +5,7 @@ import {
   Play,
   BarChart3,
   ChevronRight,
+  ChevronDown,
   Plus,
   Trash2,
   GripVertical,
@@ -13,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useHeroContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
-import { ImageUpload, MultiImageUpload } from '../shared/ImageUpload';
+import { ImageUpload } from '../shared/ImageUpload';
 import type { HeroStat, HeroScrollingBrand } from '../../types/content.types';
 
 // Type for background images
@@ -32,6 +33,7 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['headline', 'stats'])
   );
+  const [expandedImages, setExpandedImages] = useState<Set<number>>(new Set([0]));
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -41,6 +43,16 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
       newExpanded.add(section);
     }
     setExpandedSections(newExpanded);
+  };
+
+  const toggleImage = (index: number) => {
+    const newExpanded = new Set(expandedImages);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedImages(newExpanded);
   };
 
   const handleUpdate = (path: string, value: unknown) => {
@@ -58,6 +70,16 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
 
   // Get background images array or initialize empty
   const backgroundImages: BackgroundImage[] = content.backgroundImages || [];
+
+  const addNewBackgroundImage = () => {
+    if (backgroundImages.length < 10) {
+      const newImage: BackgroundImage = { url: '', alt: '' };
+      // Add at the beginning of the array
+      handleUpdate('backgroundImages', [newImage, ...backgroundImages]);
+      // Auto-expand the newly added image (now at index 0)
+      setExpandedImages(new Set([0]));
+    }
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -238,7 +260,7 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
 
-      {/* ============== BACKGROUND IMAGES SLIDER (Using MultiImageUpload) ============== */}
+      {/* ============== BACKGROUND IMAGES SLIDER ============== */}
       <div className={sectionClass}>
         <div 
           onClick={() => toggleSection('backgroundImages')} 
@@ -260,31 +282,7 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              // Add a new empty image slot
-              if (backgroundImages.length < 10) {
-                const newIndex = backgroundImages.length;
-                const newImage: BackgroundImage = { url: '', alt: '' };
-                handleUpdate('backgroundImages', [...backgroundImages, newImage]);
-                
-                // Check if section is closed
-                const wasClosed = !expandedSections.has('backgroundImages');
-                
-                // Open section if closed
-                if (wasClosed) {
-                  const newExpanded = new Set(expandedSections);
-                  newExpanded.add('backgroundImages');
-                  setExpandedSections(newExpanded);
-                }
-                
-                // Scroll to the newly added image slot
-                // Use longer delay if section was closed to wait for animation
-                setTimeout(() => {
-                  const newSlot = document.getElementById(`background-image-${newIndex}`);
-                  if (newSlot) {
-                    newSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }
-                }, wasClosed ? 400 : 100);
-              }
+              addNewBackgroundImage();
             }}
             disabled={backgroundImages.length >= 10}
             className={`p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground ${
@@ -358,118 +356,164 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
                   </div>
                 </div>
 
-                {/* Multi Image Upload Component */}
-                <div id="background-images-upload">
-                  <MultiImageUpload
-                    value={backgroundImages}
-                    onChange={(images) => handleUpdate('backgroundImages', images)}
-                    maxImages={10}
-                    showAltInput={true}
-                    previewHeight="h-40"
-                    maxSizeMB={2}
-                    maxWidthOrHeight={1920}
-                    enableMultiSelect={true}
-                    helperText="Upload high-quality images for the hero slider. Images are auto-compressed to 2MB max. First image is the default."
-                  />
-                </div>
-
-                {/* Empty State with Default Images Option */}
-                {backgroundImages.length === 0 && (
-                  <div className="text-center py-4">
-                    <button
-                      onClick={() => {
-                        const defaultImages: BackgroundImage[] = [
-                          { url: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=1920&q=80', alt: 'Professional Car Service Garage' },
-                          { url: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1920&q=80', alt: 'Car Engine Repair' },
-                          { url: 'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=1920&q=80', alt: 'Auto Mechanic Working' },
-                        ];
-                        handleUpdate('backgroundImages', defaultImages);
-                      }}
-                      className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors"
+                {/* Background Images List - GalleryEditor Pattern */}
+                <div className="space-y-3">
+                  {backgroundImages.map((image: BackgroundImage, index: number) => (
+                    <div
+                      key={index}
+                      id={`background-image-${index}`}
+                      className="rounded-xl border overflow-hidden border-border bg-card"
                     >
-                      + Load Sample Images
-                    </button>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Quick start with sample garage images
-                    </p>
-                  </div>
-                )}
+                      {/* Image Header */}
+                      <button
+                        onClick={() => toggleImage(index)}
+                        className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
+                      >
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                          <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
+                          <div className="w-12 h-12 sm:w-16 sm:h-10 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
+                            {image.url ? (
+                              <img
+                                src={image.url.startsWith('http') || image.url.startsWith('data:') ? image.url : `/assets/${image.url}`}
+                                alt={image.alt || `Slide ${index + 1}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Images className="w-5 h-5 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground text-sm truncate">
+                              Slide {index + 1}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {image.alt || 'No description'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const newImages = backgroundImages.filter((_: BackgroundImage, i: number) => i !== index);
+                              handleUpdate('backgroundImages', newImages);
+                            }}
+                            className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <motion.div animate={{ rotate: expandedImages.has(index) ? 180 : 0 }}>
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                          </motion.div>
+                        </div>
+                      </button>
+
+                      {/* Image Details */}
+                      <AnimatePresence>
+                        {expandedImages.has(index) && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden border-t border-border"
+                          >
+                            <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                              {/* Image Upload */}
+                              <ImageUpload
+                                value={image.url || ''}
+                                onChange={(url) => {
+                                  const newImages = [...backgroundImages];
+                                  newImages[index] = { ...newImages[index], url };
+                                  handleUpdate('backgroundImages', newImages);
+                                }}
+                                label="Slide Image"
+                                placeholder="Upload image or enter URL"
+                                previewHeight="h-40"
+                                maxSizeMB={2}
+                                maxWidthOrHeight={1920}
+                                helperText="Recommended: 1920x1080px, high-quality image"
+                                showAltInput={false}
+                                compact={false}
+                              />
+
+                              {/* Alt Text */}
+                              <div className="space-y-2">
+                                <label className={labelClass}>Image Description (Alt Text)</label>
+                                <input
+                                  type="text"
+                                  value={image.alt || ''}
+                                  onChange={(e) => {
+                                    const newImages = [...backgroundImages];
+                                    newImages[index] = { ...newImages[index], alt: e.target.value };
+                                    handleUpdate('backgroundImages', newImages);
+                                  }}
+                                  placeholder="Describe the image for accessibility"
+                                  className={inputClass}
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
+
+                  {backgroundImages.length === 0 && (
+                    <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                      <Images className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No background images added yet</p>
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mt-3">
+                        <button 
+                          onClick={addNewBackgroundImage} 
+                          className="text-primary text-sm font-medium"
+                        >
+                          + Add your first image
+                        </button>
+                        <span className="text-muted-foreground hidden sm:inline">or</span>
+                        <button
+                          onClick={() => {
+                            const defaultImages: BackgroundImage[] = [
+                              { url: 'https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=1920&q=80', alt: 'Professional Car Service Garage' },
+                              { url: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1920&q=80', alt: 'Car Engine Repair' },
+                              { url: 'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=1920&q=80', alt: 'Auto Mechanic Working' },
+                            ];
+                            handleUpdate('backgroundImages', defaultImages);
+                            // Auto-expand first image
+                            setExpandedImages(new Set([0]));
+                          }}
+                          className="px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors"
+                        >
+                          Load Sample Images
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Legacy Single Background Image (Using ImageUpload) */}
-      {backgroundImages.length === 0 && (
-        <div className={sectionClass}>
-          <div 
-            onClick={() => toggleSection('image')} 
-            onKeyDown={(e) => e.key === 'Enter' && toggleSection('image')}
-            role="button"
-            tabIndex={0}
-            className={`${sectionHeaderClass} cursor-pointer`}
-          >
-            <div className="flex items-center gap-2 sm:gap-3">
-              <motion.div animate={{ rotate: expandedSections.has('image') ? 90 : 0 }}>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </motion.div>
-              <Images className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
-              <span className="font-medium text-foreground text-sm sm:text-base">Single Background Image</span>
-              <span className="px-2 py-0.5 rounded-full text-xs bg-orange-500/20 text-orange-500">
-                Legacy
-              </span>
-            </div>
-          </div>
-
-          <AnimatePresence>
-            {expandedSections.has('image') && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                  <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                    <p className="text-xs text-orange-500">
-                      💡 Tip: Use the "Background Slider Images" section above for multiple rotating images. This single image option is for backward compatibility.
-                    </p>
-                  </div>
-                  
-                  {/* Single Image Upload Component */}
-                  <ImageUpload
-                    value={content.backgroundImage || ''}
-                    onChange={(url) => handleUpdate('backgroundImage', url)}
-                    label="Background Image"
-                    placeholder="Enter image URL or upload a file"
-                    showPreviewDefault={true}
-                    maxSizeMB={2}
-                    maxWidthOrHeight={1920}
-                    previewHeight="h-48"
-                    showImageInfo={true}
-                    enablePaste={true}
-                    helperText="Recommended size: 1920x1080px. Auto-compressed to 2MB max."
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
-
-      {/* Statistics */}
+      {/* Stats Section */}
       <div className={sectionClass}>
         <div
           onClick={() => toggleSection('stats')}
-          className={`${sectionHeaderClass} cursor-pointer`}
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('stats')}
           role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
         >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('stats') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Statistics</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {content.stats?.length || 0}
@@ -479,7 +523,8 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
             onClick={(e) => {
               e.stopPropagation();
               const newStat: HeroStat = { icon: 'Star', label: 'New Stat', value: '100', prefix: '', suffix: '+' };
-              handleUpdate('stats', [...(content.stats || []), newStat]);
+              // Add at the beginning of the array
+              handleUpdate('stats', [newStat, ...(content.stats || [])]);
             }}
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
@@ -495,26 +540,31 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+              <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border">
                 {content.stats?.map((stat: HeroStat, index: number) => (
-                  <div key={index} className="p-3 sm:p-4 rounded-xl bg-secondary/50">
+                  <div
+                    key={index}
+                    className="p-3 rounded-xl border border-border bg-secondary/30"
+                  >
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-foreground">Stat #{index + 1}</span>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-2">
                         <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                        <button
-                          onClick={() => {
-                            const newStats = content.stats?.filter((_: HeroStat, i: number) => i !== index);
-                            handleUpdate('stats', newStats);
-                          }}
-                          className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <span className="text-sm font-medium text-foreground">
+                          {stat.label || 'Untitled Stat'}
+                        </span>
                       </div>
+                      <button
+                        onClick={() => {
+                          const newStats = content.stats?.filter((_: HeroStat, i: number) => i !== index);
+                          handleUpdate('stats', newStats);
+                        }}
+                        className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                       <div className="space-y-1">
                         <label className="text-xs text-muted-foreground">Icon</label>
                         <select
@@ -527,6 +577,10 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
                           className={inputClass}
                         >
                           <option value="Award">Award</option>
+                          <option value="Calendar">Calendar</option>
+                          <option value="CheckCircle">Check</option>
+                          <option value="Clock">Clock</option>
+                          <option value="Heart">Heart</option>
                           <option value="ShieldCheck">Shield</option>
                           <option value="Star">Star</option>
                           <option value="Users">Users</option>
@@ -641,7 +695,8 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
             onClick={(e) => {
               e.stopPropagation();
               const newBrand: HeroScrollingBrand = { name: 'New Brand' };
-              handleUpdate('scrollingBrands', [...(content.scrollingBrands || []), newBrand]);
+              // Add at the beginning of the array
+              handleUpdate('scrollingBrands', [newBrand, ...(content.scrollingBrands || [])]);
             }}
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >

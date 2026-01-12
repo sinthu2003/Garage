@@ -589,6 +589,7 @@ export interface FooterMadeWith {
 }
 
 export interface FooterContent {
+  [x: string]: any;
   brandName?: string;
   tagline?: string;
   logoUrl?: string;

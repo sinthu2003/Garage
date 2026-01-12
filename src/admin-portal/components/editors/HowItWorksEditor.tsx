@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Layers,
   Type,
-  Image,
   ChevronRight,
   ChevronDown,
   Plus,
@@ -19,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useHowItWorksContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload } from '../shared/ImageUpload';
 import type { HowItWorksStep } from '../../types/content.types';
 
 interface HowItWorksEditorProps {
@@ -77,16 +77,23 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
   const addNewStep = () => {
-    const stepNumber = (content.steps?.length || 0) + 1;
     const newStep: HowItWorksStep = {
-      number: stepNumber.toString().padStart(2, '0'),
+      number: '01',
       icon: 'CheckCircle',
       title: 'New Step',
       description: 'Step description goes here...',
       color: '#3B82F6',
       image: '',
     };
-    handleUpdate('steps', [...(content.steps || []), newStep]);
+    // Add at the beginning and renumber all steps
+    const existingSteps = content.steps || [];
+    const updatedSteps = [newStep, ...existingSteps].map((step, index) => ({
+      ...step,
+      number: (index + 1).toString().padStart(2, '0'),
+    }));
+    handleUpdate('steps', updatedSteps);
+    // Auto-expand the newly added step (now at index 0)
+    setExpandedItems(new Set([0]));
   };
 
   // Get icon component by name
@@ -199,28 +206,63 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                       className="rounded-xl border overflow-hidden border-border bg-card"
                     >
                       {/* Step Header */}
-                      <button
+                      <div
                         onClick={() => toggleItem(index)}
-                        className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
+                        onKeyDown={(e) => e.key === 'Enter' && toggleItem(index)}
+                        role="button"
+                        tabIndex={0}
+                        className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50 cursor-pointer"
                       >
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                          <div
-                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                            style={{ backgroundColor: step.color || '#3B82F6' }}
-                          >
-                            {step.number || (index + 1).toString().padStart(2, '0')}
+                          {/* Image thumbnail or step number */}
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center border border-border">
+                            {step.image ? (
+                              <img
+                                src={step.image.startsWith('http') || step.image.startsWith('data:') ? step.image : `${step.image}`}
+                                alt={step.title || ''}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div
+                                className="w-full h-full flex items-center justify-center text-white font-bold text-sm"
+                                style={{ backgroundColor: step.color?.startsWith('#') ? step.color : '#3B82F6' }}
+                              >
+                                {step.number || (index + 1).toString().padStart(2, '0')}
+                              </div>
+                            )}
                           </div>
-                          <span className="font-medium text-foreground text-sm sm:text-base truncate">
-                            {step.title || 'New Step'}
-                          </span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="px-2 py-0.5 rounded text-xs font-bold text-white"
+                                style={{ backgroundColor: step.color?.startsWith('#') ? step.color : '#3B82F6' }}
+                              >
+                                {step.number || (index + 1).toString().padStart(2, '0')}
+                              </span>
+                              <span className="font-medium text-foreground text-sm sm:text-base truncate">
+                                {step.title || 'New Step'}
+                              </span>
+                            </div>
+                            <span className="text-xs text-muted-foreground truncate block mt-0.5">
+                              {step.description?.slice(0, 40) || 'No description'}...
+                            </span>
+                          </div>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               const newSteps = content.steps?.filter((_: HowItWorksStep, i: number) => i !== index);
-                              handleUpdate('steps', newSteps);
+                              // Renumber remaining steps
+                              const renumbered = newSteps?.map((s: HowItWorksStep, idx: number) => ({
+                                ...s,
+                                number: (idx + 1).toString().padStart(2, '0'),
+                              }));
+                              handleUpdate('steps', renumbered);
                             }}
                             className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
                           >
@@ -230,7 +272,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                             <ChevronDown className="w-4 h-4 text-muted-foreground" />
                           </motion.div>
                         </div>
-                      </button>
+                      </div>
 
                       {/* Step Details */}
                       <AnimatePresence>
@@ -309,54 +351,54 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                                 />
                               </div>
 
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                <div className="space-y-2">
-                                  <label className={labelClass}>
-                                    <Palette className="w-4 h-4 inline mr-1" />
-                                    Color
-                                  </label>
-                                  <div className="flex items-center gap-2">
-                                    <input
-                                      type="color"
-                                      value={step.color || '#3B82F6'}
-                                      onChange={(e) => {
-                                        const newSteps = [...(content.steps || [])];
-                                        newSteps[index] = { ...newSteps[index], color: e.target.value };
-                                        handleUpdate('steps', newSteps);
-                                      }}
-                                      className="w-10 h-10 rounded-lg cursor-pointer border-0"
-                                    />
-                                    <input
-                                      type="text"
-                                      value={step.color || '#3B82F6'}
-                                      onChange={(e) => {
-                                        const newSteps = [...(content.steps || [])];
-                                        newSteps[index] = { ...newSteps[index], color: e.target.value };
-                                        handleUpdate('steps', newSteps);
-                                      }}
-                                      className={`flex-1 ${inputClass}`}
-                                    />
-                                  </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                  <label className={labelClass}>
-                                    <Image className="w-4 h-4 inline mr-1" />
-                                    Image
-                                  </label>
+                              {/* Color */}
+                              <div className="space-y-2">
+                                <label className={labelClass}>
+                                  <Palette className="w-4 h-4 inline mr-1" />
+                                  Step Color
+                                </label>
+                                <div className="flex items-center gap-2">
                                   <input
-                                    type="text"
-                                    value={step.image || ''}
+                                    type="color"
+                                    value={step.color?.startsWith('#') ? step.color : '#3B82F6'}
                                     onChange={(e) => {
                                       const newSteps = [...(content.steps || [])];
-                                      newSteps[index] = { ...newSteps[index], image: e.target.value };
+                                      newSteps[index] = { ...newSteps[index], color: e.target.value };
                                       handleUpdate('steps', newSteps);
                                     }}
-                                    placeholder="SelectLocation.jpg"
-                                    className={inputClass}
+                                    className="w-10 h-10 rounded-lg cursor-pointer border-0"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={step.color || '#3B82F6'}
+                                    onChange={(e) => {
+                                      const newSteps = [...(content.steps || [])];
+                                      newSteps[index] = { ...newSteps[index], color: e.target.value };
+                                      handleUpdate('steps', newSteps);
+                                    }}
+                                    placeholder="#3B82F6"
+                                    className={`flex-1 ${inputClass}`}
                                   />
                                 </div>
                               </div>
+
+                              {/* Step Image */}
+                              <ImageUpload
+                                value={step.image || ''}
+                                onChange={(url) => {
+                                  const newSteps = [...(content.steps || [])];
+                                  newSteps[index] = { ...newSteps[index], image: url };
+                                  handleUpdate('steps', newSteps);
+                                }}
+                                label="Step Image"
+                                placeholder="Upload image or enter URL"
+                                previewHeight="h-48"
+                                maxSizeMB={2}
+                                maxWidthOrHeight={1920}
+                                helperText="Image illustrating this step"
+                                showAltInput={false}
+                                compact={false}
+                              />
                             </div>
                           </motion.div>
                         )}

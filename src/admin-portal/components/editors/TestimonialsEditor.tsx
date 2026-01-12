@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Star,
   Type,
-  Image,
   User,
   MapPin,
   Car,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useTestimonialsContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload } from '../shared/ImageUpload';
 import type { TestimonialItem } from '../../types/content.types';
 
 interface TestimonialsEditorProps {
@@ -76,7 +76,10 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
       content: 'Write the customer review here...',
       image: '',
     };
-    handleUpdate('items', [...(content.items || []), newTestimonial]);
+    // Add at the beginning of the array
+    handleUpdate('items', [newTestimonial, ...(content.items || [])]);
+    // Auto-expand the newly added testimonial (now at index 0)
+    setExpandedItems(new Set([0]));
   };
 
   // Star Rating Component
@@ -198,34 +201,53 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 {content.items?.map((testimonial: TestimonialItem, index: number) => (
-                  <div key={testimonial.id || index} className="rounded-xl bg-secondary/50 overflow-hidden">
+                  <div
+                    key={testimonial.id || index}
+                    className="rounded-xl border overflow-hidden border-border bg-card"
+                  >
                     {/* Testimonial Header */}
-                    <button
+                    <div
                       onClick={() => toggleItem(index)}
-                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left"
+                      onKeyDown={(e) => e.key === 'Enter' && toggleItem(index)}
+                      role="button"
+                      tabIndex={0}
+                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50 cursor-pointer"
                     >
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                        <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block flex-shrink-0" />
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-secondary flex-shrink-0">
-                          <User className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                        <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center">
+                          {testimonial.image ? (
+                            <img
+                              src={testimonial.image.startsWith('http') || testimonial.image.startsWith('data:') ? testimonial.image : `${testimonial.image}`}
+                              alt={testimonial.name || ''}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <User className="w-5 h-5 text-muted-foreground" />
+                          )}
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium text-foreground text-sm truncate">
                             {testimonial.name || 'Customer Name'}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {testimonial.service || 'Service'} • {testimonial.rating || 5}★
-                          </p>
+                          <div className="flex items-center gap-1">
+                            {[...Array(testimonial.rating || 5)].map((_, i) => (
+                              <Star key={i} className="w-3 h-3 text-yellow-400" fill="currentColor" />
+                            ))}
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             const newItems = content.items?.filter((_: TestimonialItem, i: number) => i !== index);
                             handleUpdate('items', newItems);
                           }}
-                          className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
+                          className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -233,7 +255,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                           <ChevronDown className="w-4 h-4 text-muted-foreground" />
                         </motion.div>
                       </div>
-                    </button>
+                    </div>
 
                     {/* Testimonial Details */}
                     <AnimatePresence>
@@ -242,9 +264,27 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
+                          className="overflow-hidden border-t border-border"
                         >
-                          <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border/50">
+                          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                            {/* Customer Image Upload */}
+                            <ImageUpload
+                              value={testimonial.image || ''}
+                              onChange={(url) => {
+                                const newItems = [...(content.items || [])];
+                                newItems[index] = { ...newItems[index], image: url };
+                                handleUpdate('items', newItems);
+                              }}
+                              label="Customer Photo"
+                              placeholder="Upload image or enter URL"
+                              previewHeight="h-40"
+                              maxSizeMB={2}
+                              maxWidthOrHeight={1920}
+                              helperText="Recommended: High-quality customer photo"
+                              showAltInput={false}
+                              compact={false}
+                            />
+
                             {/* Name & Role */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div className="space-y-2">
@@ -368,25 +408,6 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                                 }}
                                 placeholder="Write the customer's review here..."
                                 rows={3}
-                                className={inputClass}
-                              />
-                            </div>
-
-                            {/* Image */}
-                            <div className="space-y-2">
-                              <label className={labelClass}>
-                                <Image className="w-4 h-4 inline mr-1" />
-                                Image (Optional)
-                              </label>
-                              <input
-                                type="text"
-                                value={testimonial.image || ''}
-                                onChange={(e) => {
-                                  const newItems = [...(content.items || [])];
-                                  newItems[index] = { ...newItems[index], image: e.target.value };
-                                  handleUpdate('items', newItems);
-                                }}
-                                placeholder="customer-car.jpg or https://..."
                                 className={inputClass}
                               />
                             </div>

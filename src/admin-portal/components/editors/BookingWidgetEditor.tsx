@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Type,
@@ -6,16 +6,19 @@ import {
   Car,
   Fuel,
   ChevronRight,
+  ChevronDown,
   Star,
   Phone,
   Plus,
   Trash2,
   MousePointerClick,
-  Image,
   GripVertical,
+  Search,
+  X,
 } from 'lucide-react';
 import { useBookingWidgetContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload } from '../shared/ImageUpload';
 
 interface BookingWidgetEditorProps {
   isDarkMode: boolean;
@@ -47,7 +50,12 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'labels', 'cities', 'brands', 'fuelTypes', 'cta', 'trustFooter'])
   );
-  const [selectedBrandForModels, setSelectedBrandForModels] = useState<string | null>(null);
+  const [expandedBrands, setExpandedBrands] = useState<Set<number>>(new Set([0]));
+  const [expandedModels, setExpandedModels] = useState<Set<string>>(new Set());
+  
+  // Search state
+  const [brandSearch, setBrandSearch] = useState('');
+  const [modelSearch, setModelSearch] = useState<Record<string, string>>({});
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -57,6 +65,27 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
       newExpanded.add(section);
     }
     setExpandedSections(newExpanded);
+  };
+
+  const toggleBrand = (index: number) => {
+    const newExpanded = new Set(expandedBrands);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedBrands(newExpanded);
+  };
+
+  const toggleModel = (brandId: string, modelIndex: number) => {
+    const key = `${brandId}-${modelIndex}`;
+    const newExpanded = new Set(expandedModels);
+    if (newExpanded.has(key)) {
+      newExpanded.delete(key);
+    } else {
+      newExpanded.add(key);
+    }
+    setExpandedModels(newExpanded);
   };
 
   const handleUpdate = (path: string, value: unknown) => {
@@ -83,6 +112,35 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
     { id: 'electric', name: 'Electric', icon: '⚡', color: '#8B5CF6' },
   ];
 
+  // Filtered brands based on search
+  const filteredBrands = useMemo(() => {
+    if (!brandSearch.trim()) return brands;
+    const searchLower = brandSearch.toLowerCase().trim();
+    return brands.filter(brand => 
+      brand.name.toLowerCase().includes(searchLower) ||
+      // Also search in models
+      (carModels[brand.id] || []).some(model => 
+        model.name.toLowerCase().includes(searchLower)
+      )
+    );
+  }, [brands, brandSearch, carModels]);
+
+  // Get filtered models for a specific brand
+  const getFilteredModels = (brandId: string) => {
+    const models = carModels[brandId] || [];
+    const search = modelSearch[brandId]?.toLowerCase().trim();
+    if (!search) return models;
+    return models.filter(model => 
+      model.name.toLowerCase().includes(search) ||
+      model.type.toLowerCase().includes(search)
+    );
+  };
+
+  // Update model search for a specific brand
+  const setModelSearchForBrand = (brandId: string, value: string) => {
+    setModelSearch(prev => ({ ...prev, [brandId]: value }));
+  };
+
   // Generate ID from name
   const generateId = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
@@ -94,7 +152,10 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
       logo: '',
       urlName: 'new-brand',
     };
-    handleUpdate('brands', [...brands, newBrand]);
+    // Add at the beginning of the array
+    handleUpdate('brands', [newBrand, ...brands]);
+    // Auto-expand the newly added brand (now at index 0)
+    setExpandedBrands(new Set([0]));
   };
 
   // Update brand
@@ -121,10 +182,6 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
     const newCarModels = { ...carModels };
     delete newCarModels[brandId];
     handleUpdate('carModels', newCarModels);
-    
-    if (selectedBrandForModels === brandId) {
-      setSelectedBrandForModels(null);
-    }
   };
 
   // Add new model to brand
@@ -135,10 +192,13 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
       image: '',
     };
     const brandModels = carModels[brandId] || [];
+    // Add at the beginning of the array
     handleUpdate('carModels', {
       ...carModels,
-      [brandId]: [...brandModels, newModel],
+      [brandId]: [newModel, ...brandModels],
     });
+    // Auto-expand the newly added model (now at index 0)
+    setExpandedModels(new Set([`${brandId}-0`]));
   };
 
   // Update model
@@ -168,7 +228,8 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
       icon: '🔋',
       color: '#6B7280',
     };
-    handleUpdate('fuelTypes', [...fuelTypes, newFuel]);
+    // Add at the beginning of the array
+    handleUpdate('fuelTypes', [newFuel, ...fuelTypes]);
   };
 
   // Update fuel type
@@ -216,12 +277,12 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 <div className="space-y-2">
-                  <label className={labelClass}>Title</label>
+                  <label className={labelClass}>Widget Title</label>
                   <input
                     type="text"
-                    value={content.title || 'Book Your Service'}
+                    value={content.title || ''}
                     onChange={(e) => handleUpdate('title', e.target.value)}
-                    placeholder="Book Your Service"
+                    placeholder="Book Your Car Service"
                     className={inputClass}
                   />
                 </div>
@@ -230,9 +291,9 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
                   <label className={labelClass}>Subtitle</label>
                   <input
                     type="text"
-                    value={content.subtitle || 'Get instant quotes & doorstep service'}
+                    value={content.subtitle || ''}
                     onChange={(e) => handleUpdate('subtitle', e.target.value)}
-                    placeholder="Get instant quotes & doorstep service"
+                    placeholder="Get instant quotes and doorstep service"
                     className={inputClass}
                   />
                 </div>
@@ -242,15 +303,15 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
         </AnimatePresence>
       </div>
 
-      {/* Form Labels */}
+      {/* Step Labels */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('labels')} className={sectionHeaderClass}>
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('labels') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
-            <Type className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Form Labels & Placeholders</span>
+            <Type className="w-4 h-4 sm:w-5 sm:h-5 text-violet-500" />
+            <span className="font-medium text-foreground text-sm sm:text-base">Step Labels</span>
           </div>
         </button>
 
@@ -262,90 +323,74 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="p-3 sm:p-4 pt-0 space-y-4 border-t border-border">
-                {/* City Selector */}
-                <div className="p-3 rounded-xl border border-border bg-secondary/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <MapPin className="w-4 h-4 text-red-500" />
-                    <span className="font-medium text-foreground text-sm">City Selector</span>
+              <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <MapPin className="w-4 h-4 inline mr-1" />
+                      City Label
+                    </label>
+                    <input
+                      type="text"
+                      value={content.labels?.city || 'Select City'}
+                      onChange={(e) => handleUpdate('labels.city', e.target.value)}
+                      placeholder="Select City"
+                      className={inputClass}
+                    />
                   </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <Car className="w-4 h-4 inline mr-1" />
+                      Brand Label
+                    </label>
+                    <input
+                      type="text"
+                      value={content.labels?.brand || 'Select Brand'}
+                      onChange={(e) => handleUpdate('labels.brand', e.target.value)}
+                      placeholder="Select Brand"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <Car className="w-4 h-4 inline mr-1" />
+                      Model Label
+                    </label>
+                    <input
+                      type="text"
+                      value={content.labels?.model || 'Select Model'}
+                      onChange={(e) => handleUpdate('labels.model', e.target.value)}
+                      placeholder="Select Model"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={labelClass}>
+                      <Fuel className="w-4 h-4 inline mr-1" />
+                      Fuel Label
+                    </label>
+                    <input
+                      type="text"
+                      value={content.labels?.fuel || 'Select Fuel Type'}
+                      onChange={(e) => handleUpdate('labels.fuel', e.target.value)}
+                      placeholder="Select Fuel Type"
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>
+                    <Phone className="w-4 h-4 inline mr-1" />
+                    Phone Label
+                  </label>
                   <input
                     type="text"
-                    value={content.labels?.city || 'Select City'}
-                    onChange={(e) => handleUpdate('labels.city', e.target.value)}
-                    placeholder="Select City"
+                    value={(content.labels as any)?.phone || 'Enter Phone Number'}
+                    onChange={(e) => handleUpdate('labels.phone', e.target.value)}
+                    placeholder="Enter Phone Number"
                     className={inputClass}
                   />
-                </div>
-
-                {/* Car Selector */}
-                <div className="p-3 rounded-xl border border-border bg-secondary/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Car className="w-4 h-4 text-blue-500" />
-                    <span className="font-medium text-foreground text-sm">Car Selector</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Label</label>
-                      <input
-                        type="text"
-                        value={content.labels?.car || 'Select Your Car'}
-                        onChange={(e) => handleUpdate('labels.car', e.target.value)}
-                        placeholder="Select Your Car"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Placeholder</label>
-                      <input
-                        type="text"
-                        value={content.labels?.carPlaceholder || 'Select your car'}
-                        onChange={(e) => handleUpdate('labels.carPlaceholder', e.target.value)}
-                        placeholder="Select your car"
-                        className={inputClass}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mobile Number */}
-                <div className="p-3 rounded-xl border border-border bg-secondary/30">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Phone className="w-4 h-4 text-green-500" />
-                    <span className="font-medium text-foreground text-sm">Mobile Number</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Label</label>
-                      <input
-                        type="text"
-                        value={content.labels?.mobile || 'Mobile Number'}
-                        onChange={(e) => handleUpdate('labels.mobile', e.target.value)}
-                        placeholder="Mobile Number"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Placeholder</label>
-                      <input
-                        type="text"
-                        value={content.labels?.mobilePlaceholder || 'Enter your mobile number'}
-                        onChange={(e) => handleUpdate('labels.mobilePlaceholder', e.target.value)}
-                        placeholder="Enter your mobile number"
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-xs text-muted-foreground">Country Code</label>
-                      <input
-                        type="text"
-                        value={content.labels?.countryCode || '+91'}
-                        onChange={(e) => handleUpdate('labels.countryCode', e.target.value)}
-                        placeholder="+91"
-                        className={inputClass}
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
             </motion.div>
@@ -353,7 +398,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
         </AnimatePresence>
       </div>
 
-      {/* Service Cities */}
+      {/* Cities */}
       <div className={sectionClass}>
         <div 
           onClick={() => toggleSection('cities')} 
@@ -367,7 +412,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
             <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Service Cities</span>
+            <span className="font-medium text-foreground text-sm sm:text-base">Cities</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {cities.length}
             </span>
@@ -375,7 +420,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleUpdate('cities', [...cities, 'New City']);
+              handleUpdate('cities', ['New City', ...cities]);
             }}
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
@@ -391,7 +436,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border">
+              <div className="p-3 sm:p-4 pt-0 space-y-2 border-t border-border">
                 {cities.map((city: string, index: number) => (
                   <div key={index} className="flex items-center gap-2">
                     <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab hidden sm:block" />
@@ -425,7 +470,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
         </AnimatePresence>
       </div>
 
-      {/* Car Brands */}
+      {/* Car Brands - GalleryEditor Pattern */}
       <div className={sectionClass}>
         <div 
           onClick={() => toggleSection('brands')} 
@@ -439,7 +484,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
             <Car className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-            <span className="font-medium text-foreground text-sm sm:text-base">Car Brands</span>
+            <span className="font-medium text-foreground text-sm sm:text-base">Car Brands & Models</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {brands.length}
             </span>
@@ -463,143 +508,347 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border max-h-[500px] overflow-y-auto">
-                {brands.length === 0 && (
-                  <p className="text-center py-4 text-sm text-muted-foreground">
-                    No brands added. <button onClick={addBrand} className="text-primary">Add one</button>
+              <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border">
+                {/* Brand Search */}
+                {brands.length > 3 && (
+                  <div className="relative mt-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                    <input
+                      type="text"
+                      value={brandSearch}
+                      onChange={(e) => setBrandSearch(e.target.value)}
+                      placeholder="Search brands or models..."
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl text-sm bg-secondary border border-border text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    />
+                    {brandSearch && (
+                      <button
+                        onClick={() => setBrandSearch('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted text-muted-foreground"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Search Results Count */}
+                {brandSearch && (
+                  <p className="text-xs text-muted-foreground">
+                    Found {filteredBrands.length} of {brands.length} brands
                   </p>
                 )}
-                
-                {brands.map((brand, index) => (
-                  <div key={brand.id} className="p-3 rounded-xl border border-border bg-secondary/30">
-                    <div className="flex items-start gap-3">
-                      {/* Brand Logo Preview */}
-                      <div className="w-12 h-12 rounded-xl bg-card border border-border flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {brand.logo ? (
-                          <img 
-                            src={brand.logo} 
-                            alt={brand.name} 
-                            className="w-10 h-10 object-contain"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <Car className="w-6 h-6 text-muted-foreground" />
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          <div className="space-y-1">
-                            <label className="text-xs text-muted-foreground">Brand Name</label>
-                            <input
-                              type="text"
-                              value={brand.name}
-                              onChange={(e) => updateBrand(index, 'name', e.target.value)}
-                              placeholder="Brand Name"
-                              className={inputClass}
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs text-muted-foreground">
-                              <Image className="w-3 h-3 inline mr-1" />
-                              Logo URL
-                            </label>
-                            <input
-                              type="text"
-                              value={brand.logo}
-                              onChange={(e) => updateBrand(index, 'logo', e.target.value)}
-                              placeholder="https://..."
-                              className={inputClass}
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Models for this brand */}
-                        <div className="pt-2 border-t border-border">
-                          <button
-                            onClick={() => setSelectedBrandForModels(
-                              selectedBrandForModels === brand.id ? null : brand.id
-                            )}
-                            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80"
-                          >
-                            <ChevronRight className={`w-4 h-4 transition-transform ${selectedBrandForModels === brand.id ? 'rotate-90' : ''}`} />
-                            Manage Models ({(carModels[brand.id] || []).length})
-                          </button>
-                          
-                          <AnimatePresence>
-                            {selectedBrandForModels === brand.id && (
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="overflow-hidden"
-                              >
-                                <div className="mt-3 space-y-2">
-                                  {(carModels[brand.id] || []).map((model, modelIndex) => (
-                                    <div key={modelIndex} className="flex items-center gap-2 p-2 rounded-lg bg-card">
-                                      <div className="w-10 h-8 rounded bg-secondary flex items-center justify-center overflow-hidden">
-                                        {model.image ? (
-                                          <img src={model.image} alt={model.name} className="w-full h-full object-contain mix-blend-multiply" />
-                                        ) : (
-                                          <Car className="w-4 h-4 text-muted-foreground" />
-                                        )}
-                                      </div>
-                                      <input
-                                        type="text"
-                                        value={model.name}
-                                        onChange={(e) => updateModel(brand.id, modelIndex, 'name', e.target.value)}
-                                        placeholder="Model Name"
-                                        className={`flex-1 ${inputClass} !py-2`}
-                                      />
-                                      <select
-                                        value={model.type}
-                                        onChange={(e) => updateModel(brand.id, modelIndex, 'type', e.target.value)}
-                                        className={`w-28 ${inputClass} !py-2`}
-                                      >
-                                        {carTypeOptions.map(type => (
-                                          <option key={type} value={type}>{type}</option>
-                                        ))}
-                                      </select>
-                                      <input
-                                        type="text"
-                                        value={model.image}
-                                        onChange={(e) => updateModel(brand.id, modelIndex, 'image', e.target.value)}
-                                        placeholder="Image URL"
-                                        className={`w-32 ${inputClass} !py-2 hidden sm:block`}
-                                      />
-                                      <button
-                                        onClick={() => deleteModel(brand.id, modelIndex)}
-                                        className="p-1.5 rounded text-destructive hover:bg-destructive/10"
-                                      >
-                                        <Trash2 className="w-4 h-4" />
-                                      </button>
-                                    </div>
-                                  ))}
-                                  
-                                  <button
-                                    onClick={() => addModel(brand.id)}
-                                    className="w-full py-2 text-sm text-primary border border-dashed border-primary/30 rounded-lg hover:bg-primary/5"
-                                  >
-                                    + Add Model
-                                  </button>
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      </div>
-                      
-                      <button
-                        onClick={() => deleteBrand(index)}
-                        className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+
+                {brands.length === 0 && (
+                  <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                    <Car className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No brands added yet</p>
+                    <button onClick={addBrand} className="mt-2 text-primary text-sm font-medium">
+                      + Add your first brand
+                    </button>
                   </div>
-                ))}
+                )}
+
+                {/* No search results */}
+                {brands.length > 0 && filteredBrands.length === 0 && brandSearch && (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No brands match "{brandSearch}"</p>
+                    <button 
+                      onClick={() => setBrandSearch('')}
+                      className="mt-2 text-primary text-sm font-medium"
+                    >
+                      Clear search
+                    </button>
+                  </div>
+                )}
+                
+                {filteredBrands.map((brand) => {
+                  // Find original index for expand state
+                  const originalIndex = brands.findIndex(b => b.id === brand.id);
+                  return (
+                  <div
+                    key={brand.id}
+                    className="rounded-xl border overflow-hidden border-border bg-card"
+                  >
+                    {/* Brand Header */}
+                    <div
+                      onClick={() => toggleBrand(originalIndex)}
+                      onKeyDown={(e) => e.key === 'Enter' && toggleBrand(originalIndex)}
+                      role="button"
+                      tabIndex={0}
+                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center border border-border">
+                          {brand.logo ? (
+                            <img
+                              src={brand.logo.startsWith('http') || brand.logo.startsWith('data:') ? brand.logo : `${brand.logo}`}
+                              alt={brand.name || ''}
+                              className="w-full h-full object-contain p-1"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <Car className="w-5 h-5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground text-sm truncate">
+                            {brand.name || 'Untitled Brand'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {(carModels[brand.id] || []).length} models
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteBrand(originalIndex);
+                          }}
+                          className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <motion.div animate={{ rotate: expandedBrands.has(originalIndex) ? 180 : 0 }}>
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    {/* Brand Details */}
+                    <AnimatePresence>
+                      {expandedBrands.has(originalIndex) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden border-t border-border"
+                        >
+                          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                            {/* Brand Logo Upload */}
+                            <ImageUpload
+                              value={brand.logo || ''}
+                              onChange={(url) => updateBrand(originalIndex, 'logo', url)}
+                              label="Brand Logo"
+                              placeholder="Upload image or enter URL"
+                              previewHeight="h-40"
+                              maxSizeMB={2}
+                              maxWidthOrHeight={1920}
+                              helperText="Recommended: Transparent PNG logo"
+                              showAltInput={false}
+                              compact={false}
+                            />
+
+                            {/* Brand Name */}
+                            <div className="space-y-2">
+                              <label className={labelClass}>Brand Name</label>
+                              <input
+                                type="text"
+                                value={brand.name}
+                                onChange={(e) => updateBrand(originalIndex, 'name', e.target.value)}
+                                placeholder="Brand Name"
+                                className={inputClass}
+                              />
+                            </div>
+
+                            {/* Models Section */}
+                            <div className="pt-3 border-t border-border">
+                              <div className="flex items-center justify-between mb-3">
+                                <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                  <Car className="w-4 h-4 text-blue-500" />
+                                  Car Models
+                                  <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground font-normal">
+                                    {(carModels[brand.id] || []).length}
+                                  </span>
+                                </label>
+                                <button
+                                  onClick={() => addModel(brand.id)}
+                                  className="text-xs text-primary font-medium hover:text-primary/80"
+                                >
+                                  + Add Model
+                                </button>
+                              </div>
+
+                              {/* Model Search */}
+                              {(carModels[brand.id] || []).length > 3 && (
+                                <div className="relative mb-3">
+                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                                  <input
+                                    type="text"
+                                    value={modelSearch[brand.id] || ''}
+                                    onChange={(e) => setModelSearchForBrand(brand.id, e.target.value)}
+                                    placeholder="Search models..."
+                                    className="w-full pl-9 pr-9 py-2 rounded-lg text-xs bg-secondary/50 border border-border text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                                  />
+                                  {modelSearch[brand.id] && (
+                                    <button
+                                      onClick={() => setModelSearchForBrand(brand.id, '')}
+                                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted text-muted-foreground"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Model Search Results Count */}
+                              {modelSearch[brand.id] && (
+                                <p className="text-[10px] text-muted-foreground mb-2">
+                                  Found {getFilteredModels(brand.id).length} of {(carModels[brand.id] || []).length} models
+                                </p>
+                              )}
+
+                              <div className="space-y-2">
+                                {getFilteredModels(brand.id).map((model) => {
+                                  // Find original index for expand state and actions
+                                  const originalModelIndex = (carModels[brand.id] || []).findIndex(m => m.name === model.name && m.type === model.type);
+                                  return (
+                                  <div
+                                    key={originalModelIndex}
+                                    className="rounded-lg border overflow-hidden border-border bg-secondary/30"
+                                  >
+                                    {/* Model Header */}
+                                    <div
+                                      onClick={() => toggleModel(brand.id, originalModelIndex)}
+                                      onKeyDown={(e) => e.key === 'Enter' && toggleModel(brand.id, originalModelIndex)}
+                                      role="button"
+                                      tabIndex={0}
+                                      className="w-full flex items-center justify-between p-2 sm:p-3 text-left hover:bg-secondary/50 cursor-pointer"
+                                    >
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-card border border-border flex-shrink-0 flex items-center justify-center">
+                                          {model.image ? (
+                                            <img
+                                              src={model.image.startsWith('http') || model.image.startsWith('data:') ? model.image : `${model.image}`}
+                                              alt={model.name || ''}
+                                              className="w-full h-full object-contain p-1"
+                                              onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                              }}
+                                            />
+                                          ) : (
+                                            <Car className="w-5 h-5 text-muted-foreground" />
+                                          )}
+                                        </div>
+                                        <div className="min-w-0">
+                                          <p className="font-medium text-foreground text-xs sm:text-sm truncate">
+                                            {model.name || 'Untitled Model'}
+                                          </p>
+                                          <p className="text-[10px] sm:text-xs text-muted-foreground">
+                                            {model.type}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteModel(brand.id, originalModelIndex);
+                                          }}
+                                          className="p-1 sm:p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
+                                        >
+                                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                                        </button>
+                                        <motion.div animate={{ rotate: expandedModels.has(`${brand.id}-${originalModelIndex}`) ? 180 : 0 }}>
+                                          <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+                                        </motion.div>
+                                      </div>
+                                    </div>
+
+                                    {/* Model Details */}
+                                    <AnimatePresence>
+                                      {expandedModels.has(`${brand.id}-${originalModelIndex}`) && (
+                                        <motion.div
+                                          initial={{ height: 0, opacity: 0 }}
+                                          animate={{ height: 'auto', opacity: 1 }}
+                                          exit={{ height: 0, opacity: 0 }}
+                                          className="overflow-hidden border-t border-border"
+                                        >
+                                          <div className="p-2 sm:p-3 space-y-3">
+                                            {/* Model Image Upload */}
+                                            <ImageUpload
+                                              value={model.image || ''}
+                                              onChange={(url) => updateModel(brand.id, originalModelIndex, 'image', url)}
+                                              label="Model Image"
+                                              placeholder="Upload image or enter URL"
+                                              previewHeight="h-40"
+                                              maxSizeMB={2}
+                                              maxWidthOrHeight={1920}
+                                              helperText="Car model image"
+                                              showAltInput={false}
+                                              compact={false}
+                                            />
+
+                                            {/* Model Name & Type */}
+                                            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                                              <div className="space-y-1">
+                                                <label className="text-xs text-muted-foreground">Model Name</label>
+                                                <input
+                                                  type="text"
+                                                  value={model.name}
+                                                  onChange={(e) => updateModel(brand.id, originalModelIndex, 'name', e.target.value)}
+                                                  placeholder="Model Name"
+                                                  className={inputClass}
+                                                />
+                                              </div>
+                                              <div className="space-y-1">
+                                                <label className="text-xs text-muted-foreground">Type</label>
+                                                <select
+                                                  value={model.type}
+                                                  onChange={(e) => updateModel(brand.id, originalModelIndex, 'type', e.target.value)}
+                                                  className={inputClass}
+                                                >
+                                                  {carTypeOptions.map(type => (
+                                                    <option key={type} value={type}>{type}</option>
+                                                  ))}
+                                                </select>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </motion.div>
+                                      )}
+                                    </AnimatePresence>
+                                  </div>
+                                  );
+                                })}
+
+                                {/* No model search results */}
+                                {(carModels[brand.id] || []).length > 0 && getFilteredModels(brand.id).length === 0 && modelSearch[brand.id] && (
+                                  <div className="text-center py-3 text-muted-foreground">
+                                    <p className="text-xs">No models match "{modelSearch[brand.id]}"</p>
+                                    <button 
+                                      onClick={() => setModelSearchForBrand(brand.id, '')}
+                                      className="mt-1 text-primary text-xs font-medium"
+                                    >
+                                      Clear search
+                                    </button>
+                                  </div>
+                                )}
+
+                                {(carModels[brand.id] || []).length === 0 && (
+                                  <div className="text-center py-4 text-muted-foreground">
+                                    <p className="text-xs">No models added yet</p>
+                                    <button
+                                      onClick={() => addModel(brand.id)}
+                                      className="mt-1 text-primary text-xs font-medium"
+                                    >
+                                      + Add first model
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                  );
+                })}
               </div>
             </motion.div>
           )}

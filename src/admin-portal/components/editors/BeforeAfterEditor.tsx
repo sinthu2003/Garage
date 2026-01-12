@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   SplitSquareHorizontal,
   Type,
-  Image,
   ChevronRight,
   ChevronDown,
   Plus,
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useBeforeAfterContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload } from '../shared/ImageUpload';
 import type { BeforeAfterItem } from '../../types/content.types';
 
 interface BeforeAfterEditorProps {
@@ -73,7 +73,10 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
       time: '1 Day',
       savings: '₹5,000',
     };
-    handleUpdate('items', [...(content.items || []), newItem]);
+    // Add at the beginning of the array
+    handleUpdate('items', [newItem, ...(content.items || [])]);
+    // Auto-expand the newly added item (now at index 0)
+    setExpandedItems(new Set([0]));
   };
 
   return (
@@ -174,7 +177,13 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
 
       {/* Transformation Items */}
       <div className={sectionClass}>
-        <button onClick={() => toggleSection('items')} className={sectionHeaderClass}>
+        <div 
+          onClick={() => toggleSection('items')} 
+          onKeyDown={(e) => e.key === 'Enter' && toggleSection('items')}
+          role="button"
+          tabIndex={0}
+          className={`${sectionHeaderClass} cursor-pointer`}
+        >
           <div className="flex items-center gap-2 sm:gap-3">
             <motion.div animate={{ rotate: expandedSections.has('items') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -194,7 +203,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
           >
             <Plus className="w-4 h-4" />
           </button>
-        </button>
+        </div>
 
         <AnimatePresence>
           {expandedSections.has('items') && (
@@ -211,32 +220,53 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                     className="rounded-xl border overflow-hidden border-border bg-card"
                   >
                     {/* Item Header */}
-                    <button
+                    <div
                       onClick={() => toggleItem(index)}
-                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50"
+                      onKeyDown={(e) => e.key === 'Enter' && toggleItem(index)}
+                      role="button"
+                      tabIndex={0}
+                      className="w-full flex items-center justify-between p-3 sm:p-4 text-left hover:bg-secondary/50 cursor-pointer"
                     >
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex-shrink-0 bg-secondary">
-                          {item.afterImage ? (
-                            <img
-                              src={item.afterImage.startsWith('http') ? item.afterImage : `/assets/${item.afterImage}`}
-                              alt={item.title}
-                              className="w-full h-full object-cover"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Image className="w-5 h-5 text-muted-foreground" />
-                            </div>
-                          )}
+                        <div className="flex gap-1 flex-shrink-0">
+                          {/* Before Image Thumbnail */}
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-secondary">
+                            {item.beforeImage ? (
+                              <img
+                                src={item.beforeImage.startsWith('http') || item.beforeImage.startsWith('data:') ? item.beforeImage : `${item.beforeImage}`}
+                                alt="Before"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">B</div>
+                            )}
+                          </div>
+                          {/* After Image Thumbnail */}
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-secondary">
+                            {item.afterImage ? (
+                              <img
+                                src={item.afterImage.startsWith('http') || item.afterImage.startsWith('data:') ? item.afterImage : `${item.afterImage}`}
+                                alt="After"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">A</div>
+                            )}
+                          </div>
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium text-foreground text-sm truncate">
-                            {item.title || 'New Transformation'}
+                            {item.title || 'Untitled Transformation'}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {item.car || 'No car model'}
+                            {item.car || 'No car specified'}
                           </p>
                         </div>
                       </div>
@@ -255,7 +285,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                           <ChevronDown className="w-4 h-4 text-muted-foreground" />
                         </motion.div>
                       </div>
-                    </button>
+                    </div>
 
                     {/* Item Details */}
                     <AnimatePresence>
@@ -264,9 +294,9 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
+                          className="overflow-hidden border-t border-border"
                         >
-                          <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                          <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                             {/* Title & Car */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               <div className="space-y-2">
@@ -319,44 +349,41 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                               />
                             </div>
 
-                            {/* Before & After Images */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                              <div className="space-y-2">
-                                <label className={labelClass}>
-                                  <Image className="w-4 h-4 inline mr-1" />
-                                  Before Image
-                                </label>
-                                <input
-                                  type="text"
-                                  value={item.beforeImage || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], beforeImage: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
-                                  placeholder="before-denting.jpg or https://..."
-                                  className={inputClass}
-                                />
-                              </div>
+                            {/* Before Image */}
+                            <ImageUpload
+                              value={item.beforeImage || ''}
+                              onChange={(url) => {
+                                const newItems = [...(content.items || [])];
+                                newItems[index] = { ...newItems[index], beforeImage: url };
+                                handleUpdate('items', newItems);
+                              }}
+                              label="Before Image"
+                              placeholder="Upload image or enter URL"
+                              previewHeight="h-40"
+                              maxSizeMB={2}
+                              maxWidthOrHeight={1920}
+                              helperText="Image showing the condition before service"
+                              showAltInput={false}
+                              compact={false}
+                            />
 
-                              <div className="space-y-2">
-                                <label className={labelClass}>
-                                  <Image className="w-4 h-4 inline mr-1" />
-                                  After Image
-                                </label>
-                                <input
-                                  type="text"
-                                  value={item.afterImage || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], afterImage: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
-                                  placeholder="after-denting.jpg or https://..."
-                                  className={inputClass}
-                                />
-                              </div>
-                            </div>
+                            {/* After Image */}
+                            <ImageUpload
+                              value={item.afterImage || ''}
+                              onChange={(url) => {
+                                const newItems = [...(content.items || [])];
+                                newItems[index] = { ...newItems[index], afterImage: url };
+                                handleUpdate('items', newItems);
+                              }}
+                              label="After Image"
+                              placeholder="Upload image or enter URL"
+                              previewHeight="h-40"
+                              maxSizeMB={2}
+                              maxWidthOrHeight={1920}
+                              helperText="Image showing the result after service"
+                              showAltInput={false}
+                              compact={false}
+                            />
 
                             {/* Time & Savings */}
                             <div className="grid grid-cols-2 gap-3 sm:gap-4">

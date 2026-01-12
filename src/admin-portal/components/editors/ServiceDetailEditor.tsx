@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useServicesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { ImageUpload } from '../shared/ImageUpload';
 
 interface ServiceDetailEditorProps {
   isDarkMode: boolean;
@@ -60,11 +61,12 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
       duration: '1-2 hours',
       warranty: '3 months',
     };
-    const newItems = [...(content.items || []), newService];
+    // Add at the beginning of the array
+    const newItems = [newService, ...(content.items || [])];
     handleUpdate('items', newItems);
     
-    // Switch to edit mode for the new item immediately
-    setEditingIndex(newItems.length - 1);
+    // Switch to edit mode for the new item (now at index 0)
+    setEditingIndex(0);
   };
 
   const deleteService = (index: number) => {
@@ -231,37 +233,39 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
         <div className="p-3 sm:p-4 space-y-4 sm:space-y-6">
           {/* --- BASIC INFO --- */}
           <div className="space-y-4">
-            {/* Title & Image - Stack on mobile, side by side on larger screens */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>Service Title</label>
-                <input
-                  type="text"
-                  value={service.title || ''}
-                  onChange={(e) => {
-                    const newItems = [...(content.items || [])];
-                    newItems[index] = { ...newItems[index], title: e.target.value };
-                    handleUpdate('items', newItems);
-                  }}
-                  placeholder="Full Body Denting & Painting"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Main Image URL</label>
-                <input
-                  type="text"
-                  value={service.image || ''}
-                  onChange={(e) => {
-                    const newItems = [...(content.items || [])];
-                    newItems[index] = { ...newItems[index], image: e.target.value };
-                    handleUpdate('items', newItems);
-                  }}
-                  placeholder="service-image.jpg"
-                  className={inputClass}
-                />
-              </div>
+            {/* Title */}
+            <div>
+              <label className={labelClass}>Service Title</label>
+              <input
+                type="text"
+                value={service.title || ''}
+                onChange={(e) => {
+                  const newItems = [...(content.items || [])];
+                  newItems[index] = { ...newItems[index], title: e.target.value };
+                  handleUpdate('items', newItems);
+                }}
+                placeholder="Full Body Denting & Painting"
+                className={inputClass}
+              />
             </div>
+
+            {/* Main Image Upload */}
+            <ImageUpload
+              value={service.image || ''}
+              onChange={(url) => {
+                const newItems = [...(content.items || [])];
+                newItems[index] = { ...newItems[index], image: url };
+                handleUpdate('items', newItems);
+              }}
+              label="Main Service Image"
+              placeholder="Upload image or enter URL"
+              previewHeight="h-40"
+              maxSizeMB={2}
+              maxWidthOrHeight={1920}
+              helperText="Primary image displayed on service card"
+              showAltInput={false}
+              compact={false}
+            />
 
             {/* Description - Full width */}
             <div>
@@ -405,7 +409,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
             <div className="flex justify-between items-center">
               <label className={subSectionTitleClass}>
                 <CheckCircle2 className="w-4 h-4 text-blue-500" />
-                Service Includes
+                What's Included
               </label>
               <button
                 onClick={() => {
@@ -418,7 +422,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
                 }}
                 className="text-blue-500 text-xs font-bold uppercase hover:underline"
               >
-                + Add Include
+                + Add Item
               </button>
             </div>
             <div className="space-y-2">
@@ -434,7 +438,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
                       handleUpdate('items', newItems);
                     }}
                     className={`flex-1 ${inputClass}`}
-                    placeholder="e.g. Engine oil filter"
+                    placeholder="e.g. Free pickup & drop"
                   />
                   <button
                     onClick={() => {
@@ -454,7 +458,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
 
           <hr className="border-border" />
 
-          {/* --- PROCESS STEPS --- */}
+          {/* --- PROCESS --- */}
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <label className={subSectionTitleClass}>
@@ -478,9 +482,6 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
             <div className="space-y-3">
               {service.process?.map((step: any, i: number) => (
                 <div key={i} className="flex gap-2 sm:gap-3 items-start">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0 mt-2">
-                    {i + 1}
-                  </div>
                   <div className="flex-1 space-y-2">
                     <input
                       placeholder="Step Title"
@@ -615,20 +616,26 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
                 + Add Image
               </button>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-4">
               {service.gallery?.map((img: string, i: number) => (
-                <div key={i} className="flex gap-2">
-                  <input
+                <div key={i} className="relative">
+                  <ImageUpload
                     value={img}
-                    onChange={(e) => {
+                    onChange={(url) => {
                       const newItems = [...(content.items || [])];
                       const newGallery = [...(newItems[index].gallery || [])];
-                      newGallery[i] = e.target.value;
+                      newGallery[i] = url;
                       newItems[index] = { ...newItems[index], gallery: newGallery };
                       handleUpdate('items', newItems);
                     }}
-                    className={`flex-1 ${inputClass}`}
-                    placeholder="Image URL..."
+                    label={`Gallery Image ${i + 1}`}
+                    placeholder="Upload image or enter URL"
+                    previewHeight="h-40"
+                    maxSizeMB={2}
+                    maxWidthOrHeight={1920}
+                    helperText="Additional image for service detail page"
+                    showAltInput={false}
+                    compact={false}
                   />
                   <button
                     onClick={() => {
@@ -637,12 +644,18 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
                       newItems[index] = { ...newItems[index], gallery: newGallery };
                       handleUpdate('items', newItems);
                     }}
-                    className="text-destructive hover:bg-destructive/10 p-2 rounded flex-shrink-0"
+                    className="absolute top-0 right-0 text-destructive hover:bg-destructive/10 p-2 rounded"
+                    title="Remove image"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               ))}
+              {(!service.gallery || service.gallery.length === 0) && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No gallery images added yet. Click "+ Add Image" to add images.
+                </p>
+              )}
             </div>
           </div>
 
