@@ -134,6 +134,7 @@ export const ServiceGrid = () => {
                 category: service.category || 'maintenance',
                 duration: service.duration,
                 warranty: service.warranty,
+                gallery: service.gallery || [],
               }} 
               index={index} 
             />

@@ -128,7 +128,7 @@ export const BookingWidget = () => {
                 {/* City Selector */}
                 <div className="relative">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                    {bookingContent.steps.location.title}
+                    {bookingContent.labels?.city || 'Select City'}
                   </label>
                   <button
                     onClick={() => setIsCityOpen(!isCityOpen)}
@@ -174,7 +174,7 @@ export const BookingWidget = () => {
                 {/* Car Selector */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                    {bookingContent.steps.brand.title}
+                    {bookingContent.labels?.brand || 'Select Brand'}
                   </label>
                   <button
                     onClick={() => setCurrentView('brands')}
@@ -230,7 +230,7 @@ export const BookingWidget = () => {
                 {/* Mobile Number */}
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-                    {bookingContent.steps.phone?.title || 'Mobile Number'}
+                    {bookingContent.labels?.phone || 'Mobile Number'}
                   </label>
                   <div className="flex items-center gap-3 px-4 py-4 bg-secondary/50 border border-border rounded-2xl focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                     <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
@@ -241,7 +241,7 @@ export const BookingWidget = () => {
                       type="tel"
                       value={mobileNumber}
                       onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      placeholder={bookingContent.steps.phone?.placeholder || 'Enter your mobile number'}
+                      placeholder={bookingContent.placeholders?.phone || 'Enter your mobile number'}
                       className="flex-1 bg-transparent outline-none text-base font-semibold text-foreground placeholder-muted-foreground"
                     />
                     {mobileNumber.length === 10 && (
@@ -281,8 +281,8 @@ export const BookingWidget = () => {
                     <ChevronLeft className="w-5 h-5 text-muted-foreground" />
                   </button>
                   <div>
-                    <h3 className="text-xl font-bold text-foreground">{bookingContent.steps.brand.title}</h3>
-                    <p className="text-xs text-muted-foreground">{bookingContent.steps.brand.subtitle || 'Choose your car manufacturer'}</p>
+                    <h3 className="text-xl font-bold text-foreground">{bookingContent.labels?.brand || 'Select Brand'}</h3>
+                    <p className="text-xs text-muted-foreground">Choose your car manufacturer</p>
                   </div>
                 </div>
 
@@ -293,7 +293,7 @@ export const BookingWidget = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={bookingContent.steps.brand.placeholder || 'Search car brand...'}
+                    placeholder={bookingContent.placeholders?.brand || 'Search car brand...'}
                     className="flex-1 bg-transparent outline-none text-sm font-medium text-foreground placeholder-muted-foreground"
                     autoFocus
                   />
@@ -375,7 +375,7 @@ export const BookingWidget = () => {
                       }}
                     />
                     <div>
-                      <h3 className="text-xl font-bold text-foreground">{bookingContent.steps.model.title}</h3>
+                      <h3 className="text-xl font-bold text-foreground">{bookingContent.labels?.model || 'Select Model'}</h3>
                       <p className="text-xs text-muted-foreground">{selectedBrand.name} models</p>
                     </div>
                   </div>
@@ -388,7 +388,7 @@ export const BookingWidget = () => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={bookingContent.steps.model.placeholder || 'Search model...'}
+                    placeholder={bookingContent.placeholders?.model || 'Search model...'}
                     className="flex-1 bg-transparent outline-none text-sm font-medium text-foreground placeholder-muted-foreground"
                   />
                   {searchQuery && (
@@ -460,8 +460,8 @@ export const BookingWidget = () => {
                     <ChevronLeft className="w-5 h-5 text-muted-foreground" />
                   </button>
                   <div>
-                    <h3 className="text-xl font-bold text-foreground">{bookingContent.steps.fuel.title}</h3>
-                    <p className="text-xs text-muted-foreground">{bookingContent.steps.fuel.subtitle}</p>
+                    <h3 className="text-xl font-bold text-foreground">{bookingContent.labels?.fuel || 'Select Fuel Type'}</h3>
+                    <p className="text-xs text-muted-foreground">Choose your fuel type</p>
                   </div>
                 </div>
 
@@ -532,10 +532,10 @@ export const BookingWidget = () => {
             <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <span className="font-semibold">{bookingContent.trustBadges.rating}</span> Rating
+                <span className="font-semibold">{bookingContent.trustFooter?.rating || '4.8/5'}</span> Rating
               </span>
               <span className="w-1 h-1 rounded-full bg-border" />
-              <span><span className="font-semibold">{bookingContent.trustBadges.services}</span> Services</span>
+              <span><span className="font-semibold">{bookingContent.trustFooter?.servicesCount || '50,000+'}</span> Services</span>
             </div>
           </div>
         )}

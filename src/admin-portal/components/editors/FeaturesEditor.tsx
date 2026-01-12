@@ -157,6 +157,17 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>Description</label>
+                  <textarea
+                    value={content.description || ''}
+                    onChange={(e) => handleUpdate('description', e.target.value)}
+                    placeholder="We've reimagined car service with technology, transparency, and trust."
+                    rows={2}
+                    className={inputClass}
+                  />
+                </div>
               </div>
             </motion.div>
           )}

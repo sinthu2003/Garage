@@ -154,6 +154,28 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>Description</label>
+                  <textarea
+                    value={content.description || ''}
+                    onChange={(e) => handleUpdate('description', e.target.value)}
+                    placeholder="We've simplified car maintenance so you can focus on what matters most."
+                    rows={2}
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>CTA Button Text</label>
+                  <input
+                    type="text"
+                    value={content.cta || ''}
+                    onChange={(e) => handleUpdate('cta', e.target.value)}
+                    placeholder="Book Your Service Now"
+                    className={inputClass}
+                  />
+                </div>
               </div>
             </motion.div>
           )}

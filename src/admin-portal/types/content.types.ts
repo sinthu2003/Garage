@@ -173,12 +173,20 @@ export interface BookingLabels {
   brand: string;
   model: string;
   fuel: string;
+  phone?: string;
   // Add missing fields accessed by BookingWidgetEditor
   car?: string;
   carPlaceholder?: string;
   mobile?: string;
   mobilePlaceholder?: string;
   countryCode?: string;
+}
+
+export interface BookingPlaceholders {
+  phone?: string;
+  brand?: string;
+  model?: string;
+  city?: string;
 }
 
 export interface BookingScreens {
@@ -217,6 +225,7 @@ export interface BookingWidgetContent {
   trustBadges: BookingTrustBadges;
   trustFooter?: BookingTrustFooter;
   labels?: BookingLabels;
+  placeholders?: BookingPlaceholders;
   screens?: BookingScreens;
   cities: string[];
   brands: CarBrand[];
