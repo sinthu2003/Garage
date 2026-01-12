@@ -7,7 +7,8 @@
   "global": {
     "brand": {
       "name": "Addax",
-      "tagline": "Automotive",
+      "title": "Automotive",
+      "tagline": "Drive with Confidence",
       "phone": "+91 98765 43210",
       "email": "support@addaxautomotive.in",
       "address": "Chennai, Tamil Nadu",
@@ -60,7 +61,8 @@
           "isRoute": false
         }
       ],
-      "ctaText": "Book Service"
+      "ctaText": "Book Service",
+      "ctaTextMobile": "Call Now"
     }
   },
   "hero": {
