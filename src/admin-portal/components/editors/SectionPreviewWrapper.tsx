@@ -97,6 +97,14 @@ const TermsPage = lazy(() =>
   import('../../../pages/TermsPage').then(m => ({ default: m.TermsPage }))
 );
 
+const WarrantyPolicyPage = lazy(() =>
+  import('../../../pages/WarrantyPolicyPage').then(m => ({ default: m.WarrantyPolicyPage }))
+);
+
+const BlogPage = lazy(() =>
+  import('../../../pages/BlogPage').then(m => ({ default: m.BlogPage }))
+);
+
 
 
 // ============================================================================
@@ -660,6 +668,21 @@ const sectionConfigs: Record<string, SectionPreviewConfig> = {
     wrapperClass: 'min-h-[800px]',
     backgroundColor: 'bg-white',
   },
+  warrantyPolicyPage: {
+    component: WarrantyPolicyPage,
+    wrapperClass: 'min-h-[800px]',
+    backgroundColor: 'bg-white',
+  },
+  blog: {
+    component: BlogPage,
+    wrapperClass: 'min-h-[800px]',
+    backgroundColor: 'bg-white',
+  },
+  blogPage: {
+    component: BlogPage,
+    wrapperClass: 'min-h-[800px]',
+    backgroundColor: 'bg-white',
+  },
 };
 
 // ============================================================================
@@ -900,6 +923,11 @@ const previewRoutes: Record<string, string> = {
   pages: '/',
   servicesPage: '/services',
   notFoundPage: '/404',
+  privacyPolicyPage: '/privacy-policy',
+  termsPage: '/terms-of-service',
+  warrantyPolicyPage: '/warranty-policy',
+  blog: '/blog',
+  blogPage: '/blog',
 };
 
 export const getPreviewUrl = (sectionId: string): string => {

@@ -21,6 +21,7 @@ export { GlobalSettingsEditor } from './GlobalSettingsEditor';
 export { BookingWidgetEditor } from './BookingWidgetEditor';
 export { PagesEditor } from './PagesEditor';
 export { PrivacyPolicyEditor } from './PrivacyPolicyEditor';
+export { BlogEditor } from './BlogEditor';
 
 // Export preview components
 export {
@@ -208,6 +209,16 @@ export const editorConfig = [
     previewRoute: '/privacy-policy',
     category: 'settings',
   },
+  {
+    id: 'blog',
+    label: 'Blog',
+    icon: 'BookOpen',
+    color: 'from-orange-400 to-pink-500',
+    component: 'BlogEditor',
+    description: 'Manage blog posts',
+    previewRoute: '/blog',
+    category: 'content',
+  },
 ] as const;
 
 // ============================================================================
@@ -215,7 +226,7 @@ export const editorConfig = [
 // ============================================================================
 
 // Type for editor IDs (includes dynamic page previews)
-export type EditorId = typeof editorConfig[number]['id'] | 'servicesPage' | 'notFoundPage' | 'faqSection' | 'contactPage' | 'privacyPolicyPage' | 'termsPage';
+export type EditorId = typeof editorConfig[number]['id'] | 'servicesPage' | 'notFoundPage' | 'faqSection' | 'contactPage' | 'privacyPolicyPage' | 'termsPage' | 'warrantyPolicyPage' | 'blogPage';
 
 // Type for editor config items
 export type EditorConfigItem = typeof editorConfig[number];
@@ -225,13 +236,13 @@ export type EditorCategory = 'content' | 'sections' | 'layout' | 'settings';
 
 // Type for page preview mapping
 // Type for page preview mapping
-export type PagePreviewId = 'servicesPage' | 'notFoundPage' | 'contactPage' | 'privacyPolicyPage' | 'termsPage';
+export type PagePreviewId = 'servicesPage' | 'notFoundPage' | 'contactPage' | 'privacyPolicyPage' | 'termsPage' | 'warrantyPolicyPage' | 'blogPage';
 
 // Type for FAQ editor page
 export type FAQEditorPage = 'faqSection' | 'contactPage';
 
 // Type for Legal editor page
-export type LegalEditorPage = 'privacyPolicy' | 'termsOfService';
+export type LegalEditorPage = 'privacyPolicy' | 'termsOfService' | 'warrantyPolicy';
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -255,6 +266,7 @@ export const getEditorPreviewRoute = (id: EditorId): string => {
   if (id === 'contactPage') return '/contact';
   if (id === 'privacyPolicyPage') return '/privacy-policy';
   if (id === 'termsPage') return '/terms-of-service';
+  if (id === 'warrantyPolicyPage') return '/warranty-policy';
 
   const config = getEditorConfig(id);
   return config?.previewRoute || '/';
@@ -264,7 +276,7 @@ export const getEditorPreviewRoute = (id: EditorId): string => {
  * Get editors grouped by category
  */
 export const editorCategories: Record<EditorCategory, readonly string[]> = {
-  content: ['hero', 'services', 'serviceDetail', 'pricing', 'testimonials', 'faq'],
+  content: ['hero', 'services', 'serviceDetail', 'pricing', 'testimonials', 'faq', 'blog'],
   sections: ['features', 'howItWorks', 'partners', 'gallery', 'beforeAfter'],
   layout: ['navbar', 'footer'],
   settings: ['global', 'bookingWidget', 'pages', 'legal'],
@@ -317,14 +329,18 @@ export const getFAQPreviewId = (selectedPage: FAQEditorPage): string => {
  * Get the preview section ID for the Legal editor based on selected tab
  */
 export const getLegalPreviewId = (selectedPage: LegalEditorPage): PagePreviewId => {
-  return selectedPage === 'privacyPolicy' ? 'privacyPolicyPage' : 'termsPage';
+  return selectedPage === 'privacyPolicy'
+    ? 'privacyPolicyPage'
+    : selectedPage === 'termsOfService'
+      ? 'termsPage'
+      : 'warrantyPolicyPage';
 };
 
 /**
  * Check if an editor ID is a dynamic page preview
  */
 export const isDynamicPagePreview = (id: EditorId): boolean => {
-  return id === 'servicesPage' || id === 'notFoundPage' || id === 'faqSection' || id === 'contactPage' || id === 'privacyPolicyPage' || id === 'termsPage';
+  return id === 'servicesPage' || id === 'notFoundPage' || id === 'faqSection' || id === 'contactPage' || id === 'privacyPolicyPage' || id === 'termsPage' || id === 'warrantyPolicyPage' || id === 'blogPage';
 };
 
 /**

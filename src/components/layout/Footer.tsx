@@ -35,7 +35,7 @@ const defaultFooterLinks = {
   company: [
     { name: 'About Us', href: '#' },
     { name: 'Careers', href: '#' },
-    { name: 'Blog', href: '#' },
+    { name: 'Blog', href: '/blog' },
     { name: 'Press', href: '#' },
     { name: 'Partners', href: '#' },
   ],
@@ -43,9 +43,9 @@ const defaultFooterLinks = {
     { name: 'Help Center', href: '#' },
     { name: 'Contact Us', href: '#' },
     { name: 'FAQs', href: '#faq' },
-    { name: 'Warranty Policy', href: '#' },
-    { name: 'Privacy Policy', href: '/privacy-policy' },
     { name: 'Terms of Service', href: '/terms-of-service' },
+    { name: 'Privacy Policy', href: '/privacy-policy' },
+    { name: 'Warranty Policy', href: '/warranty-policy' },
   ],
   cities: ['Coimbatore', 'Chennai', 'Bangalore', 'Hyderabad', 'Mumbai', 'Delhi', 'Pune', 'Kolkata']
 };

@@ -679,11 +679,37 @@ export interface TermsPageContent {
   sections?: PrivacyPolicySection[]; // Reusing the section type as structure is identical
 }
 
+export interface WarrantyPolicyPageContent {
+  title?: string;
+  description?: string;
+  lastUpdated?: string;
+  sections?: PrivacyPolicySection[];
+}
+
+export interface BlogPost {
+  id: string | number;
+  title: string;
+  excerpt: string;
+  date: string;
+  author: string;
+  category: string;
+  image: string;
+  content: string;
+}
+
+export interface BlogPageContent {
+  title: string;
+  subtitle: string;
+  posts: BlogPost[];
+}
+
 export interface PagesContent {
   services?: ServicesPageContent;
   notFound?: NotFoundPageContent;
   privacyPolicy?: PrivacyPolicyPageContent;
   termsOfService?: TermsPageContent;
+  warrantyPolicy?: WarrantyPolicyPageContent;
+  blog?: BlogPageContent;
 }
 
 // ============================================

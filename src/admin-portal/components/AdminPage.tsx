@@ -64,6 +64,7 @@ import {
   BookingWidgetEditor,
   PagesEditor,
   PrivacyPolicyEditor,
+  BlogEditor,
 } from './editors';
 
 // Icon mapping
@@ -104,6 +105,7 @@ const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageCha
   BookingWidgetEditor,
   PagesEditor,
   PrivacyPolicyEditor,
+  BlogEditor,
 };
 
 /**
@@ -155,7 +157,8 @@ export const AdminPage: React.FC = () => {
   const [faqPreviewId, setFaqPreviewId] = useState<'faqSection' | 'contactPage'>('faqSection');
 
   // NEW: Legal preview state - tracks which legal tab is selected
-  const [legalPreviewId, setLegalPreviewId] = useState<'privacyPolicyPage' | 'termsPage'>('privacyPolicyPage');
+  // NEW: Legal preview state - tracks which legal tab is selected
+  const [legalPreviewId, setLegalPreviewId] = useState<'privacyPolicyPage' | 'termsPage' | 'warrantyPolicyPage'>('privacyPolicyPage');
 
   // ServiceDetail editing index state - tracks which service is being edited
   const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null);
@@ -179,8 +182,8 @@ export const AdminPage: React.FC = () => {
   }, []);
 
   // NEW: Handler for Legal tab change
-  const handleLegalTabChange = useCallback((tab: 'privacyPolicy' | 'termsOfService') => {
-    setLegalPreviewId(tab === 'privacyPolicy' ? 'privacyPolicyPage' : 'termsPage');
+  const handleLegalTabChange = useCallback((tab: 'privacyPolicy' | 'termsOfService' | 'warrantyPolicy') => {
+    setLegalPreviewId(tab === 'privacyPolicy' ? 'privacyPolicyPage' : tab === 'termsOfService' ? 'termsPage' : 'warrantyPolicyPage');
   }, []);
 
   // Handler for service editing index change

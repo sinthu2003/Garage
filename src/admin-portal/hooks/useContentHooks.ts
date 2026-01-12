@@ -18,6 +18,8 @@ import type {
   SiteContent,
   PrivacyPolicyPageContent,
   TermsPageContent,
+  WarrantyPolicyPageContent,
+  BlogPageContent
 } from '../types/content.types';
 
 /**
@@ -146,6 +148,19 @@ export const usePrivacyPolicyContent = (): PrivacyPolicyPageContent => {
 export const useTermsContent = (): TermsPageContent => {
   const { content } = useContent();
   return useMemo(() => content.pages?.termsOfService || ({} as TermsPageContent), [content.pages]);
+};
+
+/**
+ * Hook to access Warranty Policy content
+ */
+export const useWarrantyPolicyContent = (): WarrantyPolicyPageContent => {
+  const { content } = useContent();
+  return useMemo(() => content.pages?.warrantyPolicy || ({} as WarrantyPolicyPageContent), [content.pages]);
+};
+
+export const useBlogContent = (): BlogPageContent => {
+  const { content } = useContent();
+  return useMemo(() => content.pages?.blog || ({} as BlogPageContent), [content.pages]);
 };
 
 /**

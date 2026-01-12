@@ -11,28 +11,32 @@ import {
     Type,
     AlignLeft,
     Calendar,
-    BookOpen
+    BookOpen,
+    ShieldCheck,
 } from 'lucide-react';
-import { usePrivacyPolicyContent, useTermsContent } from '../../hooks/useContentHooks';
+import { usePrivacyPolicyContent, useTermsContent, useWarrantyPolicyContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import type { PrivacyPolicySection } from '../../types/content.types';
 
 interface PrivacyPolicyEditorProps {
     isDarkMode?: boolean;
-    onPageChange?: (page: 'privacyPolicy' | 'termsOfService') => void;
+    onPageChange?: (page: 'privacyPolicy' | 'termsOfService' | 'warrantyPolicy') => void;
 }
 
 export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPageChange }) => {
     const { updateField } = useContent();
     const privacyContent = usePrivacyPolicyContent();
     const termsContent = useTermsContent();
+    const warrantyContent = useWarrantyPolicyContent();
 
     // Tab state: 'privacyPolicy' | 'termsOfService'
-    const [activeTab, setActiveTab] = useState<'privacyPolicy' | 'termsOfService'>('privacyPolicy');
+    const [activeTab, setActiveTab] = useState<'privacyPolicy' | 'termsOfService' | 'warrantyPolicy'>('privacyPolicy');
 
     // Derived content based on active tab
-    const content = activeTab === 'privacyPolicy' ? privacyContent : termsContent;
-    const contentPathPrefix = activeTab === 'privacyPolicy' ? 'privacyPolicy' : 'termsOfService';
+    const content = activeTab === 'privacyPolicy' ? privacyContent :
+        activeTab === 'termsOfService' ? termsContent : warrantyContent;
+    const contentPathPrefix = activeTab === 'privacyPolicy' ? 'privacyPolicy' :
+        activeTab === 'termsOfService' ? 'termsOfService' : 'warrantyPolicy';
 
     const [expandedSections, setExpandedSections] = useState<Set<string>>(
         new Set(['header', 'sections'])
@@ -80,7 +84,7 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
         setExpandedItems(new Set([...expandedItems, currentSections.length]));
     };
 
-    const handleTabChange = (tab: 'privacyPolicy' | 'termsOfService') => {
+    const handleTabChange = (tab: 'privacyPolicy' | 'termsOfService' | 'warrantyPolicy') => {
         setActiveTab(tab);
         // Reset expanded states or keep them? Resetting feels cleaner for context switch
         setExpandedItems(new Set([0]));
@@ -115,6 +119,16 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                     <BookOpen className="w-4 h-4" />
                     Terms of Service
                 </button>
+                <button
+                    onClick={() => handleTabChange('warrantyPolicy')}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'warrantyPolicy'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                        }`}
+                >
+                    <ShieldCheck className="w-4 h-4" />
+                    Warranty Policy
+                </button>
             </div>
 
             <AnimatePresence mode="wait">
@@ -135,7 +149,8 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                 </motion.div>
                                 <Type className="w-5 h-5 text-primary" />
                                 <span className="font-medium text-foreground">
-                                    {activeTab === 'privacyPolicy' ? 'Privacy Policy Header' : 'Terms Page Header'}
+                                    {activeTab === 'privacyPolicy' ? 'Privacy Policy Header' :
+                                        activeTab === 'termsOfService' ? 'Terms Page Header' : 'Warranty Page Header'}
                                 </span>
                             </div>
                         </button>
@@ -157,7 +172,10 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                                     type="text"
                                                     value={content.title || ''}
                                                     onChange={(e) => handleUpdate('title', e.target.value)}
-                                                    placeholder={activeTab === 'privacyPolicy' ? "Privacy Policy" : "Terms of Service"}
+                                                    placeholder={
+                                                        activeTab === 'privacyPolicy' ? "Privacy Policy" :
+                                                            activeTab === 'termsOfService' ? "Terms of Service" : "Warranty Policy"
+                                                    }
                                                     className={`${inputClass} pl-10`}
                                                 />
                                             </div>
