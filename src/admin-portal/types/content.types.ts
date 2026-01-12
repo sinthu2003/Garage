@@ -658,9 +658,31 @@ export interface NotFoundPageContent {
   quickLinks?: NotFoundQuickLink[];
 }
 
+export interface PrivacyPolicySection {
+  title: string;
+  content: string;
+}
+
+export interface PrivacyPolicyPageContent {
+  title?: string;
+  description?: string;
+  content?: string; // Keeping for backward compatibility if needed, but sections is preferred
+  lastUpdated?: string;
+  sections?: PrivacyPolicySection[];
+}
+
+export interface TermsPageContent {
+  title?: string;
+  description?: string;
+  lastUpdated?: string;
+  sections?: PrivacyPolicySection[]; // Reusing the section type as structure is identical
+}
+
 export interface PagesContent {
   services?: ServicesPageContent;
   notFound?: NotFoundPageContent;
+  privacyPolicy?: PrivacyPolicyPageContent;
+  termsOfService?: TermsPageContent;
 }
 
 // ============================================

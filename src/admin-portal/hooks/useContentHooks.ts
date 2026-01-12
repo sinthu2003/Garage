@@ -16,6 +16,8 @@ import type {
   FooterContent,
   PagesContent,
   SiteContent,
+  PrivacyPolicyPageContent,
+  TermsPageContent,
 } from '../types/content.types';
 
 /**
@@ -128,6 +130,22 @@ export const useFooterContent = (): FooterContent => {
 export const usePagesContent = (): PagesContent => {
   const { content } = useContent();
   return useMemo(() => content.pages || ({} as PagesContent), [content.pages]);
+};
+
+/**
+ * Hook to access Privacy Policy content
+ */
+export const usePrivacyPolicyContent = (): PrivacyPolicyPageContent => {
+  const { content } = useContent();
+  return useMemo(() => content.pages?.privacyPolicy || ({} as PrivacyPolicyPageContent), [content.pages]);
+};
+
+/**
+ * Hook to access Terms content
+ */
+export const useTermsContent = (): TermsPageContent => {
+  const { content } = useContent();
+  return useMemo(() => content.pages?.termsOfService || ({} as TermsPageContent), [content.pages]);
 };
 
 /**

@@ -1,16 +1,16 @@
 import React, { Suspense, lazy, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Loader2, 
-  AlertCircle, 
-  Monitor, 
-  Tablet, 
-  Smartphone, 
-  RefreshCw, 
-  ExternalLink, 
-  Copy, 
-  CheckCircle, 
-  Maximize2, 
+import {
+  Loader2,
+  AlertCircle,
+  Monitor,
+  Tablet,
+  Smartphone,
+  RefreshCw,
+  ExternalLink,
+  Copy,
+  CheckCircle,
+  Maximize2,
   Eye,
   Globe,
   Settings,
@@ -23,70 +23,78 @@ import { useContent } from '../../context/ContentContext';
 // Path: from src/admin-portal/components/editors/ to src/components/home/
 // ============================================================================
 
-const Hero = lazy(() => 
+const Hero = lazy(() =>
   import('../../../components/home/Hero').then(m => ({ default: m.Hero }))
 );
 
-const ServiceGrid = lazy(() => 
+const ServiceGrid = lazy(() =>
   import('../../../components/home/ServiceGrid').then(m => ({ default: m.ServiceGrid }))
 );
 
-const PricingTable = lazy(() => 
+const PricingTable = lazy(() =>
   import('../../../components/home/PricingTable').then(m => ({ default: m.PricingTable }))
 );
 
-const Testimonials = lazy(() => 
+const Testimonials = lazy(() =>
   import('../../../components/home/Testimonials').then(m => ({ default: m.Testimonials }))
 );
 
-const FAQSection = lazy(() => 
+const FAQSection = lazy(() =>
   import('../../../components/home/FAQSection').then(m => ({ default: m.FAQSection }))
 );
 
-const Features = lazy(() => 
+const Features = lazy(() =>
   import('../../../components/home/Features').then(m => ({ default: m.Features }))
 );
 
-const HowItWorks = lazy(() => 
+const HowItWorks = lazy(() =>
   import('../../../components/home/Howitworks').then(m => ({ default: m.HowItWorks }))
 );
 
-const PartnersSection = lazy(() => 
+const PartnersSection = lazy(() =>
   import('../../../components/home/PartnersSection').then(m => ({ default: m.PartnersSection }))
 );
 
-const GallerySection = lazy(() => 
+const GallerySection = lazy(() =>
   import('../../../components/home/Gallerysection').then(m => ({ default: m.GallerySection }))
 );
 
-const BeforeAfterSection = lazy(() => 
+const BeforeAfterSection = lazy(() =>
   import('../../../components/home/Beforeaftersection').then(m => ({ default: m.BeforeAfterSection }))
 );
 
-const BookingWidget = lazy(() => 
+const BookingWidget = lazy(() =>
   import('../../../components/home/BookingWidget').then(m => ({ default: m.BookingWidget }))
 );
 
 // Layout components
-const Navbar = lazy(() => 
+const Navbar = lazy(() =>
   import('../../../components/layout/Navbar').then(m => ({ default: m.Navbar }))
 );
 
-const Footer = lazy(() => 
+const Footer = lazy(() =>
   import('../../../components/layout/Footer').then(m => ({ default: m.Footer }))
 );
 
 // Pages
-const ServicesPage = lazy(() => 
+const ServicesPage = lazy(() =>
   import('../../../pages/Servicespage').then(m => ({ default: m.ServicesPage }))
 );
 
-const NotFoundPage = lazy(() => 
+const NotFoundPage = lazy(() =>
   import('../../../pages/NotFoundPage').then(m => ({ default: m.NotFoundPage }))
 );
 
-const ContactUsPage = lazy(() => 
+const ContactUsPage = lazy(() =>
   import('../../../pages/ContactUsPage').then(m => ({ default: m.ContactUsPage }))
+);
+
+const PrivacyPolicyPage = lazy(() =>
+  import('../../../pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage }))
+);
+
+const TermsPage = lazy(() =>
+  import('../../../pages/TermsPage').then(m => ({ default: m.TermsPage }))
 );
 
 
@@ -96,27 +104,27 @@ const ContactUsPage = lazy(() =>
 // ============================================================================
 
 export const devicePresets = {
-  desktop: { 
-    width: '100%', 
-    height: '100%', 
-    scale: 1, 
-    icon: Monitor, 
+  desktop: {
+    width: '100%',
+    height: '100%',
+    scale: 1,
+    icon: Monitor,
     label: 'Desktop',
     containerClass: 'w-full'
   },
-  tablet: { 
-    width: '768px', 
-    height: '1024px', 
-    scale: 0.75, 
-    icon: Tablet, 
+  tablet: {
+    width: '768px',
+    height: '1024px',
+    scale: 0.75,
+    icon: Tablet,
     label: 'Tablet',
     containerClass: 'max-w-[768px] mx-auto'
   },
-  mobile: { 
-    width: '375px', 
-    height: '812px', 
-    scale: 0.65, 
-    icon: Smartphone, 
+  mobile: {
+    width: '375px',
+    height: '812px',
+    scale: 0.65,
+    icon: Smartphone,
     label: 'Mobile',
     containerClass: 'max-w-[375px] mx-auto'
   },
@@ -169,14 +177,14 @@ interface PlaceholderPreviewProps {
   tips?: string[];
 }
 
-const PlaceholderPreview: React.FC<PlaceholderPreviewProps> = ({ 
-  title, 
-  description, 
+const PlaceholderPreview: React.FC<PlaceholderPreviewProps> = ({
+  title,
+  description,
   icon: Icon = Eye,
   tips = []
 }) => (
   <div className="flex flex-col items-center justify-center h-full min-h-[500px] gap-6 p-8 bg-gradient-to-br from-gray-50 to-gray-100">
-    <motion.div 
+    <motion.div
       className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shadow-lg"
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
@@ -184,9 +192,9 @@ const PlaceholderPreview: React.FC<PlaceholderPreviewProps> = ({
     >
       <Icon className="w-12 h-12 text-primary" />
     </motion.div>
-    
+
     <div className="text-center max-w-md">
-      <motion.h3 
+      <motion.h3
         className="font-bold text-2xl text-gray-900 mb-3"
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -194,7 +202,7 @@ const PlaceholderPreview: React.FC<PlaceholderPreviewProps> = ({
       >
         {title}
       </motion.h3>
-      <motion.p 
+      <motion.p
         className="text-gray-500 leading-relaxed"
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -205,7 +213,7 @@ const PlaceholderPreview: React.FC<PlaceholderPreviewProps> = ({
     </div>
 
     {tips.length > 0 && (
-      <motion.div 
+      <motion.div
         className="mt-4 p-4 rounded-xl bg-white border border-gray-200 shadow-sm max-w-sm"
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -223,7 +231,7 @@ const PlaceholderPreview: React.FC<PlaceholderPreviewProps> = ({
       </motion.div>
     )}
 
-    <motion.div 
+    <motion.div
       className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium"
       initial={{ y: 10, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -247,7 +255,7 @@ interface ServiceDetailPreviewProps {
 const ServiceDetailPreviewWrapper: React.FC<ServiceDetailPreviewProps> = ({ editingServiceIndex }) => {
   // This component wraps ServiceDetailPage and injects the correct service data
   // based on editingServiceIndex
-  
+
   if (editingServiceIndex === null) {
     // Show placeholder when viewing the list (no service selected)
     return (
@@ -316,8 +324,8 @@ const ServiceDetailPreviewContent: React.FC<{ editingIndex: number }> = ({ editi
           <div>
             <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4 aspect-[4/3] bg-gray-200">
               {service.image || (service.gallery && service.gallery[0]) ? (
-                <img 
-                  src={service.image || service.gallery?.[0] || ''} 
+                <img
+                  src={service.image || service.gallery?.[0] || ''}
                   alt={service.title}
                   className="w-full h-full object-cover"
                 />
@@ -331,7 +339,7 @@ const ServiceDetailPreviewContent: React.FC<{ editingIndex: number }> = ({ editi
                   </div>
                 </div>
               )}
-              
+
               {/* Badges */}
               <div className="absolute top-4 left-4 flex flex-wrap gap-2">
                 <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md text-white text-xs rounded-full flex items-center gap-1.5">
@@ -353,7 +361,7 @@ const ServiceDetailPreviewContent: React.FC<{ editingIndex: number }> = ({ editi
             {service.gallery && service.gallery.length > 1 && (
               <div className="flex gap-3 overflow-x-auto pb-2">
                 {service.gallery.slice(0, 4).map((img: string, idx: number) => (
-                  <div 
+                  <div
                     key={idx}
                     className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden ${idx === 0 ? 'ring-2 ring-primary' : 'opacity-60'}`}
                   >
@@ -642,6 +650,16 @@ const sectionConfigs: Record<string, SectionPreviewConfig> = {
     wrapperClass: 'min-h-[600px]',
     backgroundColor: 'bg-gray-900',
   },
+  privacyPolicyPage: {
+    component: PrivacyPolicyPage,
+    wrapperClass: 'min-h-[800px]',
+    backgroundColor: 'bg-white',
+  },
+  termsPage: {
+    component: TermsPage,
+    wrapperClass: 'min-h-[800px]',
+    backgroundColor: 'bg-white',
+  },
 };
 
 // ============================================================================
@@ -693,14 +711,14 @@ export const SectionPreviewWrapper: React.FC<SectionPreviewWrapperProps> = ({
 
     if (config.component) {
       const SectionComponent = config.component;
-      
+
       // For components with position:fixed (like Navbar), wrap in a container that isolates the fixed positioning
       if (config.containFixed) {
         return (
           <Suspense fallback={<LoadingSpinner message={`Loading ${sectionId} preview...`} />}>
-            <div 
+            <div
               className={`${config.wrapperClass} ${config.backgroundColor || 'bg-white'}`}
-              style={{ 
+              style={{
                 position: 'relative',
                 transform: 'translateZ(0)', // Creates new stacking context
                 isolation: 'isolate',
@@ -714,7 +732,7 @@ export const SectionPreviewWrapper: React.FC<SectionPreviewWrapperProps> = ({
           </Suspense>
         );
       }
-      
+
       return (
         <Suspense fallback={<LoadingSpinner message={`Loading ${sectionId} preview...`} />}>
           <div className={`${config.wrapperClass} ${config.backgroundColor || 'bg-white'}`}>
@@ -795,11 +813,10 @@ export const PreviewPanelHeader: React.FC<PreviewPanelHeaderProps> = ({
               <button
                 key={d}
                 onClick={() => onDeviceChange(d)}
-                className={`p-1.5 rounded-md transition-all ${
-                  device === d
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : themeClass('hover:bg-secondary text-muted-foreground', 'hover:bg-secondary text-muted-foreground')
-                }`}
+                className={`p-1.5 rounded-md transition-all ${device === d
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : themeClass('hover:bg-secondary text-muted-foreground', 'hover:bg-secondary text-muted-foreground')
+                  }`}
                 title={devicePresets[d].label}
               >
                 <DeviceIcon className="w-4 h-4" />
