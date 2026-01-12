@@ -362,7 +362,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
                   const newItems = [...(content.items || [])];
                   newItems[index] = {
                     ...newItems[index],
-                    features: [...(newItems[index].features || []), '']
+                    features: ['', ...(newItems[index].features || [])]
                   };
                   handleUpdate('items', newItems);
                 }}
@@ -416,7 +416,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
                   const newItems = [...(content.items || [])];
                   newItems[index] = {
                     ...newItems[index],
-                    includes: [...(newItems[index].includes || []), '']
+                    includes: ['', ...(newItems[index].includes || [])]
                   };
                   handleUpdate('items', newItems);
                 }}
@@ -470,7 +470,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
                   const newItems = [...(content.items || [])];
                   newItems[index] = {
                     ...newItems[index],
-                    process: [...(newItems[index].process || []), { title: '', description: '' }]
+                    process: [{ title: '', description: '' }, ...(newItems[index].process || [])]
                   };
                   handleUpdate('items', newItems);
                 }}
@@ -538,7 +538,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
                   const newItems = [...(content.items || [])];
                   newItems[index] = {
                     ...newItems[index],
-                    faqs: [...(newItems[index].faqs || []), { question: '', answer: '' }]
+                    faqs: [{ question: '', answer: '' }, ...(newItems[index].faqs || [])]
                   };
                   handleUpdate('items', newItems);
                 }}
@@ -607,7 +607,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
                   const newItems = [...(content.items || [])];
                   newItems[index] = {
                     ...newItems[index],
-                    gallery: [...(newItems[index].gallery || []), '']
+                    gallery: ['', ...(newItems[index].gallery || [])]
                   };
                   handleUpdate('items', newItems);
                 }}

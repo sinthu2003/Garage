@@ -623,7 +623,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
-              src={previewImage.startsWith('http') || previewImage.startsWith('data:') ? previewImage : `/assets/${previewImage}`}
+              src={previewImage.startsWith('http') || previewImage.startsWith('data:') ? previewImage : `${previewImage}`}
               alt="Preview"
               className="max-w-full max-h-full rounded-xl"
             />

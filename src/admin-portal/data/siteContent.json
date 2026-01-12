@@ -10,7 +10,7 @@
       "tagline": "Automotive",
       "phone": "+91 98765 43210",
       "email": "support@addaxautomotive.in",
-      "address": "Coimbatore, Tamil Nadu",
+      "address": "Chennai, Tamil Nadu",
       "workingHours": "Mon-Sun: 8AM - 8PM",
       "logo": "../assets/Logo.jpg",
       "logoUrl": "../assets/Logo.jpg"
@@ -24,7 +24,7 @@
     "seo": {
       "title": "Addax Automotive - Premium Car Service at Your Doorstep",
       "description": "India's leading car service network offering quality repairs, maintenance & detailing at transparent prices with doorstep convenience. Save up to 40%!",
-      "keywords": "car service, car repair, doorstep service, car maintenance, Coimbatore",
+      "keywords": "car service, car repair, doorstep service, car maintenance, Chennai",
       "ogTitle": "Addax Automotive - Premium Car Service",
       "ogDescription": "Save up to 40% on car service with doorstep convenience",
       "ogImage": "../assets/Logo.jpg",
@@ -2453,7 +2453,7 @@
         "id": 1,
         "name": "Rajesh Kumar",
         "role": "Business Owner",
-        "location": "Coimbatore",
+        "location": "Chennai",
         "carModel": "Hyundai Creta",
         "service": "Denting & Painting",
         "rating": 5,
@@ -3107,7 +3107,7 @@
     {
       "id": "1",
       "name": "AutoFix Premium Garage",
-      "address": "123, Avinashi Road, Peelamedu, Coimbatore",
+      "address": "123, Avinashi Road, Peelamedu, Chennai",
       "rating": 4.8,
       "amenities": [
         "AC Waiting Room",
@@ -3118,7 +3118,7 @@
     {
       "id": "2",
       "name": "CarCare Experts",
-      "address": "45, Trichy Road, Ramanathapuram, Coimbatore",
+      "address": "45, Trichy Road, Ramanathapuram, Chennai",
       "rating": 4.5,
       "amenities": [
         "Pick & Drop",
@@ -3128,7 +3128,7 @@
     {
       "id": "3",
       "name": "Mechanic Pro Hub",
-      "address": "88, Mettupalayam Road, RS Puram, Coimbatore",
+      "address": "88, Mettupalayam Road, RS Puram, Chennai",
       "rating": 4.9,
       "amenities": [
         "Certified Mechanics",

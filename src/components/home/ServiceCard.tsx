@@ -16,6 +16,7 @@ interface Service {
   category?: string;
   duration?: string;
   warranty?: string;
+  gallery?: string[]; // 👈 Add this optional property
 }
 
 interface ServiceCardProps {
