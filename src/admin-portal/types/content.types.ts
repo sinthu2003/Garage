@@ -19,6 +19,7 @@ export interface MetaContent {
 // ============================================
 export interface BrandContent {
   name: string;
+  title: string;
   tagline: string;
   phone: string;
   email: string;

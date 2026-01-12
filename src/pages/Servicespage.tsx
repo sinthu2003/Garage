@@ -1,11 +1,11 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  ArrowRight, 
-  Check, 
-  Clock, 
-  Shield, 
+import {
+  Search,
+  ArrowRight,
+  Check,
+  Clock,
+  Shield,
   Wrench,
   Sparkles,
   Settings,
@@ -95,32 +95,32 @@ export const ServicesPage = () => {
           </div>
 
           {/* Title & Search Row */}
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 lg:gap-8">
-            <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight mb-2">
+          <div className="flex flex-col items-center text-center gap-6 sm:gap-8">
+            <div className="max-w-3xl mx-auto">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-4">
                 {pagesContent?.title || 'Our Services'}
               </h1>
-              <p className="text-muted-foreground text-sm sm:text-base max-w-md">
+              <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
                 {pagesContent?.description || 'Professional car care services at transparent prices'}
               </p>
             </div>
 
-            {/* Search Bar */}
-            <div className="relative w-full lg:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input 
+            {/* Search Bar - Centered */}
+            <div className="relative w-full max-w-md mx-auto">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
                 type="text"
                 placeholder={pagesContent?.searchPlaceholder || 'Search services...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-10 py-2.5 bg-background border border-border rounded-full text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full pl-12 pr-12 py-3.5 bg-background border border-border rounded-full text-base text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all shadow-sm hover:shadow-md"
               />
               {searchQuery && (
-                <button 
+                <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-secondary rounded-full transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-secondary rounded-full transition-colors"
                 >
-                  <X className="w-3 h-3 text-muted-foreground" />
+                  <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               )}
             </div>
@@ -139,18 +139,17 @@ export const ServicesPage = () => {
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                    isActive
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${isActive
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200'
-                  }`}
+                    }`}
                 >
                   <IconComponent className="w-4 h-4" />
                   {cat.label}
                 </button>
               );
             })}
-            
+
             {/* Results count */}
             <span className="ml-auto text-sm text-muted-foreground whitespace-nowrap pl-4">
               {filteredServices.length} services
@@ -168,7 +167,7 @@ export const ServicesPage = () => {
               {filteredServices.map((service, index) => {
                 // Use image from siteContent.json (already resolved by ContentContext)
                 const imageUrl = service.image || '';
-                
+
                 return (
                   <motion.div
                     key={service.id}
@@ -182,7 +181,7 @@ export const ServicesPage = () => {
                   >
                     {/* Image */}
                     <div className="relative h-48 sm:h-56 overflow-hidden">
-                      <motion.img 
+                      <motion.img
                         src={imageUrl}
                         alt={service.title}
                         className="w-full h-full object-cover"
@@ -190,7 +189,7 @@ export const ServicesPage = () => {
                         transition={{ duration: 0.4 }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                      
+
                       {/* Badges */}
                       <div className="absolute top-4 left-4 flex gap-2">
                         <span className="px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full flex items-center gap-1.5">
@@ -265,7 +264,7 @@ export const ServicesPage = () => {
                       </div>
                     </div>
 
-                   
+
                   </motion.div>
                 );
               })}
@@ -274,7 +273,7 @@ export const ServicesPage = () => {
 
           {/* No Results */}
           {filteredServices.length === 0 && (
-            <motion.div 
+            <motion.div
               className="text-center py-16"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -284,7 +283,7 @@ export const ServicesPage = () => {
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2">No services found</h3>
               <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
-              <button 
+              <button
                 onClick={() => { setSearchQuery(''); setActiveCategory('all'); }}
                 className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium"
               >
@@ -319,7 +318,7 @@ export const ServicesPage = () => {
                 {pagesContent?.cta?.primaryButton || pagesContent?.cta?.primaryCta || pagesContent?.ctaSection?.primaryCta || 'Get Free Quote'}
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
-              
+
               {/* Secondary CTA Button - Now using CMS content */}
               <motion.a
                 href={`tel:${pagesContent?.cta?.phone || globalContent.brand.phone}`}

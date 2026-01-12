@@ -159,8 +159,8 @@ export const GallerySection = () => {
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-sm font-semibold transition-all ${activeCategory === cat.id
-                  ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/30'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-primary/30 hover:text-primary'
+                ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/30'
+                : 'bg-white text-gray-600 border border-gray-200 hover:border-primary/30 hover:text-primary'
                 }`}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={isHeaderInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
@@ -250,11 +250,11 @@ export const GallerySection = () => {
         >
           {stats.map((stat, idx) => {
             const IconComponent = iconMap[stat.icon] || Sparkles;
-            
+
             return (
               <motion.div
                 key={idx}
-                className="text-center p-4 sm:p-6 bg-white rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-lg transition-all"
+                className="text-center p-4 sm:p-6 bg-white rounded-2xl border border-border hover:border-primary/20 hover:shadow-lg transition-all"
                 initial={{ opacity: 0, y: 20, scale: 0.9 }}
                 animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 20, scale: 0.9 }}
                 transition={{ delay: 0.9 + idx * 0.1, type: "spring" }}

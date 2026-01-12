@@ -18,7 +18,7 @@ export const ServiceGrid = () => {
 
   // Show only first 8 services on homepage
   const displayedServices = servicesContent.items.slice(0, 8);
-  const hasMoreServices = servicesContent.items.length > 8;
+  // const hasMoreServices = servicesContent.items.length > 8;
 
   const handleViewAll = () => {
     navigate('/services');
@@ -29,13 +29,13 @@ export const ServiceGrid = () => {
       {/* Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Gradient Orb */}
-        <div 
+        <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-40 bg-primary/5"
           style={{ filter: 'blur(100px)' }}
         />
-        
+
         {/* Dot Pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-40"
           style={{
             backgroundImage: 'radial-gradient(circle, hsl(var(--primary) / 0.15) 1px, transparent 1px)',
@@ -59,69 +59,53 @@ export const ServiceGrid = () => {
           <Car className="w-10 h-10" />
         </motion.div>
       </div>
-      
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
-        {/* Section Header */}
-        <motion.div 
+        {/* Section Header - Centered */}
+        <motion.div
           ref={headerRef}
-          className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 lg:mb-16"
+          className="text-center max-w-3xl mx-auto mb-12 lg:mb-16"
         >
-          <div className="max-w-xl">
-            {/* Badge */}
-            <motion.span 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-4"
-              initial={{ opacity: 0, x: -20 }}
-              animate={isHeaderInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-              transition={{ duration: 0.4 }}
-            >
-              <Settings className="w-4 h-4" />
-              {servicesContent.badge}
-            </motion.span>
-
-            {/* Title */}
-            <motion.h2 
-              className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              {servicesContent.headline.line1}
-              <br />
-              <span className="text-primary">
-                {servicesContent.headline.highlight}
-              </span>
-            </motion.h2>
-
-            <motion.p 
-              className="text-base lg:text-lg text-muted-foreground leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
-              animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              {servicesContent.description}
-            </motion.p>
-          </div>
-          
-          {/* View All Button - Desktop */}
-          <motion.button 
-            onClick={handleViewAll}
-            className="hidden md:flex items-center gap-2 px-6 py-3 bg-foreground text-background rounded-full text-sm font-semibold hover:opacity-90 transition-all group"
-            initial={{ opacity: 0, x: 20 }}
-            animate={isHeaderInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+          {/* Badge */}
+          <motion.span
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
           >
-            {servicesContent.viewAllCta}
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </motion.button>
+            <Settings className="w-4 h-4" />
+            {servicesContent.badge}
+          </motion.span>
+
+          {/* Title */}
+          <motion.h2
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            {servicesContent.headline.line1}
+            <br />
+            <span className="text-primary">
+              {servicesContent.headline.highlight}
+            </span>
+          </motion.h2>
+
+          <motion.p
+            className="text-base lg:text-lg text-muted-foreground leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            {servicesContent.description}
+          </motion.p>
         </motion.div>
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
           {displayedServices.map((service, index) => (
-            <ServiceCard 
-              key={service.id} 
+            <ServiceCard
+              key={service.id}
               service={{
                 id: String(service.id),
                 title: service.title,
@@ -135,31 +119,29 @@ export const ServiceGrid = () => {
                 duration: service.duration,
                 warranty: service.warranty,
                 gallery: service.gallery || [],
-              }} 
-              index={index} 
+              }}
+              index={index}
             />
           ))}
         </div>
 
-        {/* View All Button - Mobile & Tablet */}
-        {hasMoreServices && (
-          <motion.div 
-            className="mt-10 text-center md:hidden"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ delay: 0.5 }}
+        {/* View All Button - Centered Bottom */}
+        <motion.div
+          className="mt-12 sm:mt-16 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ delay: 0.5 }}
+        >
+          <motion.button
+            onClick={handleViewAll}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-foreground text-background rounded-full font-semibold hover:opacity-90 transition-all group shadow-lg hover:shadow-xl"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <motion.button 
-              onClick={handleViewAll}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-foreground text-background rounded-full font-semibold hover:opacity-90 transition-all group"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              View All {servicesContent.items.length} Services
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </motion.button>
-          </motion.div>
-        )}
+            {servicesContent.viewAllCta || 'View All Services'}
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </motion.button>
+        </motion.div>
       </div>
     </section>
   );

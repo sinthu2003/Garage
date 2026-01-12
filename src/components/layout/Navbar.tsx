@@ -15,7 +15,7 @@ export const Navbar = () => {
   const { content } = useContent();
   const brand = content.global.brand;
   const navbarContent = content.global.navbar;
-  
+
   // Get nav links from content or use defaults
   const navLinks = navbarContent?.links || [
     { label: 'Services', href: '/services', isRoute: true },
@@ -81,22 +81,22 @@ export const Navbar = () => {
     if (href.startsWith('/')) {
       return;
     }
-    
+
     e.preventDefault();
     const targetId = href.replace('#', '');
-    
+
     if (!isHomePage) {
       navigate('/', { state: { scrollTo: targetId } });
       setIsMobileMenuOpen(false);
       return;
     }
-    
+
     const element = document.getElementById(targetId);
     if (element) {
       const offsetTop = element.offsetTop - 80;
       window.scrollTo({ top: offsetTop, behavior: 'smooth' });
     }
-    
+
     setIsMobileMenuOpen(false);
   };
 
@@ -112,7 +112,7 @@ export const Navbar = () => {
         navigate('/', { replace: true, state: {} });
       }, 100);
     }
-    
+
     if (isHomePage && location.hash) {
       const targetId = location.hash.replace('#', '');
       setTimeout(() => {
@@ -136,8 +136,10 @@ export const Navbar = () => {
   // Get logo URL
   const logoUrl = brand?.logo || brand?.logoUrl || '/assets/Logo.jpg';
   const brandName = brand?.name || 'Addax';
-  const brandTagline = brand?.tagline || 'Automotive';
+  const brandTitle = brand?.title || 'Automotive';
+  const brandTagline = brand?.tagline || 'Drive with Confidence';
   const phoneNumber = brand?.phone || '+91 98765 43210';
+  const ctaTextMobile = navbarContent?.ctaTextMobile || 'Call Now';
   const ctaText = navbarContent?.ctaText || 'Book Service';
 
   return (
@@ -147,38 +149,35 @@ export const Navbar = () => {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          showSolidBackground ? 'py-2' : 'py-3'
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${showSolidBackground ? 'py-2' : 'py-3'
+          }`}
       >
-        <div 
-          className={`absolute inset-0 transition-all duration-300 ${
-            showSolidBackground 
-              ? 'bg-white shadow-sm border-b border-gray-200' 
-              : 'bg-transparent'
-          }`} 
+        <div
+          className={`absolute inset-0 transition-all duration-300 ${showSolidBackground
+            ? 'bg-white shadow-sm border-b border-gray-200'
+            : 'bg-transparent'
+            }`}
         />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl relative z-10">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link 
+            <Link
               to="/"
               onClick={handleLogoClick}
               className="flex items-center gap-2.5"
             >
-              <img 
-                src={logoUrl} 
-                alt={brandName} 
+              <img
+                src={logoUrl}
+                alt={brandName}
                 className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-contain"
               />
               <div className="flex flex-col">
-                <span className={`text-lg sm:text-xl font-bold tracking-tight leading-tight transition-colors ${
-                  showSolidBackground ? 'text-gray-900' : 'text-white'
-                }`}>
-                  {brandName}
+                <span className={`text-lg sm:text-xl font-bold tracking-tight leading-tight transition-colors ${showSolidBackground ? 'text-gray-900' : 'text-white'
+                  }`}>
+                  {brandName}<span className='text-primary'> {brandTitle}</span>
                 </span>
-                <span className="text-[10px] sm:text-xs font-semibold tracking-wider uppercase text-primary">
+                <span className={`${showSolidBackground ? 'text-black' : 'text-white'} text-[10px] sm:text-xs font-semibold tracking-wider uppercase`}>
                   {brandTagline}
                 </span>
               </div>
@@ -187,40 +186,38 @@ export const Navbar = () => {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
               {navLinks.map((link: { label: string; href: string; isRoute?: boolean }) => {
-                const isActive = link.isRoute 
+                const isActive = link.isRoute
                   ? location.pathname.startsWith(link.href)
                   : activeSection === link.href.replace('#', '');
-                
+
                 if (link.isRoute) {
                   return (
                     <Link
                       key={link.label}
                       to={link.href}
-                      className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all ${
-                        isActive
-                          ? 'text-primary bg-gray-100'
-                          : showSolidBackground 
-                            ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' 
-                            : 'text-white/80 hover:text-white hover:bg-white/10'
-                      }`}
+                      className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all ${isActive
+                        ? 'text-primary bg-gray-100'
+                        : showSolidBackground
+                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                        }`}
                     >
                       {link.label}
                     </Link>
                   );
                 }
-                
+
                 return (
                   <a
                     key={link.label}
                     href={link.href}
                     onClick={(e) => scrollToSection(e, link.href)}
-                    className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all ${
-                      isActive
-                        ? 'text-primary bg-gray-100'
-                        : showSolidBackground 
-                          ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100' 
-                          : 'text-white/80 hover:text-white hover:bg-white/10'
-                    }`}
+                    className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all ${isActive
+                      ? 'text-primary bg-gray-100'
+                      : showSolidBackground
+                        ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                      }`}
                   >
                     {link.label}
                   </a>
@@ -230,17 +227,16 @@ export const Navbar = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-3 sm:gap-4">
-              <a 
+              <a
                 href={`tel:${phoneNumber.replace(/\s/g, '')}`}
-                className={`hidden md:flex items-center gap-2 text-sm font-medium transition-colors ${
-                  showSolidBackground ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
-                }`}
+                className={`hidden md:flex items-center gap-2 text-sm font-medium transition-colors ${showSolidBackground ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'
+                  }`}
               >
                 <Phone className="w-4 h-4" />
-                <span>{phoneNumber}</span>
+                <span>{ctaTextMobile}</span>
               </a>
 
-              <Link 
+              <Link
                 to="/services"
                 className="hidden sm:flex items-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 bg-primary text-white text-sm font-semibold rounded-full hover:bg-red-600 transition-all"
               >
@@ -250,11 +246,10 @@ export const Navbar = () => {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className={`lg:hidden w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                  showSolidBackground 
-                    ? 'bg-gray-100 text-gray-700' 
-                    : 'bg-white/10 text-white'
-                }`}
+                className={`lg:hidden w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${showSolidBackground
+                  ? 'bg-gray-100 text-gray-700'
+                  : 'bg-white/10 text-white'
+                  }`}
                 aria-label="Open menu"
               >
                 <Menu className="w-5 h-5" />
@@ -277,9 +272,9 @@ export const Navbar = () => {
               className="fixed inset-0 bg-black/50 z-[60] lg:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
-            
+
             {/* Slide-in Menu Panel */}
-            <motion.div 
+            <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -288,19 +283,21 @@ export const Navbar = () => {
             >
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                <Link 
+                <Link
                   to="/"
                   onClick={handleLogoClick}
                   className="flex items-center gap-2"
                 >
-                  <img 
-                    src={logoUrl} 
-                    alt={brandName} 
+                  <img
+                    src={logoUrl}
+                    alt={brandName}
                     className="w-9 h-9 rounded-lg object-contain"
                   />
                   <div className="flex flex-col">
-                    <span className="text-base font-bold text-gray-900 leading-tight">{brandName}</span>
-                    <span className="text-[9px] font-semibold text-primary tracking-wider uppercase">{brandTagline}</span>
+                    <span className="text-base font-bold text-gray-900 leading-tight">{brandName}<span className='text-primary'> {brandTitle}</span></span>
+                    <span className="text-[10px] sm:text-xs font-semibold tracking-wider uppercase">
+                      {brandTagline}
+                    </span>
                   </div>
                 </Link>
                 <button
@@ -316,13 +313,13 @@ export const Navbar = () => {
               <div className="flex-1 overflow-y-auto p-4">
                 <nav className="space-y-1">
                   {navLinks.map((link: { label: string; href: string; isRoute?: boolean }, idx: number) => {
-                    const isActive = link.isRoute 
+                    const isActive = link.isRoute
                       ? location.pathname.startsWith(link.href)
                       : activeSection === link.href.replace('#', '');
-                    
+
                     if (link.isRoute) {
                       return (
-                        <motion.div 
+                        <motion.div
                           key={link.label}
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
@@ -331,11 +328,10 @@ export const Navbar = () => {
                           <Link
                             to={link.href}
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className={`flex items-center justify-between px-4 py-3.5 rounded-xl font-medium transition-colors ${
-                              isActive 
-                                ? 'bg-gray-100 text-primary' 
-                                : 'text-gray-700 hover:bg-gray-50'
-                            }`}
+                            className={`flex items-center justify-between px-4 py-3.5 rounded-xl font-medium transition-colors ${isActive
+                              ? 'bg-gray-100 text-primary'
+                              : 'text-gray-700 hover:bg-gray-50'
+                              }`}
                           >
                             {link.label}
                             <ChevronRight className="w-4 h-4 text-gray-400" />
@@ -343,7 +339,7 @@ export const Navbar = () => {
                         </motion.div>
                       );
                     }
-                    
+
                     return (
                       <motion.a
                         key={link.label}
@@ -352,11 +348,10 @@ export const Navbar = () => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.05 }}
                         onClick={(e) => scrollToSection(e, link.href)}
-                        className={`flex items-center justify-between px-4 py-3.5 rounded-xl font-medium transition-colors ${
-                          isActive 
-                            ? 'bg-gray-100 text-primary' 
-                            : 'text-gray-700 hover:bg-gray-50'
-                        }`}
+                        className={`flex items-center justify-between px-4 py-3.5 rounded-xl font-medium transition-colors ${isActive
+                          ? 'bg-gray-100 text-primary'
+                          : 'text-gray-700 hover:bg-gray-50'
+                          }`}
                       >
                         {link.label}
                         <ChevronRight className="w-4 h-4 text-gray-400" />
@@ -368,14 +363,14 @@ export const Navbar = () => {
 
               {/* Footer */}
               <div className="p-4 border-t border-gray-100 bg-gray-50">
-                <a 
+                <a
                   href={`tel:${phoneNumber.replace(/\s/g, '')}`}
                   className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   <Phone className="w-5 h-5" />
-                  <span className="font-medium">{phoneNumber}</span>
+                  <span className="font-medium">{ctaTextMobile}</span>
                 </a>
-                <Link 
+                <Link
                   to="/services"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block w-full py-3.5 bg-primary text-white font-semibold rounded-xl hover:bg-red-600 transition-colors text-center mt-2"
