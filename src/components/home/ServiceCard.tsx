@@ -51,12 +51,9 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
     navigate(`/services/${serviceSlug}`, { state: { service } });
   };
 
-  const handleBookNow = (e: React.MouseEvent) => {
+ const handleBookNow = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const bookingWidget = document.getElementById('booking-widget');
-    if (bookingWidget) {
-      bookingWidget.scrollIntoView({ behavior: 'smooth' });
-    }
+    navigate('/', { state: { scrollToBooking: true, selectedService: service } });
   };
 
   // Pre-calculate discount

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { 
   MapPin, 
   Car, 
@@ -10,24 +11,32 @@ import {
   X, 
   Sparkles,
   CheckCircle2,
-  Loader2,        // NEW: For loading spinner
-  CheckCircle,    // NEW: For success icon
-  AlertCircle,    // NEW: For error icon
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Wrench // Added icon for Service
 } from 'lucide-react';
 import { useContent } from '../../admin-portal';
-import { bookingApi, getErrorMessage } from '../../services/api'; // NEW: API import
+import { bookingApi, getErrorMessage } from '../../services/api';
 
 type ViewState = 'main' | 'brands' | 'models' | 'fuel';
 
-// NEW: Submission result type
 interface SubmissionResult {
   success: boolean;
   message: string;
 }
 
+// Interface for service passed via navigation
+interface TargetedService {
+  id: string;
+  name: string;
+  price?: number;
+}
+
 export const BookingWidget = () => {
   // Get content from context
   const { content } = useContent();
+  const location = useLocation(); // Hook to access navigation state
   const bookingContent = content.bookingWidget;
   
   // Extract data from content
@@ -45,9 +54,23 @@ export const BookingWidget = () => {
   const [selectedFuel, setSelectedFuel] = useState<typeof fuelTypes[0] | null>(null);
   const [mobileNumber, setMobileNumber] = useState('');
 
-  // NEW: Submission state
+  // NEW: State for targeted service
+  const [targetedService, setTargetedService] = useState<TargetedService | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
+
+  // Effect to capture service passed from Service Detail Page
+  useEffect(() => {
+    if (location.state?.selectedService) {
+      const s = location.state.selectedService;
+      setTargetedService({
+        id: s.id || s._id,
+        name: s.title || s.name,
+        price: s.price
+      });
+    }
+  }, [location.state]);
 
   const filteredBrands = brands.filter(brand => 
     brand.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -81,6 +104,10 @@ export const BookingWidget = () => {
     setSelectedFuel(null);
   };
 
+  const clearTargetedService = () => {
+    setTargetedService(null);
+  };
+
   const goBack = () => {
     if (currentView === 'brands') {
       setCurrentView('main');
@@ -101,7 +128,7 @@ export const BookingWidget = () => {
     return 'Select your car';
   };
 
-  // NEW: Handle form submission
+  // Handle form submission
   const handleSubmit = async () => {
     if (!isCarSelected || mobileNumber.length !== 10) return;
 
@@ -109,7 +136,8 @@ export const BookingWidget = () => {
     setSubmissionResult(null);
 
     try {
-      const result = await bookingApi.submit({
+      // Construct payload
+      const payload = {
         phone: mobileNumber,
         countryCode: '+91',
         city: selectedCity.toLowerCase(),
@@ -117,9 +145,17 @@ export const BookingWidget = () => {
         brandName: selectedBrand!.name,
         model: selectedModel!.name,
         fuelType: selectedFuel!.name,
-        source: 'booking_widget',
+        // Scenario B: If service exists, use 'service_detail' source and include service data
+        source: targetedService ? 'service_detail' as const : 'booking_widget' as const,
         sourcePage: window.location.pathname,
-      });
+        service: targetedService ? {
+          id: targetedService.id,
+          name: targetedService.name,
+          price: targetedService.price
+        } : undefined
+      };
+
+      const result = await bookingApi.submit(payload);
 
       setSubmissionResult({
         success: true,
@@ -129,6 +165,8 @@ export const BookingWidget = () => {
       // Reset form
       resetCarSelection();
       setMobileNumber('');
+      // Optionally clear the targeted service after successful booking
+      setTargetedService(null); 
     } catch (error) {
       setSubmissionResult({
         success: false,
@@ -139,7 +177,6 @@ export const BookingWidget = () => {
     }
   };
 
-  // NEW: Close result modal
   const closeResultModal = () => {
     setSubmissionResult(null);
   };
@@ -152,7 +189,7 @@ export const BookingWidget = () => {
       className="w-full max-w-md relative"
       id="booking-widget"
     >
-      {/* NEW: Success/Error Modal */}
+      {/* Success/Error Modal */}
       <AnimatePresence>
         {submissionResult && (
           <motion.div
@@ -204,7 +241,7 @@ export const BookingWidget = () => {
       </AnimatePresence>
 
       <div className="bg-card rounded-3xl shadow-2xl shadow-primary/20 overflow-hidden">
-        {/* Top Accent Bar - Themeable */}
+        {/* Top Accent Bar */}
         <motion.div 
           className="h-1.5 bg-gradient-to-r from-primary via-primary/80 to-primary bg-[length:200%_100%]"
           animate={{ backgroundPosition: ['0% 0%', '100% 0%', '0% 0%'] }}
@@ -232,6 +269,32 @@ export const BookingWidget = () => {
                     {bookingContent.subtitle}
                   </p>
                 </div>
+
+                {/* VISUAL INDICATOR: Targeted Service Display */}
+                {targetedService && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 rounded-xl"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center">
+                        <Wrench className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[10px] text-primary font-bold uppercase tracking-wider">Booking For</p>
+                        <p className="text-sm font-bold text-foreground leading-tight">{targetedService.name}</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={clearTargetedService}
+                      className="p-1.5 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors"
+                      title="Clear service selection"
+                    >
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </motion.div>
+                )}
 
                 {/* City Selector */}
                 <div className="relative">
@@ -358,7 +421,7 @@ export const BookingWidget = () => {
                   </div>
                 </div>
 
-                {/* Submit Button - UPDATED: Added onClick and loading state */}
+                {/* Submit Button */}
                 <motion.button 
                   whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                   whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
@@ -373,7 +436,7 @@ export const BookingWidget = () => {
                     </>
                   ) : (
                     <>
-                      {bookingContent.ctaText}
+                      {targetedService ? `Book ${targetedService.name}` : bookingContent.ctaText}
                       <ChevronRight className="w-5 h-5" />
                     </>
                   )}

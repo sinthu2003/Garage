@@ -1,3 +1,6 @@
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+
 import { Hero } from '../components/home/Hero';
 import { ServiceGrid } from '../components/home/ServiceGrid';
 import { HowItWorks } from '../components/home/Howitworks';
@@ -11,10 +14,23 @@ import { BeforeAfterSection } from '../components/home/Beforeaftersection';
 
 
 export const HomePage = () => {
+  const location = useLocation();
+
+  // Scroll to booking widget if navigated from Service Detail Page with intent to book
+  useEffect(() => {
+    if (location.state?.scrollToBooking) {
+      const widget = document.getElementById('booking-widget');
+      if (widget) {
+        // Add a small delay to ensure DOM is ready and animation is smooth
+        setTimeout(() => {
+          widget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    }
+  }, [location]);
+
   return (
     <>
-
-
       {/* 1. Hero - First impression with booking widget */}
       <Hero />
 
