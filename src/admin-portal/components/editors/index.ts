@@ -162,7 +162,7 @@ export const editorConfig = [
   {
     id: 'footer',
     label: 'Footer',
-    icon: 'LayoutGrid',
+    icon: 'Copyright',
     color: 'from-gray-600 to-gray-800',
     component: 'FooterEditor',
     description: 'Footer links, contact info, and social media',

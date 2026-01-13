@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useContent } from '../../context/ContentContext';
 import { useBlogContent } from '../../hooks/useContentHooks';
-import { Type, AlignLeft, Calendar, User, Image as ImageIcon, Tag, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Type, AlignLeft, Calendar, User, Tag, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import ImageUpload from '../shared/ImageUpload';
 
 export const BlogEditor: React.FC = () => {
     const { updateField } = useContent();
@@ -129,29 +130,31 @@ export const BlogEditor: React.FC = () => {
 
                             {expandedPosts.has(index) && (
                                 <div className="p-4 border-t border-border space-y-4 bg-background/50">
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                                <Type className="w-3 h-3" /> Title
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={post.title || ''}
-                                                onChange={(e) => handlePostUpdate(index, 'title', e.target.value)}
-                                                className="w-full px-3 py-2 rounded-lg bg-background border border-border focus:ring-2 focus:ring-primary/20 outline-none text-sm"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                                                <ImageIcon className="w-3 h-3" /> Image URL
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={post.image || ''}
-                                                onChange={(e) => handlePostUpdate(index, 'image', e.target.value)}
-                                                className="w-full px-3 py-2 rounded-lg bg-background border border-border focus:ring-2 focus:ring-primary/20 outline-none text-sm"
-                                            />
-                                        </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                            <Type className="w-3 h-3" /> Title
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={post.title || ''}
+                                            onChange={(e) => handlePostUpdate(index, 'title', e.target.value)}
+                                            className="w-full px-3 py-2 rounded-lg bg-background border border-border focus:ring-2 focus:ring-primary/20 outline-none text-sm"
+                                        />
+                                    </div>
+                                    {/* Feature Image */}
+                                    <div className='space-y-2'>
+                                        <ImageUpload
+                                            value={post.image || ''}
+                                            onChange={(url) => handlePostUpdate(index, 'image', url)}
+                                            label="Feature Image"
+                                            placeholder="Upload image or enter URL"
+                                            previewHeight="h-48"
+                                            maxSizeMB={2}
+                                            maxWidthOrHeight={1920}
+                                            helperText="Main feature card image"
+                                            showAltInput={false}
+                                            compact={false}
+                                        />
                                     </div>
 
                                     <div className="grid md:grid-cols-3 gap-4">

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
-
   Undo2,
   Redo2,
   RotateCcw,
@@ -18,11 +17,9 @@ import {
   Image,
   SplitSquareHorizontal,
   Navigation,
-  LayoutGrid,
   Globe,
   CalendarCheck,
   FileText,
-  ChevronLeft,
   Menu,
   Eye,
   EyeOff,
@@ -37,6 +34,11 @@ import {
   Search,
   Save,
   AlertCircle,
+  BookOpen,
+  Shield,
+  NotebookPen,
+  Copyright,
+  LayoutGrid
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../context/ContentContext';
@@ -70,6 +72,7 @@ import {
 // Icon mapping
 const iconMap: Record<string, React.FC<{ className?: string }>> = {
   Sparkles,
+  LayoutGrid,
   Wrench,
   DollarSign,
   Star,
@@ -80,10 +83,12 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   Image,
   SplitSquareHorizontal,
   Navigation,
-  LayoutGrid,
+  Copyright,
   Globe,
   CalendarCheck,
   FileText,
+  Shield,
+  BookOpen
 };
 
 // Editor component mapping - Updated type to support onPageChange and onEditingIndexChange callbacks
@@ -505,7 +510,7 @@ export const AdminPage: React.FC = () => {
               <div className="p-4 flex items-center justify-between border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-primary-foreground" />
+                    <NotebookPen className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <div>
                     <h2 className="font-bold text-foreground">CMS Editor</h2>
@@ -594,11 +599,11 @@ export const AdminPage: React.FC = () => {
             <>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-primary-foreground" />
+                  <NotebookPen className="w-4 h-4 text-primary-foreground" />
                 </div>
                 <span className="font-semibold text-sm text-foreground">CMS Editor</span>
               </div>
-              <button
+              {/* <button
                 onClick={() => {
                   setSidebarCollapsed(true);
                   setSidebarHovered(false);
@@ -607,7 +612,7 @@ export const AdminPage: React.FC = () => {
                 title="Collapse Sidebar"
               >
                 <ChevronLeft className="w-4 h-4" />
-              </button>
+              </button> */}
             </>
           ) : (
             <button
@@ -615,7 +620,7 @@ export const AdminPage: React.FC = () => {
               className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center hover:opacity-90 transition-opacity"
               title="Expand Sidebar"
             >
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
+              <NotebookPen className="w-4 h-4 text-primary-foreground" />
             </button>
           )}
         </div>

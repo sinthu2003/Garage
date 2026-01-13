@@ -35,9 +35,7 @@ import {
   CheckCircle,
   Maximize2,
   Save,
-  AlertCircle,
-  Shield,
-  BookOpen
+  AlertCircle
 } from 'lucide-react';
 import { useContent } from '../context/ContentContext';
 import {
@@ -86,9 +84,7 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   LayoutGrid,
   Globe,
   CalendarCheck,
-  FileText,
-  Shield,
-  BookOpen
+  FileText
 };
 
 // Editor component mapping - Updated type to support onEditingIndexChange callback
@@ -533,8 +529,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                             key={editor.id}
                             onClick={() => handleEditorSelect(editor.id)}
                             className={`w-full flex items-center gap-3 px-4 py-3 transition-all ${isActive
-                                ? 'bg-primary/10 border-r-2 border-primary'
-                                : 'hover:bg-secondary/50'
+                              ? 'bg-primary/10 border-r-2 border-primary'
+                              : 'hover:bg-secondary/50'
                               }`}
                           >
                             <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -629,8 +625,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                         onClick={() => handleEditorSelect(editor.id)}
                         title={!isSidebarExpanded ? editor.label : undefined}
                         className={`w-full flex items-center gap-2.5 py-2.5 transition-all ${isActive
-                            ? 'bg-primary/10 border-r-2 border-primary'
-                            : 'hover:bg-secondary/50'
+                          ? 'bg-primary/10 border-r-2 border-primary'
+                          : 'hover:bg-secondary/50'
                           } ${isSidebarExpanded ? 'px-3' : 'justify-center px-2'}`}
                       >
                         <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -722,8 +718,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       onClick={handleApplyChanges}
                       disabled={!hasUnsavedChanges || isApplying}
                       className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${hasUnsavedChanges && !isApplying
-                          ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
-                          : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                        : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
                         }`}
                       title="Apply Changes (Ctrl+S)"
                       whileTap={hasUnsavedChanges && !isApplying ? { scale: 0.95 } : {}}
@@ -747,8 +743,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     <button
                       onClick={() => setPreviewVisible(!previewVisible)}
                       className={`p-2 rounded-lg transition-colors ${previewVisible
-                          ? 'bg-primary text-primary-foreground'
-                          : 'hover:bg-secondary text-muted-foreground'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-secondary text-muted-foreground'
                         }`}
                       title={`${previewVisible ? 'Hide' : 'Show'} Preview (Ctrl+P)`}
                     >
@@ -1133,8 +1129,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 50 }}
                 className={`fixed bottom-4 right-4 left-4 sm:left-auto z-[10200] flex items-center justify-center sm:justify-start gap-3 px-4 py-3 rounded-xl shadow-lg ${notification.type === 'success'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-destructive text-destructive-foreground'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-destructive text-destructive-foreground'
                   }`}
               >
                 {notification.type === 'success' ? (
