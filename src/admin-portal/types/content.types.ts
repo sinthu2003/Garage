@@ -759,7 +759,7 @@ export interface ContentContextValue {
   canRedo: boolean;
   resetContent: () => void;
   exportContent: () => string;
-  importContent: (jsonString: string) => boolean;
+  importContent: (jsonString: string) => Promise<boolean>;
   hasUnsavedChanges: boolean;
   lastSaved: Date | null;
   // NEW: Apply and Discard changes methods

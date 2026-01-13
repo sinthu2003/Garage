@@ -39,6 +39,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import { 
   editorConfig, 
@@ -112,6 +113,7 @@ const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageCha
  */
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, isLoading, logout } = useAuth(); // NEW: Auth hook
   const {
     content,
     undo,
@@ -187,7 +189,14 @@ export const AdminPage: React.FC = () => {
       editor.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Check for mobile/tablet viewport
+  // NEW: Auth check - redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/admin/login');
+    }
+  }, [user, isLoading, navigate]);
+
+    // Check for mobile/tablet viewport
   useEffect(() => {
     const checkViewport = () => {
       const width = window.innerWidth;
@@ -254,6 +263,12 @@ export const AdminPage: React.FC = () => {
     } finally {
       setIsApplying(false);
     }
+  };
+
+  // NEW: Handle logout
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login');
   };
 
   // Handle Discard Changes
@@ -447,6 +462,23 @@ export const AdminPage: React.FC = () => {
 
   // Determine if sidebar should be expanded (hovered or explicitly expanded)
   const isSidebarExpanded = !sidebarCollapsed || sidebarHovered;
+
+  // NEW: Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // NEW: Don't render if not authenticated
+  if (!user) {
+    return null;
+  }
 
   return (
     <div 
@@ -787,11 +819,11 @@ export const AdminPage: React.FC = () => {
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button> */}
 
-            {/* Exit */}
+            {/* NEW: Logout Button */}
             <button 
-              onClick={() => navigate('/')} 
-              className="hidden sm:flex p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
-              title="Exit Admin"
+              onClick={handleLogout} 
+              className="hidden sm:flex p-1.5 rounded-lg hover:bg-destructive/10 text-destructive hover:text-destructive" 
+              title="Logout"
             >
               <LogOut className="w-4 h-4" />
             </button>

@@ -8,9 +8,11 @@ import {
   Send,
   CheckCircle,
   Calendar,
-  Clock
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import { useFAQContent } from '../admin-portal';
+import { bookingApi } from '../services/api';
 
 // Default business hours if not set in content
 const defaultBusinessHours = [
@@ -57,27 +59,62 @@ export const ContactUsPage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (error) setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    // Reset form after showing success
-    setTimeout(() => {
-      setFormData({ name: '', email: '', phone: '', service: '', message: '' });
-      setIsSubmitted(false);
-    }, 3000);
+    try {
+      // Call the actual API endpoint
+      const result = await bookingApi.submitContact({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        countryCode: '+91',
+        service: formData.service || undefined,
+        message: formData.message,
+        source: 'contact_page',
+        sourcePage: window.location.pathname,
+      });
+
+      console.log('Contact form submitted successfully:', result);
+      
+      setIsSubmitted(true);
+      
+      // Reset form after showing success
+      setTimeout(() => {
+        setFormData({ name: '', email: '', phone: '', service: '', message: '' });
+        setIsSubmitted(false);
+      }, 3000);
+
+    } catch (err: any) {
+      console.error('Contact form submission error:', err);
+      
+      // Extract validation errors if available
+      let errorMessage = 'Failed to send message. Please try again or contact us directly.';
+      
+      if (err?.response?.data?.errors?.length > 0) {
+        // Show first validation error
+        errorMessage = err.response.data.errors[0].message;
+      } else if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -228,6 +265,18 @@ export const ContactUsPage = () => {
                 </motion.div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4 flex-1 flex flex-col">
+                  {/* Error Message */}
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm"
+                    >
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span>{error}</span>
+                    </motion.div>
+                  )}
+
                   {/* Name Input */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -305,8 +354,10 @@ export const ContactUsPage = () => {
                       value={formData.message}
                       onChange={handleInputChange}
                       required
+                      minLength={10}
+                      maxLength={5000}
                       rows={3}
-                      placeholder="Tell us about your car service needs..."
+                      placeholder="Tell us about your car service needs... (min 10 characters)"
                       className="w-full px-3 py-2.5 bg-secondary/50 border border-border rounded-lg text-foreground text-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-none flex-1 min-h-[80px]"
                     />
                   </div>

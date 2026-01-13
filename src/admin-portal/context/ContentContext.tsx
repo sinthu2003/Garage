@@ -1,20 +1,41 @@
+/**
+ * ============================================
+ * CONTENT CONTEXT (API INTEGRATED)
+ * ============================================
+ * 
+ * This is the UPDATED ContentContext that integrates with your backend API.
+ * 
+ * Changes from original:
+ * - Loads content from API instead of static JSON
+ * - Syncs changes to API (debounced)
+ * - applyChanges() calls API to publish
+ * - discardChanges() calls API to revert
+ * - Supports both PUBLIC mode (website) and ADMIN mode (with drafts)
+ * - Keeps undo/redo local for fast editing
+ * - Keeps image resolution logic intact
+ * 
+ * @file src/context/ContentContext.tsx
+ */
+
 import React, {
   createContext,
   useContext,
   useState,
   useCallback,
   useMemo,
+  useEffect,
+  useRef,
 } from 'react';
 import type { SiteContent, ContentContextValue } from '../types/content.types';
 import defaultContent from '../data/siteContent.json';
+import { contentApi,getErrorMessage } from '../../services/api';
+import { tokenStorage } from '../../services/api';
 
 // ============================================
-// IMAGE RESOLUTION LOGIC (NEW)
+// IMAGE RESOLUTION LOGIC (UNCHANGED)
 // ============================================
 
 // 1. Import all images using Vite's glob import
-// Note: We use '../../assets' because this file is in src/admin-portal/context
-// FIXED: Added 'avif' to the pattern below
 const imageModules = import.meta.glob('../../assets/**/*.{png,jpg,jpeg,svg,webp,avif}', { eager: true });
 
 /**
@@ -25,8 +46,6 @@ const resolvePath = (path: string): string => {
   
   // Only try to resolve paths that look like relative asset paths from the JSON
   if (path.startsWith('../assets/')) {
-    // The JSON has "../assets/Logo.jpg", but relative to THIS file, it is "../../assets/Logo.jpg"
-    // We strip "../assets/" and prepend "../../assets/"
     const filename = path.replace('../assets/', '');
     const localPath = `../../assets/${filename}`;
 
@@ -34,7 +53,6 @@ const resolvePath = (path: string): string => {
     if (module && module.default) {
       return module.default;
     }
-    // If not found, fallback to the original path (or you could return a placeholder)
     console.warn(`Could not resolve image: ${path}`);
   }
   
@@ -46,7 +64,6 @@ const resolvePath = (path: string): string => {
  */
 const resolveContentImages = <T,>(content: T): T => {
   if (typeof content === 'string') {
-    // Try to resolve if it's a string
     return resolvePath(content) as unknown as T;
   }
   
@@ -67,7 +84,6 @@ const resolveContentImages = <T,>(content: T): T => {
   return content;
 };
 
-
 // ============================================
 // TYPES
 // ============================================
@@ -81,20 +97,28 @@ interface HistoryEntry {
 interface ContentProviderProps {
   children: React.ReactNode;
   initialContent?: SiteContent;
-  storageKey?: string;
-  enablePersistence?: boolean;
+  /** 
+   * Mode: 'public' loads published content, 'admin' loads working content with drafts 
+   * Default: auto-detect based on authentication
+   */
+  mode?: 'public' | 'admin' | 'auto';
+  /** Enable loading from API (default: true) */
+  enableApi?: boolean;
+  /** Fallback to localStorage if API fails (default: true) */
+  enableFallback?: boolean;
 }
 
 // ============================================
 // CONSTANTS
 // ============================================
 
-const DEFAULT_STORAGE_KEY = 'addax-cms-content';
+const LOCAL_STORAGE_KEY = 'addax-cms-content';
 const SAVED_CONTENT_KEY = 'addax-cms-saved-content';
 const HISTORY_LIMIT = 50;
+const DEBOUNCE_DELAY = 1000; // 1 second debounce for API sync
 
 // ============================================
-// HELPER FUNCTIONS
+// HELPER FUNCTIONS (UNCHANGED)
 // ============================================
 
 const deepClone = <T,>(obj: T): T => {
@@ -166,87 +190,159 @@ const ContentContext = createContext<ContentContextValue | undefined>(undefined)
 export const ContentProvider: React.FC<ContentProviderProps> = ({
   children,
   initialContent,
-  storageKey = DEFAULT_STORAGE_KEY,
-  enablePersistence = true,
+  mode = 'auto',
+  enableApi = true,
+  enableFallback = true,
 }) => {
   // ----------------------------------------
-  // Load initial content (working content)
+  // Refs for debouncing
   // ----------------------------------------
-  const loadInitialContent = useCallback((): SiteContent => {
-    let loadedData: SiteContent = defaultContent as SiteContent;
-
-    // If initial content is provided via props, use it
-    if (initialContent) {
-      loadedData = deepClone(initialContent);
-    } 
-    // Otherwise try localStorage
-    else if (enablePersistence && typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem(storageKey);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          loadedData = deepMerge(defaultContent as SiteContent, parsed);
-        }
-      } catch (error) {
-        console.error('Error loading content from localStorage:', error);
-      }
-    }
-
-    // IMPORTANT: Resolve images before returning
-    // This ensures that whether data comes from JSON or LocalStorage, 
-    // relative paths are converted to vite-processed URLs.
-    return resolveContentImages(loadedData);
-  }, [initialContent, storageKey, enablePersistence]);
-
-  // ----------------------------------------
-  // Load saved content (last applied state)
-  // ----------------------------------------
-  const loadSavedContent = useCallback((): SiteContent => {
-    let loadedData: SiteContent = defaultContent as SiteContent;
-
-    if (enablePersistence && typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem(SAVED_CONTENT_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          loadedData = deepMerge(defaultContent as SiteContent, parsed);
-        } else {
-          // If no saved content, use current working content
-          const workingContent = localStorage.getItem(storageKey);
-          if (workingContent) {
-            const parsed = JSON.parse(workingContent);
-            loadedData = deepMerge(defaultContent as SiteContent, parsed);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading saved content from localStorage:', error);
-      }
-    }
-
-    return resolveContentImages(loadedData);
-  }, [storageKey, enablePersistence]);
+const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingChangesRef = useRef<Map<string, { path: string; value: unknown }>>(new Map());
 
   // ----------------------------------------
   // State
   // ----------------------------------------
-  const [content, setContent] = useState<SiteContent>(() => loadInitialContent());
-  const [savedContent, setSavedContent] = useState<SiteContent>(() => loadSavedContent());
-  
-  // We only add to history AFTER resolving images
-  const [history, setHistory] = useState<HistoryEntry[]>(() => [
-    { content: loadInitialContent(), timestamp: Date.now(), action: 'initial' },
-  ]);
-  
-  const [historyIndex, setHistoryIndex] = useState(0);
+  const [content, setContent] = useState<SiteContent>(() => {
+    // Start with default content, will be replaced by API data
+    return resolveContentImages(initialContent || defaultContent as SiteContent);
+  });
+  const [savedContent, setSavedContent] = useState<SiteContent>(() => {
+    return resolveContentImages(initialContent || defaultContent as SiteContent);
+  });
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
+  // Loading and error states (NEW)
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  // Check for unsaved changes by comparing current content with saved content
+  // Determine actual mode
+  const actualMode = mode === 'auto' 
+    ? (tokenStorage.isAuthenticated() ? 'admin' : 'public')
+    : mode;
+
+  // ----------------------------------------
+  // Check for unsaved changes
+  // ----------------------------------------
   const hasUnsavedChanges = useMemo(() => {
     return generateHash(content) !== generateHash(savedContent);
   }, [content, savedContent]);
 
   // ----------------------------------------
-  // Add to history
+  // Load content from API on mount
+  // ----------------------------------------
+  useEffect(() => {
+    const loadContent = async () => {
+      if (!enableApi) {
+        setIsLoading(false);
+        // Initialize history with current content
+        setHistory([{ content: deepClone(content), timestamp: Date.now(), action: 'initial' }]);
+        setHistoryIndex(0);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        let loadedContent: SiteContent;
+
+        if (actualMode === 'admin' && tokenStorage.isAuthenticated()) {
+          // Admin mode: load working content (includes drafts)
+          loadedContent = await contentApi.getWorkingContent();
+        } else {
+          // Public mode: load published content
+          loadedContent = await contentApi.getPublicContent();
+        }
+
+        // Merge with defaults and resolve images
+        const mergedContent = deepMerge(defaultContent as SiteContent, loadedContent);
+        const resolvedContent = resolveContentImages(mergedContent);
+
+        setContent(resolvedContent);
+        setSavedContent(resolvedContent);
+        setHistory([{ content: deepClone(resolvedContent), timestamp: Date.now(), action: 'loaded' }]);
+        setHistoryIndex(0);
+
+      } catch (err) {
+        console.error('Failed to load content from API:', err);
+        setError(getErrorMessage(err));
+
+        // Fallback to localStorage if enabled
+        if (enableFallback && typeof window !== 'undefined') {
+          try {
+            const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (stored) {
+              const parsed = JSON.parse(stored);
+              const merged = deepMerge(defaultContent as SiteContent, parsed);
+              const resolved = resolveContentImages(merged);
+              setContent(resolved);
+              setSavedContent(resolved);
+              setHistory([{ content: deepClone(resolved), timestamp: Date.now(), action: 'fallback' }]);
+              setHistoryIndex(0);
+              console.log('Loaded content from localStorage fallback');
+            }
+          } catch (localErr) {
+            console.error('LocalStorage fallback also failed:', localErr);
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadContent();
+  }, [actualMode, enableApi, enableFallback]);
+
+  // ----------------------------------------
+  // Debounced API sync for field updates
+  // ----------------------------------------
+  const syncToApi = useCallback(async () => {
+    if (pendingChangesRef.current.size === 0) return;
+    if (!tokenStorage.isAuthenticated()) return;
+
+    setIsSyncing(true);
+
+    try {
+      // Process all pending changes
+      const changes = Array.from(pendingChangesRef.current.entries());
+      
+      for (const [section, { path, value }] of changes) {
+        await contentApi.updateField(section as keyof SiteContent, { path, value });
+      }
+
+      pendingChangesRef.current.clear();
+    } catch (err) {
+      console.error('Failed to sync changes to API:', err);
+      // Don't clear pending changes on error - will retry
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  const debouncedSync = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      syncToApi();
+    }, DEBOUNCE_DELAY);
+  }, [syncToApi]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  // ----------------------------------------
+  // Add to history (UNCHANGED)
   // ----------------------------------------
   const addToHistory = useCallback(
     (newContent: SiteContent, action?: string) => {
@@ -257,9 +353,13 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
           timestamp: Date.now(),
           action,
         });
+        
+        // Limit history size
         if (newHistory.length > HISTORY_LIMIT) {
-          return newHistory.slice(-HISTORY_LIMIT);
+          newHistory.shift();
+          return newHistory;
         }
+        
         return newHistory;
       });
       setHistoryIndex((prev) => Math.min(prev + 1, HISTORY_LIMIT - 1));
@@ -268,7 +368,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   );
 
   // ----------------------------------------
-  // Content Updates
+  // Update field (UPDATED - syncs to API)
   // ----------------------------------------
   const updateField = useCallback(
     (section: string, path: string, value: unknown) => {
@@ -276,8 +376,8 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
         const sectionKey = section as keyof SiteContent;
         const sectionContent = prev[sectionKey];
 
-        if (!sectionContent || typeof sectionContent !== 'object') {
-          console.error(`Section "${section}" not found or is not an object`);
+        if (sectionContent === undefined) {
+          console.warn(`Section "${section}" not found in content`);
           return prev;
         }
 
@@ -287,13 +387,34 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
           [sectionKey]: updatedSection,
           meta: { ...prev.meta, lastModified: new Date().toISOString() },
         };
+        
+        // Add to local history
         addToHistory(newContent, `Update ${section}.${path}`);
+        
+        // Queue for API sync (admin mode only)
+        if (actualMode === 'admin' && enableApi && tokenStorage.isAuthenticated()) {
+          pendingChangesRef.current.set(section, { path, value });
+          debouncedSync();
+        }
+        
+        // Also save to localStorage as backup
+        if (enableFallback && typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newContent));
+          } catch (err) {
+            console.warn('Failed to save to localStorage:', err);
+          }
+        }
+
         return newContent;
       });
     },
-    [addToHistory]
+    [addToHistory, actualMode, enableApi, enableFallback, debouncedSync]
   );
 
+  // ----------------------------------------
+  // Update section (UPDATED - syncs to API)
+  // ----------------------------------------
   const updateSection = useCallback(
     (section: string, value: unknown) => {
       setContent((prev) => {
@@ -304,14 +425,21 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
           meta: { ...prev.meta, lastModified: new Date().toISOString() },
         };
         addToHistory(newContent, `Update ${section}`);
+        
+        // For section updates, sync immediately
+        if (actualMode === 'admin' && enableApi && tokenStorage.isAuthenticated()) {
+          contentApi.updateSection(sectionKey, value as SiteContent[typeof sectionKey])
+            .catch(err => console.error('Failed to sync section:', err));
+        }
+        
         return newContent;
       });
     },
-    [addToHistory]
+    [addToHistory, actualMode, enableApi]
   );
 
   // ----------------------------------------
-  // Undo / Redo / Reset
+  // Undo / Redo (UNCHANGED - local only)
   // ----------------------------------------
   const undo = useCallback(() => {
     if (historyIndex > 0) {
@@ -332,99 +460,181 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
-  const resetContent = useCallback(() => {
-    // Reset to default JSON, but make sure to resolve images again
-    const resetData = resolveContentImages(defaultContent as SiteContent);
-    setContent(deepClone(resetData));
-    setSavedContent(deepClone(resetData));
-    setHistory([{ content: deepClone(resetData), timestamp: Date.now(), action: 'reset' }]);
-    setHistoryIndex(0);
-    
-    if (enablePersistence && typeof window !== 'undefined') {
-      localStorage.removeItem(storageKey);
-      localStorage.removeItem(SAVED_CONTENT_KEY);
+  // ----------------------------------------
+  // Reset content (UPDATED - calls API)
+  // ----------------------------------------
+  const resetContent = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (enableApi && tokenStorage.isAuthenticated()) {
+        // Call API to reset
+        const result = await contentApi.resetContent();
+        const resolved = resolveContentImages(result.content);
+        
+        setContent(resolved);
+        setSavedContent(resolved);
+      } else {
+        // Fallback to default content
+        const resolved = resolveContentImages(defaultContent as SiteContent);
+        setContent(deepClone(resolved));
+        setSavedContent(deepClone(resolved));
+      }
+
+      // Reset history
+      setHistory([{ content: deepClone(content), timestamp: Date.now(), action: 'reset' }]);
+      setHistoryIndex(0);
+      
+      // Clear localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        localStorage.removeItem(SAVED_CONTENT_KEY);
+      }
+    } catch (err) {
+      console.error('Failed to reset content:', err);
+      setError(getErrorMessage(err));
+      
+      // Fallback to local reset
+      const resolved = resolveContentImages(defaultContent as SiteContent);
+      setContent(deepClone(resolved));
+      setSavedContent(deepClone(resolved));
+    } finally {
+      setIsLoading(false);
     }
-  }, [storageKey, enablePersistence]);
+  }, [enableApi, content]);
 
   // ----------------------------------------
-  // Apply Changes (NEW) - Save current content as the new "saved" state
+  // Apply Changes (UPDATED - calls API to publish)
   // ----------------------------------------
   const applyChanges = useCallback(async (): Promise<void> => {
-    // Simulate async operation (e.g., API call)
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Update saved content to match current content
-    const contentToSave = deepClone(content);
-    setSavedContent(contentToSave);
-    setLastSaved(new Date());
-    
-    // Persist to localStorage
-    if (enablePersistence && typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(content));
+    setIsSyncing(true);
+    setError(null);
+
+    try {
+      // Flush any pending changes first
+      if (pendingChangesRef.current.size > 0) {
+        await syncToApi();
+      }
+
+      if (enableApi && tokenStorage.isAuthenticated()) {
+        // Call API to publish changes
+        const result = await contentApi.applyChanges();
+        const resolved = resolveContentImages(result.content);
+        
+        setSavedContent(resolved);
+        setContent(resolved);
+      } else {
+        // Fallback: just update saved content locally
+        setSavedContent(deepClone(content));
+      }
+
+      setLastSaved(new Date());
+      
+      // Update localStorage
+      if (enableFallback && typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(content));
         localStorage.setItem(SAVED_CONTENT_KEY, JSON.stringify(content));
-      } catch (error) {
-        console.error('Error saving content to localStorage:', error);
-        throw error;
       }
+    } catch (err) {
+      console.error('Failed to apply changes:', err);
+      setError(getErrorMessage(err));
+      throw err; // Re-throw so caller can handle
+    } finally {
+      setIsSyncing(false);
     }
-  }, [content, storageKey, enablePersistence]);
+  }, [content, enableApi, enableFallback, syncToApi]);
 
   // ----------------------------------------
-  // Discard Changes (NEW) - Revert to last saved state
+  // Discard Changes (UPDATED - calls API to revert)
   // ----------------------------------------
-  const discardChanges = useCallback((): void => {
-    // Revert content to last saved state
-    setContent(deepClone(savedContent));
-    
-    // Reset history to saved content
-    setHistory([{ content: deepClone(savedContent), timestamp: Date.now(), action: 'discard' }]);
-    setHistoryIndex(0);
-    
-    // Update localStorage to match saved content
-    if (enablePersistence && typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(savedContent));
-      } catch (error) {
-        console.error('Error updating localStorage:', error);
+  const discardChanges = useCallback(async (): Promise<void> => {
+    setIsSyncing(true);
+    setError(null);
+
+    try {
+      // Clear pending changes
+      pendingChangesRef.current.clear();
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
+
+      if (enableApi && tokenStorage.isAuthenticated()) {
+        // Call API to discard draft
+        const result = await contentApi.discardChanges();
+        const resolved = resolveContentImages(result.content);
+        
+        setContent(resolved);
+        setSavedContent(resolved);
+      } else {
+        // Fallback: revert to saved content
+        setContent(deepClone(savedContent));
+      }
+
+      // Reset history
+      setHistory([{ content: deepClone(savedContent), timestamp: Date.now(), action: 'discard' }]);
+      setHistoryIndex(0);
+      
+      // Update localStorage
+      if (enableFallback && typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedContent));
+      }
+    } catch (err) {
+      console.error('Failed to discard changes:', err);
+      setError(getErrorMessage(err));
+      
+      // Fallback: just revert locally
+      setContent(deepClone(savedContent));
+    } finally {
+      setIsSyncing(false);
     }
-  }, [savedContent, storageKey, enablePersistence]);
+  }, [savedContent, enableApi, enableFallback]);
 
   // ----------------------------------------
-  // Export / Import
+  // Export / Import (UPDATED)
   // ----------------------------------------
   const exportContent = useCallback((): string => {
     return JSON.stringify(content, null, 2);
   }, [content]);
 
   const importContent = useCallback(
-    (jsonString: string): boolean => {
+    async (jsonString: string): Promise<boolean> => {
       try {
         const parsed = JSON.parse(jsonString);
         if (!parsed || typeof parsed !== 'object') {
           throw new Error('Invalid content structure');
         }
-        // Merge and then resolve images
+        
         const mergedContent = deepMerge(defaultContent as SiteContent, parsed);
         const resolvedMerged = resolveContentImages(mergedContent);
 
         setContent(resolvedMerged);
         addToHistory(resolvedMerged, 'import');
 
+        // Sync to API if authenticated
+        if (enableApi && tokenStorage.isAuthenticated()) {
+          await contentApi.importContent(parsed);
+        }
+
         return true;
-      } catch (error) {
-        console.error('Error importing content:', error);
+      } catch (err) {
+        console.error('Error importing content:', err);
+        setError(getErrorMessage(err));
         return false;
       }
     },
-    [addToHistory]
+    [addToHistory, enableApi]
   );
 
   // ----------------------------------------
-  // Context value
+  // Context value (EXTENDED)
   // ----------------------------------------
-  const contextValue = useMemo<ContentContextValue>(
+  const contextValue = useMemo<ContentContextValue & { 
+    isLoading: boolean; 
+    error: string | null; 
+    isSyncing: boolean;
+    clearError: () => void;
+  }>(
     () => ({
       content,
       updateField,
@@ -440,6 +650,11 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
       lastSaved,
       applyChanges,
       discardChanges,
+      // New properties
+      isLoading,
+      error,
+      isSyncing,
+      clearError: () => setError(null),
     }),
     [
       content,
@@ -456,21 +671,29 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
       lastSaved,
       applyChanges,
       discardChanges,
+      isLoading,
+      error,
+      isSyncing,
     ]
   );
 
   return (
-    <ContentContext.Provider value={contextValue}>
+    <ContentContext.Provider value={contextValue as ContentContextValue}>
       {children}
     </ContentContext.Provider>
   );
 };
 
 // ============================================
-// CUSTOM HOOKS (Unchanged)
+// CUSTOM HOOKS (UNCHANGED)
 // ============================================
 
-export const useContent = (): ContentContextValue => {
+export const useContent = (): ContentContextValue & {
+  isLoading?: boolean;
+  error?: string | null;
+  isSyncing?: boolean;
+  clearError?: () => void;
+} => {
   const context = useContext(ContentContext);
   if (context === undefined) {
     throw new Error('useContent must be used within a ContentProvider');
@@ -530,6 +753,10 @@ export const usePartners = () => {
   const { content } = useContent();
   return content.partners;
 };
+
+// ============================================
+// EXPORTS
+// ============================================
 
 export { ContentContext };
 export type { ContentProviderProps };

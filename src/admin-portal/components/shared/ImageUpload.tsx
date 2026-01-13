@@ -20,7 +20,9 @@ import {
   Download,
   Maximize2,
   HardDrive,
+  Cloud, // NEW: Cloud icon for S3 upload indicator
 } from 'lucide-react';
+import { mediaApi } from '../../../services/api';
 
 // ============================================
 // LOCAL STORAGE UTILITY
@@ -100,6 +102,52 @@ const clearLocalStorage = (): void => {
     localStorage.removeItem(STORAGE_KEY);
   } catch (error) {
     console.error('Failed to clear localStorage:', error);
+  }
+};
+
+// ============================================
+// NEW: S3 UPLOAD UTILITY
+// ============================================
+
+/**
+ * Upload image to S3 via backend API
+ * @param file - The file to upload
+ * @param folder - Optional folder path in S3 (e.g., 'services', 'gallery')
+ * @returns Promise<string> - The S3 URL of the uploaded image
+ */
+const uploadToS3 = async (file: File, folder?: string): Promise<string> => {
+  try {
+    console.log('=== Uploading to S3 ===');
+    console.log('File:', file.name, 'Size:', formatFileSize(file.size));
+    
+    const result = await mediaApi.upload(file, folder);
+    
+    console.log('S3 Upload successful:', result.url);
+    console.log('========================');
+    
+    return result.url;
+  } catch (error) {
+    console.error('S3 Upload failed:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete image from S3 via backend API
+ * @param url - The S3 URL or key of the image to delete
+ */
+const deleteFromS3 = async (url: string): Promise<void> => {
+  try {
+    // Extract key from URL if full URL is provided
+    const key = url.includes('amazonaws.com') 
+      ? url.split('.com/')[1] 
+      : url;
+    
+    await mediaApi.delete(key);
+    console.log('Deleted from S3:', key);
+  } catch (error) {
+    console.error('Failed to delete from S3:', error);
+    throw error;
   }
 };
 
@@ -290,8 +338,12 @@ export interface ImageUploadProps {
   enableFileUpload?: boolean;
   /** Enable paste from clipboard */
   enablePaste?: boolean;
-  /** Save to localStorage */
+  /** Save to localStorage (fallback if no onUpload provided) */
   saveToStorage?: boolean;
+  /** NEW: Upload to S3 instead of localStorage */
+  uploadToCloud?: boolean;
+  /** NEW: S3 folder path */
+  cloudFolder?: string;
   /** Custom upload handler (for server upload) */
   onUpload?: (file: File, compressed: CompressionResult) => Promise<string>;
   /** Show alt text input */
@@ -343,6 +395,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   enableFileUpload = true,
   enablePaste = true,
   saveToStorage = true,
+  uploadToCloud = false, // NEW: Default to false for backward compatibility
+  cloudFolder,           // NEW: S3 folder
   onUpload,
   showAltInput = false,
   showImageInfo = true,
@@ -430,7 +484,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setImageInfo(null);
   };
 
-  // Handle file selection with compression
+  // Handle file selection with compression - UPDATED to support S3 upload
   const handleFileSelect = useCallback(
     async (file: File) => {
       // Validate it's an image (accept all image types)
@@ -478,8 +532,18 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         if (onUpload) {
           // Custom upload handler (server upload)
           finalUrl = await onUpload(file, compressed);
+        } else if (uploadToCloud) {
+          // NEW: Upload to S3
+          setCompressionProgress('Uploading to cloud...');
+          // Create a new File from the compressed blob
+          const compressedFile = new File(
+            [compressed.blob], 
+            file.name.replace(/\.[^/.]+$/, `.${compressed.format}`),
+            { type: `image/${compressed.format}` }
+          );
+          finalUrl = await uploadToS3(compressedFile, cloudFolder);
         } else if (saveToStorage) {
-          // Save to localStorage as base64
+          // Save to localStorage as base64 (fallback)
           const base64 = await blobToBase64(compressed.blob);
           saveToLocalStorage({
             url: base64,
@@ -503,12 +567,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         });
         
         // Log compression details to console for verification
-        console.log('=== Image Compression Result ===');
+        console.log('=== Image Processing Result ===');
         console.log('Original Size:', formatFileSize(originalSize));
         console.log('Compressed Size:', formatFileSize(compressed.compressedSize));
         console.log('Dimensions:', compressed.width, '×', compressed.height);
         console.log('Format:', compressed.format);
-        console.log('Saved to:', saveToStorage ? 'localStorage' : 'memory');
+        console.log('Saved to:', uploadToCloud ? 'S3 Cloud' : (saveToStorage ? 'localStorage' : 'memory'));
         if (originalSize > compressed.compressedSize) {
           console.log('Savings:', savings + '%');
         }
@@ -526,7 +590,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         setCompressionProgress('');
       }
     },
-    [maxSizeMB, maxWidthOrHeight, compressionQuality, convertToWebP, onChange, onUpload, onImageData, saveToStorage]
+    [maxSizeMB, maxWidthOrHeight, compressionQuality, convertToWebP, onChange, onUpload, onImageData, saveToStorage, uploadToCloud, cloudFolder]
   );
 
   // Handle file input change
@@ -670,7 +734,14 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {saveToStorage && (
+            {/* NEW: Show cloud indicator if uploadToCloud is enabled */}
+            {uploadToCloud && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Cloud className="w-3 h-3 text-blue-500" />
+                Cloud
+              </span>
+            )}
+            {saveToStorage && !uploadToCloud && (
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <HardDrive className="w-3 h-3" />
                 Auto-save
@@ -800,7 +871,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={disabled}
-                  className="p-2 bg-white/20 backdrop-blur-sm rounded-lg text-white hover:bg-white/30 transition-colors"
+                  className="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white"
                   title="Replace image"
                 >
                   <RefreshCw className="w-5 h-5" />
@@ -808,7 +879,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowFullscreen(true)}
-                  className="p-2 bg-white/20 backdrop-blur-sm rounded-lg text-white hover:bg-white/30 transition-colors"
+                  className="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white"
                   title="View fullscreen"
                 >
                   <Maximize2 className="w-5 h-5" />
@@ -816,7 +887,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 <button
                   type="button"
                   onClick={handleCopyUrl}
-                  className="p-2 bg-white/20 backdrop-blur-sm rounded-lg text-white hover:bg-white/30 transition-colors"
+                  className="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white"
                   title="Copy URL"
                 >
                   <Copy className="w-5 h-5" />
@@ -824,198 +895,159 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 <button
                   type="button"
                   onClick={handleDownload}
-                  className="p-2 bg-white/20 backdrop-blur-sm rounded-lg text-white hover:bg-white/30 transition-colors"
+                  className="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white"
                   title="Download"
                 >
                   <Download className="w-5 h-5" />
                 </button>
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleClear();
-                  }}
+                  onClick={handleClear}
                   disabled={disabled}
-                  className="p-2 bg-destructive/80 backdrop-blur-sm rounded-lg text-white hover:bg-destructive transition-colors"
+                  className="p-2 rounded-lg bg-red-500/80 hover:bg-red-500 text-white"
                   title="Remove image"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Success Badge */}
-              {uploadStatus === 'success' && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute top-2 right-2 p-1.5 bg-green-500 rounded-full"
-                >
-                  <Check className="w-4 h-4 text-white" />
-                </motion.div>
-              )}
-
               {/* Image Info Badge */}
               {showImageInfo && imageInfo && (
                 <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs flex items-center gap-2">
-                  <Info className="w-3 h-3" />
                   <span>{imageInfo.width} × {imageInfo.height}</span>
-                  {imageInfo.size > 0 && (
+                  <span>•</span>
+                  <span>{formatFileSize(imageInfo.size)}</span>
+                  {imageInfo.format && (
                     <>
-                      <span className="text-white/60">|</span>
-                      <span>{formatFileSize(imageInfo.size)}</span>
+                      <span>•</span>
+                      <span className="uppercase">{imageInfo.format}</span>
                     </>
                   )}
-                  {imageInfo.originalSize && imageInfo.originalSize > 0 && imageInfo.size > 0 && imageInfo.originalSize !== imageInfo.size && (
-                    <span className="text-green-400 font-medium">
-                      (-{Math.round((1 - imageInfo.size / imageInfo.originalSize) * 100)}%)
-                    </span>
-                  )}
+                </div>
+              )}
+
+              {/* Cloud indicator for S3-hosted images */}
+              {value && value.includes('amazonaws.com') && (
+                <div className="absolute top-2 right-2 px-2 py-1 bg-blue-500/80 backdrop-blur-sm rounded-lg text-white text-xs flex items-center gap-1">
+                  <Cloud className="w-3 h-3" />
+                  S3
                 </div>
               )}
             </div>
           ) : (
-            // Upload placeholder
-            <label
-              htmlFor="image-upload-input"
-              onClick={() => fileInputRef.current?.click()}
-              className={`flex flex-col items-center justify-center py-8 px-4 ${
-                disabled ? 'cursor-not-allowed' : 'cursor-pointer'
-              }`}
+            // Upload prompt
+            <div
+              onClick={() => !disabled && fileInputRef.current?.click()}
+              className={`p-8 text-center ${disabled ? '' : 'cursor-pointer'}`}
             >
               {uploadStatus === 'compressing' || uploadStatus === 'uploading' ? (
-                <>
-                  <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
-                  <p className="text-sm font-medium text-foreground mb-1">
-                    {uploadStatus === 'compressing' ? 'Compressing...' : 'Uploading...'}
+                <div className="space-y-3">
+                  <Loader2 className="w-10 h-10 mx-auto text-primary animate-spin" />
+                  <p className="text-sm text-muted-foreground">
+                    {compressionProgress || (uploadToCloud ? 'Uploading to cloud...' : 'Processing...')}
                   </p>
-                  {compressionProgress && (
-                    <p className="text-xs text-muted-foreground">{compressionProgress}</p>
-                  )}
-                </>
+                </div>
+              ) : uploadStatus === 'error' ? (
+                <div className="space-y-3">
+                  <AlertCircle className="w-10 h-10 mx-auto text-destructive" />
+                  <p className="text-sm text-destructive">{uploadError}</p>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setUploadStatus('idle');
+                      setUploadError(null);
+                    }}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Try again
+                  </button>
+                </div>
               ) : (
-                <>
-                  <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-3">
-                    <Upload className="w-6 h-6 text-muted-foreground" />
-                  </div>
-
-                  <p className="text-sm font-medium text-foreground mb-1">
-                    {isDragging
-                      ? 'Drop image here'
-                      : 'Click to upload or drag and drop'}
-                  </p>
-                  <p className="text-xs text-muted-foreground text-center">
-                    All image formats supported (PNG, JPG, WebP, AVIF, GIF, etc.)
-                    <br />
-                    <span className="text-primary">Auto-compressed to {maxSizeMB}MB max</span>
-                  </p>
-
-                  {enablePaste && (
-                    <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                      <Clipboard className="w-3 h-3" />
-                      Or paste from clipboard (Ctrl+V)
-                    </p>
+                <div className="space-y-3">
+                  {uploadToCloud ? (
+                    <Cloud className="w-10 h-10 mx-auto text-blue-500" />
+                  ) : (
+                    <Upload className="w-10 h-10 mx-auto text-muted-foreground" />
                   )}
-                </>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {isDragging ? 'Drop image here' : 'Click to upload or drag & drop'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      PNG, JPG, WebP up to {maxSizeMB}MB
+                      {uploadToCloud && ' • Uploads to cloud'}
+                    </p>
+                  </div>
+                </div>
               )}
-
-              {imageError && (
-                <p className="text-xs text-destructive mt-2 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  Failed to load image
-                </p>
-              )}
-            </label>
+            </div>
           )}
         </div>
       )}
 
-      {/* URL Preview (for URL mode) */}
-      <AnimatePresence>
-        {mode === 'url' && showPreview && hasImage && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="relative rounded-xl overflow-hidden border border-border group">
-              <img
-                src={value}
-                alt={altText || 'Preview'}
-                className={`w-full ${previewHeight} object-cover`}
-                style={aspectRatio ? { aspectRatio } : undefined}
-                onError={() => setImageError(true)}
-                onLoad={(e) => {
-                  const img = e.target as HTMLImageElement;
-                  setImageInfo((prev) => ({
-                    ...prev,
-                    width: img.naturalWidth,
-                    height: img.naturalHeight,
-                    size: prev?.size || 0,
-                  }));
-                }}
-              />
-              {imageError && (
-                <div className="absolute inset-0 flex items-center justify-center bg-secondary">
-                  <div className="text-center">
-                    <AlertCircle className="w-8 h-8 text-destructive mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Failed to load image</p>
-                  </div>
-                </div>
-              )}
-              
-              {/* Controls */}
-              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  type="button"
-                  onClick={() => setShowFullscreen(true)}
-                  className="p-1.5 bg-black/50 backdrop-blur-sm rounded-lg text-white hover:bg-black/70 transition-colors"
-                  title="View fullscreen"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCopyUrl}
-                  className="p-1.5 bg-black/50 backdrop-blur-sm rounded-lg text-white hover:bg-black/70 transition-colors"
-                  title="Copy URL"
-                >
-                  <Copy className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleOpenExternal}
-                  className="p-1.5 bg-black/50 backdrop-blur-sm rounded-lg text-white hover:bg-black/70 transition-colors"
-                  title="Open in new tab"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </button>
-              </div>
+      {/* URL Mode Preview */}
+      {mode === 'url' && showPreview && hasImage && !imageError && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="relative group"
+        >
+          <img
+            src={value}
+            alt={altText || 'Preview'}
+            className={`w-full ${previewHeight} object-cover rounded-xl border border-border`}
+            style={aspectRatio ? { aspectRatio } : undefined}
+            onError={() => setImageError(true)}
+          />
+          
+          {/* Preview overlay controls */}
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowFullscreen(true)}
+              className="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white"
+              title="View fullscreen"
+            >
+              <Maximize2 className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyUrl}
+              className="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white"
+              title="Copy URL"
+            >
+              <Copy className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleOpenExternal}
+              className="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white"
+              title="Open in new tab"
+            >
+              <ExternalLink className="w-5 h-5" />
+            </button>
+          </div>
 
-              {/* Image Info */}
-              {showImageInfo && imageInfo && imageInfo.width > 0 && (
-                <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs">
-                  {imageInfo.width} × {imageInfo.height}
-                </div>
-              )}
+          {/* Image Info */}
+          {showImageInfo && imageInfo && (
+            <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs flex items-center gap-2">
+              <span>{imageInfo.width} × {imageInfo.height}</span>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </motion.div>
+      )}
 
       {/* Alt Text Input */}
-      {showAltInput && hasImage && (
+      {showAltInput && (
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">
-            Alt Text (for SEO & Accessibility)
-          </label>
+          <label className="text-xs font-medium text-muted-foreground">Alt Text</label>
           <input
             type="text"
             value={altText}
             onChange={(e) => onAltChange?.(e.target.value)}
-            placeholder="Describe the image..."
+            placeholder="Describe the image for accessibility"
             disabled={disabled}
             className={inputClass}
           />
@@ -1023,50 +1055,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       )}
 
       {/* Helper Text */}
-      {helperText && !error && !uploadError && (
-        <p className="text-xs text-muted-foreground">{helperText}</p>
+      {helperText && (
+        <p className="text-xs text-muted-foreground flex items-center gap-1">
+          <Info className="w-3 h-3" />
+          {helperText}
+        </p>
       )}
-
-      {/* Compression Result Banner */}
-      {/* <AnimatePresence>
-        {compressionResult && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="p-3 rounded-xl bg-green-500/10 border border-green-500/20"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                  Image Compressed Successfully
-                </span>
-              </div>
-              <button
-                onClick={() => setCompressionResult(null)}
-                className="p-1 hover:bg-green-500/20 rounded-lg text-green-600 dark:text-green-400"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
-              <span className="text-muted-foreground">
-                Original: <span className="font-medium text-foreground">{formatFileSize(compressionResult.originalSize)}</span>
-              </span>
-              <span className="text-muted-foreground">→</span>
-              <span className="text-muted-foreground">
-                Compressed: <span className="font-medium text-green-600 dark:text-green-400">{formatFileSize(compressionResult.compressedSize)}</span>
-              </span>
-              {compressionResult.savings > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-600 dark:text-green-400 font-medium">
-                  -{compressionResult.savings}% saved
-                </span>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence> */}
 
       {/* Error Message */}
       {(error || uploadError) && (
@@ -1076,7 +1070,28 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         </p>
       )}
 
-      {/* Fullscreen Preview Modal */}
+      {/* Image Load Error */}
+      {imageError && hasImage && (
+        <p className="text-xs text-destructive flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          Failed to load image. Check the URL is correct.
+        </p>
+      )}
+
+      {/* Success indicator */}
+      {uploadStatus === 'success' && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className="text-xs text-green-600 flex items-center gap-1"
+        >
+          <Check className="w-3 h-3" />
+          {uploadToCloud ? 'Uploaded to cloud successfully!' : 'Image processed successfully!'}
+        </motion.div>
+      )}
+
+      {/* Fullscreen Modal */}
       <AnimatePresence>
         {showFullscreen && hasImage && (
           <motion.div
@@ -1087,23 +1102,17 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             onClick={() => setShowFullscreen(false)}
           >
             <button
+              className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white"
               onClick={() => setShowFullscreen(false)}
-              className="absolute top-4 right-4 p-2 bg-white/10 rounded-lg text-white hover:bg-white/20"
             >
               <X className="w-6 h-6" />
             </button>
             <img
               src={value}
-              alt={altText || 'Preview'}
+              alt={altText || 'Fullscreen preview'}
               className="max-w-full max-h-full object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />
-            {showImageInfo && imageInfo && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/60 backdrop-blur-sm rounded-lg text-white text-sm">
-                {imageInfo.width} × {imageInfo.height} | {formatFileSize(imageInfo.size)}
-                {imageInfo.format && ` | ${imageInfo.format.toUpperCase()}`}
-              </div>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -1112,38 +1121,25 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 };
 
 // ============================================
-// MULTI IMAGE UPLOAD COMPONENT
+// MULTI-IMAGE UPLOAD COMPONENT
 // ============================================
 export interface MultiImageUploadProps {
-  /** Array of image objects */
   value: Array<{ url: string; alt?: string }>;
-  /** Callback when images change */
   onChange: (images: Array<{ url: string; alt?: string }>) => void;
-  /** Maximum number of images */
   maxImages?: number;
-  /** Label */
   label?: string;
-  /** Helper text */
   helperText?: string;
-  /** Show alt input for each image */
   showAltInput?: boolean;
-  /** Preview height */
   previewHeight?: string;
-  /** Max file size in MB */
   maxSizeMB?: number;
-  /** Max width or height */
   maxWidthOrHeight?: number;
-  /** Save to localStorage */
   saveToStorage?: boolean;
-  /** Custom upload handler */
+  uploadToCloud?: boolean;    // NEW
+  cloudFolder?: string;       // NEW
   onUpload?: (file: File, compressed: CompressionResult) => Promise<string>;
-  /** Disabled state */
   disabled?: boolean;
-  /** Class name */
   className?: string;
-  /** Enable multiple file selection */
   enableMultiSelect?: boolean;
-  /** ID prefix for scroll targeting (default: 'image-slot') */
   idPrefix?: string;
 }
 
@@ -1153,23 +1149,25 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   maxImages = 10,
   label,
   helperText,
-  showAltInput = true,
+  showAltInput = false,
   previewHeight = 'h-32',
   maxSizeMB = 2,
   maxWidthOrHeight = 1920,
   saveToStorage = true,
+  uploadToCloud = false,      // NEW
+  cloudFolder,                // NEW
   onUpload,
   disabled = false,
   className = '',
   enableMultiSelect = true,
-  idPrefix = 'background-image',
+  idPrefix = 'multi-image',
 }) => {
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingCount, setProcessingCount] = useState({ current: 0, total: 0 });
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const multiFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle multiple file selection
+  // Handle multiple file selection - UPDATED to support S3 upload
   const handleMultiFileSelect = async (files: FileList) => {
     if (disabled || isProcessing) return;
 
@@ -1199,6 +1197,14 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 
         if (onUpload) {
           finalUrl = await onUpload(file, compressed);
+        } else if (uploadToCloud) {
+          // NEW: Upload to S3
+          const compressedFile = new File(
+            [compressed.blob],
+            file.name.replace(/\.[^/.]+$/, `.${compressed.format}`),
+            { type: `image/${compressed.format}` }
+          );
+          finalUrl = await uploadToS3(compressedFile, cloudFolder);
         } else if (saveToStorage) {
           const base64 = await blobToBase64(compressed.blob);
           saveToLocalStorage({
@@ -1286,6 +1292,13 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary">
               {value.length}/{maxImages}
             </span>
+            {/* NEW: Cloud indicator */}
+            {uploadToCloud && (
+              <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center gap-1">
+                <Cloud className="w-3 h-3" />
+                Cloud
+              </span>
+            )}
           </label>
 
           {/* Bulk Upload Button */}
@@ -1357,6 +1370,8 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                   maxSizeMB={maxSizeMB}
                   maxWidthOrHeight={maxWidthOrHeight}
                   saveToStorage={saveToStorage}
+                  uploadToCloud={uploadToCloud}
+                  cloudFolder={cloudFolder}
                   onUpload={onUpload}
                   disabled={disabled}
                   compact
@@ -1426,6 +1441,6 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 // ============================================
 // EXPORTS
 // ============================================
-export { compressImage, formatFileSize, saveToLocalStorage, getFromLocalStorage, removeFromLocalStorage, clearLocalStorage };
+export { compressImage, formatFileSize, saveToLocalStorage, getFromLocalStorage, removeFromLocalStorage, clearLocalStorage, uploadToS3, deleteFromS3 };
 export type { CompressionResult, CompressionOptions, StoredImage };
 export default ImageUpload;

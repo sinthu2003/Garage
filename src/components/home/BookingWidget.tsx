@@ -9,11 +9,21 @@ import {
   Search, 
   X, 
   Sparkles,
-  CheckCircle2
+  CheckCircle2,
+  Loader2,        // NEW: For loading spinner
+  CheckCircle,    // NEW: For success icon
+  AlertCircle,    // NEW: For error icon
 } from 'lucide-react';
 import { useContent } from '../../admin-portal';
+import { bookingApi, getErrorMessage } from '../../services/api'; // NEW: API import
 
 type ViewState = 'main' | 'brands' | 'models' | 'fuel';
+
+// NEW: Submission result type
+interface SubmissionResult {
+  success: boolean;
+  message: string;
+}
 
 export const BookingWidget = () => {
   // Get content from context
@@ -34,6 +44,10 @@ export const BookingWidget = () => {
   const [selectedModel, setSelectedModel] = useState<{ name: string; type: string; image: string } | null>(null);
   const [selectedFuel, setSelectedFuel] = useState<typeof fuelTypes[0] | null>(null);
   const [mobileNumber, setMobileNumber] = useState('');
+
+  // NEW: Submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
 
   const filteredBrands = brands.filter(brand => 
     brand.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -87,6 +101,49 @@ export const BookingWidget = () => {
     return 'Select your car';
   };
 
+  // NEW: Handle form submission
+  const handleSubmit = async () => {
+    if (!isCarSelected || mobileNumber.length !== 10) return;
+
+    setIsSubmitting(true);
+    setSubmissionResult(null);
+
+    try {
+      const result = await bookingApi.submit({
+        phone: mobileNumber,
+        countryCode: '+91',
+        city: selectedCity.toLowerCase(),
+        brand: selectedBrand!.id,
+        brandName: selectedBrand!.name,
+        model: selectedModel!.name,
+        fuelType: selectedFuel!.name,
+        source: 'booking_widget',
+        sourcePage: window.location.pathname,
+      });
+
+      setSubmissionResult({
+        success: true,
+        message: result.message || 'Thank you! Our team will contact you within 30 minutes.',
+      });
+
+      // Reset form
+      resetCarSelection();
+      setMobileNumber('');
+    } catch (error) {
+      setSubmissionResult({
+        success: false,
+        message: getErrorMessage(error) || 'Something went wrong. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // NEW: Close result modal
+  const closeResultModal = () => {
+    setSubmissionResult(null);
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 40 }}
@@ -95,6 +152,57 @@ export const BookingWidget = () => {
       className="w-full max-w-md relative"
       id="booking-widget"
     >
+      {/* NEW: Success/Error Modal */}
+      <AnimatePresence>
+        {submissionResult && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            onClick={closeResultModal}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card rounded-3xl p-8 max-w-sm w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                submissionResult.success 
+                  ? 'bg-green-100 dark:bg-green-900/30' 
+                  : 'bg-red-100 dark:bg-red-900/30'
+              }`}>
+                {submissionResult.success ? (
+                  <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                ) : (
+                  <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+                )}
+              </div>
+              <h3 className={`text-xl font-bold text-center mb-2 ${
+                submissionResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              }`}>
+                {submissionResult.success ? 'Booking Received!' : 'Oops!'}
+              </h3>
+              <p className="text-center text-muted-foreground mb-6">
+                {submissionResult.message}
+              </p>
+              <button
+                onClick={closeResultModal}
+                className={`w-full py-3 rounded-xl font-semibold transition-colors ${
+                  submissionResult.success
+                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    : 'bg-red-600 hover:bg-red-700 text-white'
+                }`}
+              >
+                {submissionResult.success ? 'Great!' : 'Try Again'}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="bg-card rounded-3xl shadow-2xl shadow-primary/20 overflow-hidden">
         {/* Top Accent Bar - Themeable */}
         <motion.div 
@@ -250,15 +358,25 @@ export const BookingWidget = () => {
                   </div>
                 </div>
 
-                {/* Submit Button */}
+                {/* Submit Button - UPDATED: Added onClick and loading state */}
                 <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  disabled={!isCarSelected || mobileNumber.length !== 10}
+                  whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                  whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
+                  disabled={!isCarSelected || mobileNumber.length !== 10 || isSubmitting}
+                  onClick={handleSubmit}
                   className="w-full py-4 bg-primary text-primary-foreground text-base font-bold rounded-2xl shadow-lg shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all flex items-center justify-center gap-2"
                 >
-                  {bookingContent.ctaText}
-                  <ChevronRight className="w-5 h-5" />
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      {bookingContent.ctaText}
+                      <ChevronRight className="w-5 h-5" />
+                    </>
+                  )}
                 </motion.button>
               </motion.div>
             )}
