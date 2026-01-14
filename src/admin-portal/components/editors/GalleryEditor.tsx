@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
 import {
 
   Image,
@@ -201,7 +201,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
               {content.categories?.length || 0}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               addNewCategory();
@@ -209,7 +209,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>
@@ -516,7 +516,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
               {content.stats?.length || 0}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               const newStat: GalleryStat = { icon: 'Wrench', value: '100+', label: 'New Stat' };
@@ -526,7 +526,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>

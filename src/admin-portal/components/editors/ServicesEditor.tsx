@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useServicesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
 
 interface ServicesEditorProps {
   isDarkMode: boolean;

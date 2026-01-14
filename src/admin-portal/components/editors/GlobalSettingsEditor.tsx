@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,

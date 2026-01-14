@@ -5,7 +5,6 @@ import {
   Type,
   ChevronRight,
   ChevronDown,
-  Plus,
   Trash2,
   GripVertical,
   Palette,
@@ -22,7 +21,7 @@ import { useFeaturesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { FeatureItem } from '../../types/content.types';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
 
 interface FeaturesEditorProps {
   isDarkMode: boolean;
@@ -285,7 +284,7 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
               {content.items?.length || 0}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               addNewFeature();
@@ -293,7 +292,7 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>

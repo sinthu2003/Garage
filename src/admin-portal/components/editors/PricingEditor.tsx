@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
  import { DollarSign,
   Type,
   ChevronRight,
   ChevronDown,
-  Plus,
   Trash2,
   Percent,
   TrendingDown,
@@ -205,7 +204,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
               {content.items?.length || 0}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               addNewPriceItem();
@@ -213,7 +212,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>
@@ -302,7 +301,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                                 newItems[index] = { ...newItems[index], image: url };
                                 handleUpdate('items', newItems);
                               }}
-                              label="Service Image"
+                              label="Pricing Image"
                               placeholder="Upload image or enter URL"
                               previewHeight="h-40"
                               maxSizeMB={2}

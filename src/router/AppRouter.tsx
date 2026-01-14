@@ -10,7 +10,7 @@ import { NotFoundPage } from '../pages/NotFoundPage';
 
 // NEW: Import auth components
 import { useAuth, ProtectedRoute } from '../context/AuthContext';
-import { AdminLogin } from '../admin-portal/components/AdminLogin';
+import  AdminLogin  from '../admin-portal/components/AdminLogin';
 
 // ============================================
 // SCROLL TO TOP COMPONENT (UNCHANGED)

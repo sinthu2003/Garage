@@ -18,7 +18,7 @@ import { useTestimonialsContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { TestimonialItem } from '../../types/content.types';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
 
 interface TestimonialsEditorProps {
   isDarkMode: boolean;

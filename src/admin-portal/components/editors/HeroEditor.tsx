@@ -16,7 +16,7 @@ import { useHeroContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { HeroStat, HeroScrollingBrand } from '../../types/content.types';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
 
 // Type for background images
 interface BackgroundImage {
@@ -525,7 +525,7 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
               {content.stats?.length || 0}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               const newStat: HeroStat = { icon: 'Star', label: 'New Stat', value: '100', prefix: '', suffix: '+' };
@@ -535,7 +535,7 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>

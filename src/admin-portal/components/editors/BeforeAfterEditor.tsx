@@ -5,7 +5,6 @@ import {
   Type,
   ChevronRight,
   ChevronDown,
-  Plus,
   Trash2,
   GripVertical,
   Clock,
@@ -16,7 +15,7 @@ import { useBeforeAfterContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { BeforeAfterItem } from '../../types/content.types';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
 
 interface BeforeAfterEditorProps {
   isDarkMode: boolean;
@@ -200,7 +199,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
               {content.items?.length || 0}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               addNewTransformation();
@@ -208,7 +207,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>

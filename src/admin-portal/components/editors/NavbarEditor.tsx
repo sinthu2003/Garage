@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Phone,
   Menu,
-  Plus,
   Trash2,
   GripVertical,
   Type,
@@ -15,7 +14,7 @@ import {
 import { useGlobalContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
 
 interface NavbarEditorProps {
   isDarkMode: boolean;
@@ -198,7 +197,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
               {defaultNavLinks.length}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               handleUpdate('navbar.links', [...defaultNavLinks, { label: 'New Link', href: '#' }]);
@@ -206,7 +205,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>

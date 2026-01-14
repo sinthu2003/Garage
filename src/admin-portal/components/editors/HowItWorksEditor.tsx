@@ -5,7 +5,7 @@ import {
   Type,
   ChevronRight,
   ChevronDown,
-  Plus,
+  
   Trash2,
   GripVertical,
   Palette,
@@ -20,8 +20,7 @@ import { useHowItWorksContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { HowItWorksStep } from '../../types/content.types';
-import { SectionLoader } from '../shared/Sectionloader';
-
+import { SectionLoader } from '../shared/SectionLoader';
 interface HowItWorksEditorProps {
   isDarkMode: boolean;
 }
@@ -207,7 +206,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
               {content.steps?.length || 0}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               addNewStep();
@@ -215,7 +214,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>

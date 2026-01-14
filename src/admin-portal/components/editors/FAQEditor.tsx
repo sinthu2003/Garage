@@ -7,7 +7,6 @@ import {
   Mail,
   ChevronRight,
   ChevronDown,
-  Plus,
   Trash2,
   GripVertical,
   MapPin,
@@ -18,8 +17,8 @@ import {
 } from 'lucide-react';
 import { useFAQContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
-import type { FAQContactCard, FAQItem, BusinessHour, ContactServiceOption } from '../../types/content.types';
-import { SectionLoader } from '../shared/Sectionloader';
+import type { FAQContactCard, FAQItem, BusinessHour } from '../../types/content.types';
+import { SectionLoader } from '../shared/SectionLoader';
 
 interface FAQEditorProps {
   isDarkMode: boolean;
@@ -128,15 +127,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
     handleUpdate('businessHours', [newHour, ...(content.businessHours || [])]);
   };
 
-  const addNewServiceOption = () => {
-    const newOption: ContactServiceOption = {
-      value: 'new-service',
-      label: 'New Service',
-    };
-    const currentOptions = content.contactPage?.serviceOptions || [];
-    // Add at the beginning of the array
-    handleUpdate('contactPage.serviceOptions', [newOption, ...currentOptions]);
-  };
 
   // Get icon component by type
   const getContactIcon = (type: string) => {
@@ -239,7 +229,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
               {content.contactCards?.length || 0}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               addNewContactCard();
@@ -247,7 +237,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>
@@ -382,7 +372,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
               {content.businessHours?.length || 0}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               addNewBusinessHour();
@@ -390,7 +380,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>
@@ -490,7 +480,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
               {content.items?.length || 0}
             </span>
           </div>
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               addNewFAQ();
@@ -498,7 +488,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </button> */}
         </div>
 
         <AnimatePresence>
@@ -796,7 +786,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                 </div>
 
                 {/* Service Options */}
-                <div className="space-y-3 pt-2">
+                {/* <div className="space-y-3 pt-2">
                   <div className="flex items-center justify-between">
                     <label className={labelClass}>Service Options (Dropdown)</label>
                     <button
@@ -848,7 +838,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                       No service options. Click + to add.
                     </p>
                   )}
-                </div>
+                </div> */}
               </div>
             </motion.div>
           )}

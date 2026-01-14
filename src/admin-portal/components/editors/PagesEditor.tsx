@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Type,
@@ -568,7 +568,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                     {quickLinks.length}
                   </span>
                 </div>
-                <button
+                {/* <button
                   onClick={() => {
                     // Add at the beginning of the array
                     handleUpdate('notFound.quickLinks', [
@@ -579,7 +579,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                   className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
                 >
                   <Plus className="w-4 h-4" />
-                </button>
+                </button> */}
               </div>
 
               <AnimatePresence>
