@@ -4,6 +4,7 @@ import { motion, useInView } from 'framer-motion';
 import { ArrowRight, Settings, Wrench, Car } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../../admin-portal';
+import { services } from '../../utils/data';
 
 export const ServiceGrid = () => {
   const sectionRef = useRef(null);
@@ -16,8 +17,13 @@ export const ServiceGrid = () => {
   const { content } = useContent();
   const servicesContent = content.services;
 
-  // Show only first 8 services on homepage
-  const displayedServices = servicesContent.items.slice(0, 8);
+// 2. Optional: Add a safety check before slicing
+  const items = services || [];
+  const displayedServices = items.slice(0, 8);
+
+  if (!items.length) {
+    return <div className="text-center p-4">No services available.</div>;
+  }
   const hasMoreServices = servicesContent.items.length > 8;
 
   const handleViewAll = () => {

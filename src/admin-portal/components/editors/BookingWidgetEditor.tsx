@@ -15,6 +15,7 @@ import {
   GripVertical,
   Search,
   X,
+  Loader2,
 } from 'lucide-react';
 import { useBookingWidgetContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
@@ -47,6 +48,19 @@ interface FuelType {
 export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => {
   const { updateField } = useContent();
   const content = useBookingWidgetContent();
+
+  // [NEW] Get car data from separate API collection (if available)
+  const {
+    carBrands: apiBrands,
+    carBrandsLoading,
+    createBrand: createBrandApi,
+    updateBrand: updateBrandApi,
+    deleteBrand: deleteBrandApi,
+    createModel: createModelApi,
+    updateModel: updateModelApi,
+    deleteModel: deleteModelApi,
+  } = useContent();
+
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'labels', 'cities', 'brands', 'fuelTypes', 'cta', 'trustFooter'])
   );
@@ -56,6 +70,42 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
   // Search state
   const [brandSearch, setBrandSearch] = useState('');
   const [modelSearch, setModelSearch] = useState<Record<string, string>>({});
+
+  // [NEW] Saving state for async operations
+  const [isSaving, setIsSaving] = useState(false);
+
+  // [NEW] Determine which data source to use - API if available, otherwise legacy content
+  const useNewApi = apiBrands && apiBrands.length > 0;
+
+  // [NEW] Transform API brands to legacy format OR use legacy content
+  const brands: Brand[] = useMemo(() => {
+    if (useNewApi) {
+      return apiBrands.map((b: any) => ({
+        id: b._id || b.id,
+        name: b.name,
+        logo: b.logo || '',
+        urlName: b.urlName || b.name?.toLowerCase().replace(/\s+/g, '-') || '',
+      }));
+    }
+    return content.brands || [];
+  }, [useNewApi, apiBrands, content.brands]);
+
+  // [NEW] Transform API models OR use legacy content
+  const carModels: Record<string, CarModel[]> = useMemo(() => {
+    if (useNewApi) {
+      const models: Record<string, CarModel[]> = {};
+      apiBrands.forEach((brand: any) => {
+        const brandId = brand._id || brand.id;
+        models[brandId] = (brand.models || []).map((m: any) => ({
+          name: m.name,
+          type: m.type || 'Sedan',
+          image: m.image || '',
+        }));
+      });
+      return models;
+    }
+    return content.carModels || {};
+  }, [useNewApi, apiBrands, content.carModels]);
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -103,8 +153,6 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
 
   // Default data
   const cities: string[] = content.cities || ['Chennai'];
-  const brands: Brand[] = content.brands || [];
-  const carModels: Record<string, CarModel[]> = content.carModels || {};
   const fuelTypes: FuelType[] = content.fuelTypes || [
     { id: 'petrol', name: 'Petrol', icon: '⛽', color: '#22C55E' },
     { id: 'diesel', name: 'Diesel', icon: '🛢️', color: '#EAB308' },
@@ -144,80 +192,159 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
   // Generate ID from name
   const generateId = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-  // Add new brand
-  const addBrand = () => {
-    const newBrand: Brand = {
-      id: `brand-${Date.now()}`,
-      name: 'New Brand',
-      logo: '',
-      urlName: 'new-brand',
-    };
-    // Add at the beginning of the array
-    handleUpdate('brands', [newBrand, ...brands]);
-    // Auto-expand the newly added brand (now at index 0)
-    setExpandedBrands(new Set([0]));
-  };
-
-  // Update brand
-  const updateBrand = (index: number, field: keyof Brand, value: string) => {
-    const newBrands = [...brands];
-    newBrands[index] = { ...newBrands[index], [field]: value };
-    
-    // Auto-update id and urlName when name changes
-    if (field === 'name') {
-      newBrands[index].id = generateId(value);
-      newBrands[index].urlName = generateId(value);
+  // [UPDATED] Add new brand - uses new API if available
+  const addBrand = async () => {
+    if (useNewApi && createBrandApi) {
+      setIsSaving(true);
+      try {
+        await createBrandApi({ name: 'New Brand', logo: '', urlName: 'new-brand' });
+        setExpandedBrands(new Set([0]));
+      } catch (error) {
+        console.error('Failed to create brand:', error);
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      // Legacy fallback
+      const newBrand: Brand = {
+        id: `brand-${Date.now()}`,
+        name: 'New Brand',
+        logo: '',
+        urlName: 'new-brand',
+      };
+      handleUpdate('brands', [newBrand, ...brands]);
+      setExpandedBrands(new Set([0]));
     }
-    
-    handleUpdate('brands', newBrands);
   };
 
-  // Delete brand
-  const deleteBrand = (index: number) => {
-    const brandId = brands[index].id;
-    const newBrands = brands.filter((_, i) => i !== index);
-    handleUpdate('brands', newBrands);
-    
-    // Also remove models for this brand
-    const newCarModels = { ...carModels };
-    delete newCarModels[brandId];
-    handleUpdate('carModels', newCarModels);
+  // [UPDATED] Update brand - uses new API if available
+  const updateBrand = async (index: number, field: keyof Brand, value: string) => {
+    if (useNewApi && updateBrandApi) {
+      const brandId = brands[index]?.id;
+      if (brandId) {
+        try {
+          const updateData: any = { [field]: value };
+          if (field === 'name') updateData.urlName = generateId(value);
+          await updateBrandApi(brandId, updateData);
+        } catch (error) {
+          console.error('Failed to update brand:', error);
+        }
+      }
+    } else {
+      // Legacy fallback
+      const newBrands = [...brands];
+      newBrands[index] = { ...newBrands[index], [field]: value };
+      if (field === 'name') {
+        newBrands[index].id = generateId(value);
+        newBrands[index].urlName = generateId(value);
+      }
+      handleUpdate('brands', newBrands);
+    }
   };
 
-  // Add new model to brand
-  const addModel = (brandId: string) => {
-    const newModel: CarModel = {
-      name: 'New Model',
-      type: 'Sedan',
-      image: '',
-    };
-    const brandModels = carModels[brandId] || [];
-    // Add at the beginning of the array
-    handleUpdate('carModels', {
-      ...carModels,
-      [brandId]: [newModel, ...brandModels],
-    });
-    // Auto-expand the newly added model (now at index 0)
-    setExpandedModels(new Set([`${brandId}-0`]));
+  // [UPDATED] Delete brand - uses new API if available
+  const deleteBrand = async (index: number) => {
+    if (useNewApi && deleteBrandApi) {
+      const brandId = brands[index]?.id;
+      if (brandId) {
+        setIsSaving(true);
+        try {
+          // API signature: deleteBrandApi(id)
+          await deleteBrandApi(brandId);
+        } catch (error) {
+          console.error('Failed to delete brand:', error);
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    } else {
+      // Legacy fallback
+      const brandId = brands[index].id;
+      const newBrands = brands.filter((_, i) => i !== index);
+      handleUpdate('brands', newBrands);
+      const newCarModels = { ...carModels };
+      delete newCarModels[brandId];
+      handleUpdate('carModels', newCarModels);
+    }
   };
 
-  // Update model
-  const updateModel = (brandId: string, modelIndex: number, field: keyof CarModel, value: string) => {
-    const brandModels = [...(carModels[brandId] || [])];
-    brandModels[modelIndex] = { ...brandModels[modelIndex], [field]: value };
-    handleUpdate('carModels', {
-      ...carModels,
-      [brandId]: brandModels,
-    });
+  // [UPDATED] Add new model to brand - uses new API if available
+  const addModel = async (brandId: string) => {
+    if (useNewApi && createModelApi) {
+      setIsSaving(true);
+      try {
+        // API signature: createModelApi(brandId, data)
+        await createModelApi(brandId, { name: 'New Model', type: 'Sedan', image: '' });
+        setExpandedModels(new Set([`${brandId}-0`]));
+      } catch (error) {
+        console.error('Failed to create model:', error);
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      // Legacy fallback
+      const newModel: CarModel = {
+        name: 'New Model',
+        type: 'Sedan',
+        image: '',
+      };
+      const brandModels = carModels[brandId] || [];
+      handleUpdate('carModels', {
+        ...carModels,
+        [brandId]: [newModel, ...brandModels],
+      });
+      setExpandedModels(new Set([`${brandId}-0`]));
+    }
   };
 
-  // Delete model
-  const deleteModel = (brandId: string, modelIndex: number) => {
-    const brandModels = (carModels[brandId] || []).filter((_, i) => i !== modelIndex);
-    handleUpdate('carModels', {
-      ...carModels,
-      [brandId]: brandModels,
-    });
+  // [UPDATED] Update model - uses new API if available
+  const updateModel = async (brandId: string, modelIndex: number, field: keyof CarModel, value: string) => {
+    if (useNewApi && updateModelApi) {
+      const brand = apiBrands?.find((b: any) => (b._id || b.id) === brandId);
+      const modelId = brand?.models?.[modelIndex]?._id;
+      if (modelId) {
+        try {
+          // API signature: updateModelApi(modelId, data)
+          await updateModelApi(modelId, { [field]: value });
+        } catch (error) {
+          console.error('Failed to update model:', error);
+        }
+      }
+    } else {
+      // Legacy fallback
+      const brandModels = [...(carModels[brandId] || [])];
+      brandModels[modelIndex] = { ...brandModels[modelIndex], [field]: value };
+      handleUpdate('carModels', {
+        ...carModels,
+        [brandId]: brandModels,
+      });
+    }
+  };
+
+  // [UPDATED] Delete model - uses new API if available
+  const deleteModel = async (brandId: string, modelIndex: number) => {
+    if (useNewApi && deleteModelApi) {
+      const brand = apiBrands?.find((b: any) => (b._id || b.id) === brandId);
+      const modelId = brand?.models?.[modelIndex]?._id;
+      if (modelId) {
+        setIsSaving(true);
+        try {
+          // API signature: deleteModelApi(modelId)
+          await deleteModelApi(modelId);
+        } catch (error) {
+          console.error('Failed to delete model:', error);
+        } finally {
+          setIsSaving(false);
+        }
+      }
+    } else {
+      // Legacy fallback
+      const brandModels = (carModels[brandId] || []).filter((_, i) => i !== modelIndex);
+      handleUpdate('carModels', {
+        ...carModels,
+        [brandId]: brandModels,
+      });
+    }
   };
 
   // Add new fuel type
@@ -488,13 +615,18 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
               {brands.length}
             </span>
+            {/* [NEW] Loading indicator */}
+            {(carBrandsLoading || isSaving) && (
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            )}
           </div>
           <button
             onClick={(e) => {
               e.stopPropagation();
               addBrand();
             }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
+            disabled={isSaving}
+            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -509,8 +641,16 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border">
+                {/* [NEW] Loading State */}
+                {carBrandsLoading && (
+                  <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                    <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin text-primary" />
+                    <p className="text-sm">Loading brands...</p>
+                  </div>
+                )}
+
                 {/* Brand Search */}
-                {brands.length > 3 && (
+                {!carBrandsLoading && brands.length > 3 && (
                   <div className="relative mt-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                     <input
@@ -532,13 +672,13 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
                 )}
 
                 {/* Search Results Count */}
-                {brandSearch && (
+                {!carBrandsLoading && brandSearch && (
                   <p className="text-xs text-muted-foreground">
                     Found {filteredBrands.length} of {brands.length} brands
                   </p>
                 )}
 
-                {brands.length === 0 && (
+                {!carBrandsLoading && brands.length === 0 && (
                   <div className="text-center py-6 sm:py-8 text-muted-foreground">
                     <Car className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No brands added yet</p>
@@ -549,7 +689,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
                 )}
 
                 {/* No search results */}
-                {brands.length > 0 && filteredBrands.length === 0 && brandSearch && (
+                {!carBrandsLoading && brands.length > 0 && filteredBrands.length === 0 && brandSearch && (
                   <div className="text-center py-6 text-muted-foreground">
                     <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No brands match "{brandSearch}"</p>
@@ -562,7 +702,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
                   </div>
                 )}
                 
-                {filteredBrands.map((brand) => {
+                {!carBrandsLoading && filteredBrands.map((brand) => {
                   // Find original index for expand state
                   const originalIndex = brands.findIndex(b => b.id === brand.id);
                   return (
@@ -609,7 +749,8 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
                             e.stopPropagation();
                             deleteBrand(originalIndex);
                           }}
-                          className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
+                          disabled={isSaving}
+                          className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10 disabled:opacity-50"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -667,7 +808,8 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
                                 </label>
                                 <button
                                   onClick={() => addModel(brand.id)}
-                                  className="text-xs text-primary font-medium hover:text-primary/80"
+                                  disabled={isSaving}
+                                  className="text-xs text-primary font-medium hover:text-primary/80 disabled:opacity-50"
                                 >
                                   + Add Model
                                 </button>
@@ -749,7 +891,8 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
                                             e.stopPropagation();
                                             deleteModel(brand.id, originalModelIndex);
                                           }}
-                                          className="p-1 sm:p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
+                                          disabled={isSaving}
+                                          className="p-1 sm:p-1.5 rounded-lg text-destructive hover:bg-destructive/10 disabled:opacity-50"
                                         >
                                           <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                                         </button>
@@ -834,7 +977,8 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
                                     <p className="text-xs">No models added yet</p>
                                     <button
                                       onClick={() => addModel(brand.id)}
-                                      className="mt-1 text-primary text-xs font-medium"
+                                      disabled={isSaving}
+                                      className="mt-1 text-primary text-xs font-medium disabled:opacity-50"
                                     >
                                       + Add first model
                                     </button>

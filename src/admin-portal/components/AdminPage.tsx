@@ -124,7 +124,31 @@ export const AdminPage: React.FC = () => {
     hasUnsavedChanges,
     applyChanges,
     discardChanges,
+    // [NEW] Lazy loading functions
+    loadSection,
+    loadServices,
+    loadCarBrands,
   } = useContent();
+
+  // [NEW] Editor ID to section name mapping for lazy loading
+  const editorToSectionMap: Record<string, keyof typeof content | 'services-api' | 'carBrands-api'> = {
+    hero: 'hero',
+    services: 'services',
+    serviceDetail: 'services-api',  // Uses services API
+    pricing: 'pricing',
+    testimonials: 'testimonials',
+    faq: 'faq',
+    features: 'features',
+    howItWorks: 'howItWorks',
+    partners: 'partners',
+    gallery: 'gallery',
+    beforeAfter: 'beforeAfter',
+    navbar: 'navbar',
+    footer: 'footer',
+    global: 'global',
+    bookingWidget: 'carBrands-api',  // Uses car brands API
+    pages: 'pages',
+  };
 
   // Core states
   const [isDarkMode] = useState(true);
@@ -195,6 +219,23 @@ export const AdminPage: React.FC = () => {
       navigate('/admin/login');
     }
   }, [user, isLoading, navigate]);
+
+  // [NEW] Lazy load section data when tab changes
+  useEffect(() => {
+    const sectionKey = editorToSectionMap[activeEditor];
+    if (!sectionKey) return;
+
+    if (sectionKey === 'services-api') {
+      // Load services from separate API
+      loadServices?.();
+    } else if (sectionKey === 'carBrands-api') {
+      // Load car brands from separate API
+      loadCarBrands?.(true); // true = include models
+    } else {
+      // Load section from content API
+      loadSection?.(sectionKey as keyof typeof content);
+    }
+  }, [activeEditor, loadSection, loadServices, loadCarBrands]);
 
     // Check for mobile/tablet viewport
   useEffect(() => {

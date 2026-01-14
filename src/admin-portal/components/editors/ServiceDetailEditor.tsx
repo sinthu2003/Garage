@@ -9,7 +9,8 @@ import {
   Workflow,
   HelpCircle,
   Layers,
-  Wrench
+  Wrench,
+  Loader2,
 } from 'lucide-react';
 import { useServicesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
@@ -17,20 +18,52 @@ import { ImageUpload } from '../shared/ImageUpload';
 
 interface ServiceDetailEditorProps {
   isDarkMode: boolean;
-  onEditingIndexChange?: (index: number | null) => void; // Callback to notify parent of editing state
+  onEditingIndexChange?: (index: number | null) => void;
 }
 
 export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEditingIndexChange }) => {
   const { updateField } = useContent();
-  const content = useServicesContent();
+  
+  // [NEW] Get services from separate collection + loading functions
+  const {
+    services,
+    servicesLoading,
+    loadServices,
+    createService,
+    updateService: updateServiceApi,
+    deleteService: deleteServiceApi,
+  } = useContent();
+
+  // [LEGACY] Fallback to content.services if new API not available
+  const legacyContent = useServicesContent();
   
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // [FIX] Determine which data source to use
+  // Only use legacy if services array is empty AND not currently loading
+  const useNewApi = services && services.length > 0;
+  const servicesList = useNewApi ? services : (legacyContent?.items || []);
+
+  // Helper to get service ID (works for both new API and legacy)
+  const getServiceId = (service: any): string | undefined => {
+    return service?._id || service?.id;
+  };
+
+  // [FIX] Load services if not loaded yet
+  // This ensures services are loaded even if AdminPage's useEffect hasn't triggered yet
+  useEffect(() => {
+    if (!services || services.length === 0) {
+      loadServices?.();
+    }
+  }, []);  // Only run once on mount
 
   // Notify parent whenever editingIndex changes
   useEffect(() => {
     onEditingIndexChange?.(editingIndex);
   }, [editingIndex, onEditingIndexChange]);
 
+  // [LEGACY] Handle update for backward compatibility
   const handleUpdate = (path: string, value: unknown) => {
     updateField('services', path, value);
   };
@@ -45,9 +78,8 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
   const subSectionTitleClass = `text-sm sm:text-md font-semibold mb-3 flex items-center gap-2 text-foreground`;
 
   // --- Actions ---
-  const addNewService = () => {
-    const newService = {
-      id: `service-${Date.now()}`,
+  const addNewService = async () => {
+    const newServiceData = {
       title: 'New Service',
       description: 'Service description goes here',
       price: 999,
@@ -61,604 +93,640 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
       duration: '1-2 hours',
       warranty: '3 months',
     };
-    // Add at the beginning of the array
-    const newItems = [newService, ...(content.items || [])];
-    handleUpdate('items', newItems);
-    
-    // Switch to edit mode for the new item (now at index 0)
-    setEditingIndex(0);
+
+    if (useNewApi && createService) {
+      // [NEW] Use new API
+      setIsSaving(true);
+      try {
+        await createService(newServiceData);
+        setEditingIndex(0); // New service added at beginning
+      } catch (error) {
+        console.error('Failed to create service:', error);
+        alert('Failed to create service. Please try again.');
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      // [LEGACY] Fallback
+      const newService = {
+        id: `service-${Date.now()}`,
+        ...newServiceData,
+      };
+      const newItems = [newService, ...(legacyContent?.items || [])];
+      handleUpdate('items', newItems);
+      setEditingIndex(0);
+    }
   };
 
-  const deleteService = (index: number) => {
-    if (window.confirm('Are you sure you want to delete this service?')) {
-      const newItems = content.items?.filter((_: unknown, i: number) => i !== index);
+  const deleteService = async (index: number) => {
+    if (!window.confirm('Are you sure you want to delete this service?')) return;
+
+    const service = servicesList[index];
+    const serviceId = getServiceId(service);
+
+    if (useNewApi && deleteServiceApi && serviceId) {
+      // [NEW] Use new API
+      setIsSaving(true);
+      try {
+        await deleteServiceApi(serviceId);
+        if (editingIndex === index) setEditingIndex(null);
+      } catch (error) {
+        console.error('Failed to delete service:', error);
+        alert('Failed to delete service. Please try again.');
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      // [LEGACY] Fallback
+      const newItems = legacyContent?.items?.filter((_: unknown, i: number) => i !== index);
       handleUpdate('items', newItems);
       if (editingIndex === index) setEditingIndex(null);
     }
   };
 
+  // [FIX] Update service field - with better error handling and debug logging
+  const updateServiceField = async (index: number, field: string, value: unknown) => {
+    const service = servicesList[index];
+    const serviceId = getServiceId(service);
+
+    console.log('[updateServiceField] Called:', { 
+      index, 
+      field, 
+      value, 
+      serviceId, 
+      useNewApi,
+      servicesLength: services?.length 
+    });
+
+    if (useNewApi && updateServiceApi && serviceId) {
+      // [NEW] Use new API - debounced update
+      try {
+        console.log('[updateServiceField] Calling API:', `PATCH /api/services/${serviceId}`, { [field]: value });
+        const updated = await updateServiceApi(serviceId, { [field]: value });
+        console.log('[updateServiceField] API response:', updated);
+      } catch (error) {
+        console.error('[updateServiceField] API Error:', error);
+        // Show error to user
+        alert(`Failed to update service: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    } else {
+      // [LEGACY] Fallback - update entire items array
+      console.log('[updateServiceField] Using LEGACY mode');
+      const newItems = [...(legacyContent?.items || [])];
+      newItems[index] = { ...newItems[index], [field]: value };
+      handleUpdate('items', newItems);
+    }
+  };
+
+  // [FIX] Update nested service field (e.g., process, faqs, gallery) - with better error handling
+  const updateServiceNestedField = async (index: number, field: string, nestedValue: unknown) => {
+    const service = servicesList[index];
+    const serviceId = getServiceId(service);
+
+    console.log('[updateServiceNestedField] Called:', { 
+      index, 
+      field, 
+      serviceId, 
+      useNewApi 
+    });
+
+    if (useNewApi && updateServiceApi && serviceId) {
+      // [NEW] Use new API
+      try {
+        console.log('[updateServiceNestedField] Calling API:', `PATCH /api/services/${serviceId}`, { [field]: nestedValue });
+        const updated = await updateServiceApi(serviceId, { [field]: nestedValue });
+        console.log('[updateServiceNestedField] API response:', updated);
+      } catch (error) {
+        console.error('[updateServiceNestedField] API Error:', error);
+        alert(`Failed to update service: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    } else {
+      // [LEGACY] Fallback
+      console.log('[updateServiceNestedField] Using LEGACY mode');
+      const newItems = [...(legacyContent?.items || [])];
+      newItems[index] = { ...newItems[index], [field]: nestedValue };
+      handleUpdate('items', newItems);
+    }
+  };
+
   // --- Renderers ---
+
+  // Show loading state while services are being fetched
+  if (servicesLoading && (!services || services.length === 0)) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-3 text-muted-foreground">Loading services...</span>
+      </div>
+    );
+  }
 
   // 1. Services List View (Cards on mobile, Table on desktop)
   const renderServicesList = () => (
     <div className={sectionClass}>
       <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border">
         <div className="flex items-center gap-3">
-
           <div className="min-w-0">
             <h3 className="text-base sm:text-lg font-bold text-foreground truncate">
               Existing Services
             </h3>
             <p className="text-xs text-muted-foreground">
               Manage your individual service offerings
+              {/* [DEBUG] Show which mode is active */}
+              <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
+                {useNewApi ? '🔗 API Mode' : '📁 Legacy Mode'}
+              </span>
             </p>
           </div>
         </div>
         <button
           onClick={addNewService}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-medium text-sm w-full sm:w-auto"
+          disabled={isSaving || servicesLoading}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-medium text-sm w-full sm:w-auto disabled:opacity-50"
         >
-          <Plus className="w-4 h-4" />
-          <span className="whitespace-nowrap">Add New Service</span>
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Plus className="w-4 h-4" />
+          )}
+          Add New Service
         </button>
       </div>
 
-      {/* Mobile Card View */}
-      <div className="sm:hidden p-3 space-y-3">
-        {content.items?.map((service: any, index: number) => (
-          <div 
-            key={service.id || index} 
-            className="p-3 rounded-xl border border-border bg-secondary/30"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    #{String(index + 1).padStart(2, '0')}
-                  </span>
-                </div>
-                <p className="font-medium text-foreground truncate">
-                  {service.title || 'Untitled Service'}
-                </p>
+      {/* Services List */}
+      <div className="divide-y divide-border">
+        {servicesList.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">
+            <Wrench className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>No services found. Click "Add New Service" to create one.</p>
+          </div>
+        ) : (
+          servicesList.map((service: any, index: number) => (
+            <div
+              key={getServiceId(service) || index}
+              className="p-3 sm:p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors"
+            >
+              {/* Service Image */}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                {service.image ? (
+                  <img
+                    src={service.image}
+                    alt={service.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Wrench className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-1">
+
+              {/* Service Info */}
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-foreground truncate">
+                  {service.title}
+                </h4>
+                <p className="text-sm text-muted-foreground line-clamp-1">
+                  {service.description}
+                </p>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-sm font-bold text-primary">
+                    ₹{service.price?.toLocaleString()}
+                  </span>
+                  {service.originalPrice > service.price && (
+                    <span className="text-xs text-muted-foreground line-through">
+                      ₹{service.originalPrice?.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setEditingIndex(index)}
-                  className="p-2 rounded-lg text-blue-500 hover:bg-blue-500/10"
+                  className="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors"
                   title="Edit Service"
                 >
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => deleteService(index)}
-                  className="p-2 rounded-lg text-destructive hover:bg-destructive/10"
+                  disabled={isSaving}
+                  className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors disabled:opacity-50"
                   title="Delete Service"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
-          </div>
-        ))}
-        {(!content.items || content.items.length === 0) && (
-          <div className="text-center py-8 text-muted-foreground">
-            <Wrench className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No services found.</p>
-            <button onClick={addNewService} className="mt-2 text-primary text-sm font-medium">
-              + Add your first service
-            </button>
-          </div>
+          ))
         )}
-      </div>
-
-      {/* Desktop Table View - Price and Duration columns removed */}
-      <div className="hidden sm:block overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-secondary">
-              <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground w-20">S.No</th>
-              <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Service Name</th>
-              <th className="px-4 sm:px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="text-foreground">
-            {content.items?.map((service: any, index: number) => (
-              <tr key={service.id || index} className="border-b border-border hover:bg-secondary/30 transition-colors">
-                <td className="px-4 sm:px-6 py-4 font-medium text-muted-foreground">
-                  {String(index + 1).padStart(2, '0')}
-                </td>
-                <td className="px-4 sm:px-6 py-4 font-medium">
-                  {service.title || 'Untitled Service'}
-                </td>
-                <td className="px-4 sm:px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => setEditingIndex(index)}
-                      className="p-2 rounded-lg transition-colors hover:bg-blue-500/10 text-blue-500"
-                      title="Edit"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => deleteService(index)}
-                      className="p-2 rounded-lg transition-colors hover:bg-destructive/10 text-destructive"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {(!content.items || content.items.length === 0) && (
-              <tr>
-                <td colSpan={3} className="px-4 sm:px-6 py-8 text-center">
-                  <Wrench className="w-8 h-8 mx-auto mb-2 opacity-50 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">No services found.</p>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
       </div>
     </div>
   );
 
-  // 2. Single Service Edit Form
+  // 2. Service Editor View
   const renderServiceEditor = (index: number) => {
-    const service = content.items?.[index];
-    if (!service) return null;
+    const service = servicesList[index];
+    if (!service) {
+      setEditingIndex(null);
+      return null;
+    }
 
     return (
-      <div className={sectionClass}>
-        <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setEditingIndex(null)}
-              className="p-2 rounded-lg hover:bg-secondary text-muted-foreground flex-shrink-0"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="min-w-0">
-              <h3 className="text-base sm:text-lg font-bold text-foreground truncate">
-                Edit: {service.title || 'Untitled Service'}
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                Modify service details, features, and FAQs
-              </p>
-            </div>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center gap-3 pb-3 border-b border-border">
+          <button
+            onClick={() => setEditingIndex(null)}
+            className="p-2 rounded-lg hover:bg-muted transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-foreground">
+              Edit: {service.title}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              ID: {getServiceId(service)}
+              <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
+                {useNewApi ? '🔗 API Mode' : '📁 Legacy Mode'}
+              </span>
+            </p>
           </div>
         </div>
 
-        <div className="p-3 sm:p-4 space-y-4 sm:space-y-6">
-          {/* --- BASIC INFO --- */}
-          <div className="space-y-4">
-            {/* Title */}
-            <div>
-              <label className={labelClass}>Service Title</label>
-              <input
-                type="text"
-                value={service.title || ''}
-                onChange={(e) => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = { ...newItems[index], title: e.target.value };
-                  handleUpdate('items', newItems);
-                }}
-                placeholder="Full Body Denting & Painting"
-                className={inputClass}
-              />
-            </div>
-
-            {/* Main Image Upload */}
-            <ImageUpload
-              value={service.image || ''}
-              onChange={(url) => {
-                const newItems = [...(content.items || [])];
-                newItems[index] = { ...newItems[index], image: url };
-                handleUpdate('items', newItems);
-              }}
-              label="Main Service Image"
-              placeholder="Upload image or enter URL"
-              previewHeight="h-40"
-              maxSizeMB={2}
-              maxWidthOrHeight={1920}
-              helperText="Primary image displayed on service card"
-              showAltInput={false}
-              compact={false}
-            />
-
-            {/* Description - Full width */}
-            <div>
-              <label className={labelClass}>Description</label>
-              <textarea
-                value={service.description || ''}
-                onChange={(e) => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = { ...newItems[index], description: e.target.value };
-                  handleUpdate('items', newItems);
-                }}
-                rows={3}
-                placeholder="Describe the service in detail..."
-                className={inputClass}
-              />
-            </div>
-
-            {/* Price & Original Price - Always 2 columns */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div>
-                <label className={labelClass}>Price (₹)</label>
-                <input
-                  type="number"
-                  value={service.price || ''}
-                  onChange={(e) => {
-                    const newItems = [...(content.items || [])];
-                    newItems[index] = { ...newItems[index], price: Number(e.target.value) };
-                    handleUpdate('items', newItems);
-                  }}
-                  placeholder="999"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>MRP (₹)</label>
-                <input
-                  type="number"
-                  value={service.originalPrice || ''}
-                  onChange={(e) => {
-                    const newItems = [...(content.items || [])];
-                    newItems[index] = { ...newItems[index], originalPrice: Number(e.target.value) };
-                    handleUpdate('items', newItems);
-                  }}
-                  placeholder="1499"
-                  className={inputClass}
-                />
-              </div>
-            </div>
-
-            {/* Duration & Warranty - Always 2 columns */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div>
-                <label className={labelClass}>Duration</label>
-                <input
-                  type="text"
-                  value={service.duration || ''}
-                  onChange={(e) => {
-                    const newItems = [...(content.items || [])];
-                    newItems[index] = { ...newItems[index], duration: e.target.value };
-                    handleUpdate('items', newItems);
-                  }}
-                  placeholder="2-3 hours"
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Warranty</label>
-                <input
-                  type="text"
-                  value={service.warranty || ''}
-                  onChange={(e) => {
-                    const newItems = [...(content.items || [])];
-                    newItems[index] = { ...newItems[index], warranty: e.target.value };
-                    handleUpdate('items', newItems);
-                  }}
-                  placeholder="6 months"
-                  className={inputClass}
-                />
-              </div>
-            </div>
-          </div>
-
-          <hr className="border-border" />
-
-          {/* --- FEATURES --- */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className={subSectionTitleClass}>
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                Service Features
-              </label>
-              <button
-                onClick={() => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = {
-                    ...newItems[index],
-                    features: ['', ...(newItems[index].features || [])]
-                  };
-                  handleUpdate('items', newItems);
-                }}
-                className="text-green-500 text-xs font-bold uppercase hover:underline"
-              >
-                + Add Feature
-              </button>
-            </div>
-            <div className="space-y-2">
-              {service.features?.map((feature: string, i: number) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    value={feature}
-                    onChange={(e) => {
-                      const newItems = [...(content.items || [])];
-                      const newFeatures = [...(newItems[index].features || [])];
-                      newFeatures[i] = e.target.value;
-                      newItems[index] = { ...newItems[index], features: newFeatures };
-                      handleUpdate('items', newItems);
-                    }}
-                    className={`flex-1 ${inputClass}`}
-                    placeholder="e.g. Premium oil change"
-                  />
-                  <button
-                    onClick={() => {
-                      const newItems = [...(content.items || [])];
-                      const newFeatures = (newItems[index].features || []).filter((_: any, idx: number) => idx !== i);
-                      newItems[index] = { ...newItems[index], features: newFeatures };
-                      handleUpdate('items', newItems);
-                    }}
-                    className="text-destructive hover:bg-destructive/10 p-2 rounded flex-shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <hr className="border-border" />
-
-          {/* --- INCLUDES --- */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className={subSectionTitleClass}>
-                <CheckCircle2 className="w-4 h-4 text-blue-500" />
-                What's Included
-              </label>
-              <button
-                onClick={() => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = {
-                    ...newItems[index],
-                    includes: ['', ...(newItems[index].includes || [])]
-                  };
-                  handleUpdate('items', newItems);
-                }}
-                className="text-blue-500 text-xs font-bold uppercase hover:underline"
-              >
-                + Add Item
-              </button>
-            </div>
-            <div className="space-y-2">
-              {service.includes?.map((item: string, i: number) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    value={item}
-                    onChange={(e) => {
-                      const newItems = [...(content.items || [])];
-                      const newIncludes = [...(newItems[index].includes || [])];
-                      newIncludes[i] = e.target.value;
-                      newItems[index] = { ...newItems[index], includes: newIncludes };
-                      handleUpdate('items', newItems);
-                    }}
-                    className={`flex-1 ${inputClass}`}
-                    placeholder="e.g. Free pickup & drop"
-                  />
-                  <button
-                    onClick={() => {
-                      const newItems = [...(content.items || [])];
-                      const newIncludes = (newItems[index].includes || []).filter((_: any, idx: number) => idx !== i);
-                      newItems[index] = { ...newItems[index], includes: newIncludes };
-                      handleUpdate('items', newItems);
-                    }}
-                    className="text-destructive hover:bg-destructive/10 p-2 rounded flex-shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <hr className="border-border" />
-
-          {/* --- PROCESS --- */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className={subSectionTitleClass}>
-                <Workflow className="w-4 h-4 text-orange-500" />
-                Service Process
-              </label>
-              <button
-                onClick={() => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = {
-                    ...newItems[index],
-                    process: [{ title: '', description: '' }, ...(newItems[index].process || [])]
-                  };
-                  handleUpdate('items', newItems);
-                }}
-                className="text-orange-500 text-xs font-bold uppercase hover:underline"
-              >
-                + Add Step
-              </button>
-            </div>
-            <div className="space-y-3">
-              {service.process?.map((step: any, i: number) => (
-                <div key={i} className="flex gap-2 sm:gap-3 items-start">
-                  <div className="flex-1 space-y-2">
-                    <input
-                      placeholder="Step Title"
-                      value={step.title}
-                      onChange={(e) => {
-                        const newItems = [...(content.items || [])];
-                        const newProcess = [...(newItems[index].process || [])];
-                        newProcess[i] = { ...newProcess[i], title: e.target.value };
-                        newItems[index] = { ...newItems[index], process: newProcess };
-                        handleUpdate('items', newItems);
-                      }}
-                      className={inputClass}
-                    />
-                    <input
-                      placeholder="Step Description"
-                      value={step.description}
-                      onChange={(e) => {
-                        const newItems = [...(content.items || [])];
-                        const newProcess = [...(newItems[index].process || [])];
-                        newProcess[i] = { ...newProcess[i], description: e.target.value };
-                        newItems[index] = { ...newItems[index], process: newProcess };
-                        handleUpdate('items', newItems);
-                      }}
-                      className={inputClass}
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      const newItems = [...(content.items || [])];
-                      const newProcess = (newItems[index].process || []).filter((_: any, idx: number) => idx !== i);
-                      newItems[index] = { ...newItems[index], process: newProcess };
-                      handleUpdate('items', newItems);
-                    }}
-                    className="mt-2 text-destructive hover:bg-destructive/10 p-2 rounded flex-shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <hr className="border-border" />
-
-          {/* --- FAQS --- */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className={subSectionTitleClass}>
-                <HelpCircle className="w-4 h-4 text-purple-500" />
-                Service FAQs
-              </label>
-              <button
-                onClick={() => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = {
-                    ...newItems[index],
-                    faqs: [{ question: '', answer: '' }, ...(newItems[index].faqs || [])]
-                  };
-                  handleUpdate('items', newItems);
-                }}
-                className="text-purple-500 text-xs font-bold uppercase hover:underline"
-              >
-                + Add FAQ
-              </button>
-            </div>
-            <div className="space-y-3">
-              {service.faqs?.map((faq: any, i: number) => (
-                <div key={i} className="flex gap-2 sm:gap-3 items-start">
-                  <div className="flex-1 space-y-2">
-                    <input
-                      placeholder="Question"
-                      value={faq.question}
-                      onChange={(e) => {
-                        const newItems = [...(content.items || [])];
-                        const newFaqs = [...(newItems[index].faqs || [])];
-                        newFaqs[i] = { ...newFaqs[i], question: e.target.value };
-                        newItems[index] = { ...newItems[index], faqs: newFaqs };
-                        handleUpdate('items', newItems);
-                      }}
-                      className={inputClass}
-                    />
-                    <textarea
-                      placeholder="Answer"
-                      value={faq.answer}
-                      onChange={(e) => {
-                        const newItems = [...(content.items || [])];
-                        const newFaqs = [...(newItems[index].faqs || [])];
-                        newFaqs[i] = { ...newFaqs[i], answer: e.target.value };
-                        newItems[index] = { ...newItems[index], faqs: newFaqs };
-                        handleUpdate('items', newItems);
-                      }}
-                      rows={2}
-                      className={inputClass}
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      const newItems = [...(content.items || [])];
-                      const newFaqs = (newItems[index].faqs || []).filter((_: any, idx: number) => idx !== i);
-                      newItems[index] = { ...newItems[index], faqs: newFaqs };
-                      handleUpdate('items', newItems);
-                    }}
-                    className="mt-2 text-destructive hover:bg-destructive/10 p-2 rounded flex-shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <hr className="border-border" />
-
-          {/* --- GALLERY --- */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <label className={subSectionTitleClass}>
-                <Layers className="w-4 h-4 text-cyan-500" />
-                Detail Page Gallery
-              </label>
-              <button
-                onClick={() => {
-                  const newItems = [...(content.items || [])];
-                  newItems[index] = {
-                    ...newItems[index],
-                    gallery: ['', ...(newItems[index].gallery || [])]
-                  };
-                  handleUpdate('items', newItems);
-                }}
-                className="text-cyan-500 text-xs font-bold uppercase hover:underline"
-              >
-                + Add Image
-              </button>
-            </div>
+        {/* Editor Form */}
+        <div className={sectionClass}>
+          <div className="p-4 space-y-6">
+            {/* --- BASIC INFO --- */}
             <div className="space-y-4">
-              {service.gallery?.map((img: string, i: number) => (
-                <div key={i} className="relative">
-                  <ImageUpload
-                    value={img}
-                    onChange={(url) => {
-                      const newItems = [...(content.items || [])];
-                      const newGallery = [...(newItems[index].gallery || [])];
-                      newGallery[i] = url;
-                      newItems[index] = { ...newItems[index], gallery: newGallery };
-                      handleUpdate('items', newItems);
-                    }}
-                    label={`Gallery Image ${i + 1}`}
-                    placeholder="Upload image or enter URL"
-                    previewHeight="h-40"
-                    maxSizeMB={2}
-                    maxWidthOrHeight={1920}
-                    helperText="Additional image for service detail page"
-                    showAltInput={false}
-                    compact={false}
-                  />
-                  <button
-                    onClick={() => {
-                      const newItems = [...(content.items || [])];
-                      const newGallery = (newItems[index].gallery || []).filter((_: any, idx: number) => idx !== i);
-                      newItems[index] = { ...newItems[index], gallery: newGallery };
-                      handleUpdate('items', newItems);
-                    }}
-                    className="absolute top-0 right-0 text-destructive hover:bg-destructive/10 p-2 rounded"
-                    title="Remove image"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-              {(!service.gallery || service.gallery.length === 0) && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No gallery images added yet. Click "+ Add Image" to add images.
-                </p>
-              )}
-            </div>
-          </div>
+              <h4 className={subSectionTitleClass}>
+                <Wrench className="w-4 h-4 text-primary" />
+                Basic Information
+              </h4>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Service Title</label>
+                  <input
+                    type="text"
+                    value={service.title || ''}
+                    onChange={(e) => updateServiceField(index, 'title', e.target.value)}
+                    className={inputClass}
+                    placeholder="e.g., Periodic Service"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Category</label>
+                  <input
+                    type="text"
+                    value={service.category || ''}
+                    onChange={(e) => updateServiceField(index, 'category', e.target.value)}
+                    className={inputClass}
+                    placeholder="e.g., maintenance"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>Description</label>
+                <textarea
+                  value={service.description || ''}
+                  onChange={(e) => updateServiceField(index, 'description', e.target.value)}
+                  rows={3}
+                  className={inputClass}
+                  placeholder="Describe this service..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div>
+                  <label className={labelClass}>Price (₹)</label>
+                  <input
+                    type="number"
+                    value={service.price || 0}
+                    onChange={(e) => updateServiceField(index, 'price', Number(e.target.value))}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Original Price (₹)</label>
+                  <input
+                    type="number"
+                    value={service.originalPrice || 0}
+                    onChange={(e) => updateServiceField(index, 'originalPrice', Number(e.target.value))}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Duration</label>
+                  <input
+                    type="text"
+                    value={service.duration || ''}
+                    onChange={(e) => updateServiceField(index, 'duration', e.target.value)}
+                    className={inputClass}
+                    placeholder="e.g., 2-3 hours"
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Warranty</label>
+                  <input
+                    type="text"
+                    value={service.warranty || ''}
+                    onChange={(e) => updateServiceField(index, 'warranty', e.target.value)}
+                    className={inputClass}
+                    placeholder="e.g., 6 months"
+                  />
+                </div>
+              </div>
+
+              {/* Main Image */}
+              <div>
+                <label className={labelClass}>Main Image</label>
+                <ImageUpload
+                  value={service.image || ''}
+                  onChange={(url) => updateServiceField(index, 'image', url)}
+                  label="Service Image"
+                  placeholder="Upload image or enter URL"
+                  previewHeight="h-48"
+                />
+              </div>
+            </div>
+
+            <hr className="border-border" />
+
+            {/* --- FEATURES --- */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className={subSectionTitleClass}>
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  Features
+                </label>
+                <button
+                  onClick={() => {
+                    const newFeatures = ['', ...(service.features || [])];
+                    updateServiceNestedField(index, 'features', newFeatures);
+                  }}
+                  className="text-green-500 text-xs font-bold uppercase hover:underline"
+                >
+                  + Add Feature
+                </button>
+              </div>
+              <div className="space-y-2">
+                {service.features?.map((feature: string, i: number) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input
+                      value={feature}
+                      onChange={(e) => {
+                        const newFeatures = [...(service.features || [])];
+                        newFeatures[i] = e.target.value;
+                        updateServiceNestedField(index, 'features', newFeatures);
+                      }}
+                      className={inputClass}
+                      placeholder="Feature description"
+                    />
+                    <button
+                      onClick={() => {
+                        const newFeatures = (service.features || []).filter((_: any, idx: number) => idx !== i);
+                        updateServiceNestedField(index, 'features', newFeatures);
+                      }}
+                      className="text-destructive hover:bg-destructive/10 p-2 rounded"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <hr className="border-border" />
+
+            {/* --- INCLUDES --- */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className={subSectionTitleClass}>
+                  <Layers className="w-4 h-4 text-blue-500" />
+                  What's Included
+                </label>
+                <button
+                  onClick={() => {
+                    const newIncludes = ['', ...(service.includes || [])];
+                    updateServiceNestedField(index, 'includes', newIncludes);
+                  }}
+                  className="text-blue-500 text-xs font-bold uppercase hover:underline"
+                >
+                  + Add Item
+                </button>
+              </div>
+              <div className="space-y-2">
+                {service.includes?.map((item: string, i: number) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input
+                      value={item}
+                      onChange={(e) => {
+                        const newIncludes = [...(service.includes || [])];
+                        newIncludes[i] = e.target.value;
+                        updateServiceNestedField(index, 'includes', newIncludes);
+                      }}
+                      className={inputClass}
+                      placeholder="Included item"
+                    />
+                    <button
+                      onClick={() => {
+                        const newIncludes = (service.includes || []).filter((_: any, idx: number) => idx !== i);
+                        updateServiceNestedField(index, 'includes', newIncludes);
+                      }}
+                      className="text-destructive hover:bg-destructive/10 p-2 rounded"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <hr className="border-border" />
+
+            {/* --- PROCESS STEPS --- */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className={subSectionTitleClass}>
+                  <Workflow className="w-4 h-4 text-orange-500" />
+                  Process Steps
+                </label>
+                <button
+                  onClick={() => {
+                    const newProcess = [{ title: '', description: '' }, ...(service.process || [])];
+                    updateServiceNestedField(index, 'process', newProcess);
+                  }}
+                  className="text-orange-500 text-xs font-bold uppercase hover:underline"
+                >
+                  + Add Step
+                </button>
+              </div>
+              <div className="space-y-3">
+                {service.process?.map((step: any, i: number) => (
+                  <div key={i} className="flex gap-2 sm:gap-3 items-start">
+                    <div className="w-6 h-6 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-2">
+                      {i + 1}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input
+                        placeholder="Step title"
+                        value={step.title}
+                        onChange={(e) => {
+                          const newProcess = [...(service.process || [])];
+                          newProcess[i] = { ...newProcess[i], title: e.target.value };
+                          updateServiceNestedField(index, 'process', newProcess);
+                        }}
+                        className={inputClass}
+                      />
+                      <textarea
+                        placeholder="Step description"
+                        rows={2}
+                        value={step.description}
+                        onChange={(e) => {
+                          const newProcess = [...(service.process || [])];
+                          newProcess[i] = { ...newProcess[i], description: e.target.value };
+                          updateServiceNestedField(index, 'process', newProcess);
+                        }}
+                        className={inputClass}
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newProcess = (service.process || []).filter((_: any, idx: number) => idx !== i);
+                        updateServiceNestedField(index, 'process', newProcess);
+                      }}
+                      className="mt-2 text-destructive hover:bg-destructive/10 p-2 rounded flex-shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <hr className="border-border" />
+
+            {/* --- FAQS --- */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className={subSectionTitleClass}>
+                  <HelpCircle className="w-4 h-4 text-purple-500" />
+                  Service FAQs
+                </label>
+                <button
+                  onClick={() => {
+                    const newFaqs = [{ question: '', answer: '' }, ...(service.faqs || [])];
+                    updateServiceNestedField(index, 'faqs', newFaqs);
+                  }}
+                  className="text-purple-500 text-xs font-bold uppercase hover:underline"
+                >
+                  + Add FAQ
+                </button>
+              </div>
+              <div className="space-y-3">
+                {service.faqs?.map((faq: any, i: number) => (
+                  <div key={i} className="flex gap-2 sm:gap-3 items-start">
+                    <div className="flex-1 space-y-2">
+                      <input
+                        placeholder="Question"
+                        value={faq.question}
+                        onChange={(e) => {
+                          const newFaqs = [...(service.faqs || [])];
+                          newFaqs[i] = { ...newFaqs[i], question: e.target.value };
+                          updateServiceNestedField(index, 'faqs', newFaqs);
+                        }}
+                        className={inputClass}
+                      />
+                      <textarea
+                        placeholder="Answer"
+                        value={faq.answer}
+                        onChange={(e) => {
+                          const newFaqs = [...(service.faqs || [])];
+                          newFaqs[i] = { ...newFaqs[i], answer: e.target.value };
+                          updateServiceNestedField(index, 'faqs', newFaqs);
+                        }}
+                        rows={2}
+                        className={inputClass}
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newFaqs = (service.faqs || []).filter((_: any, idx: number) => idx !== i);
+                        updateServiceNestedField(index, 'faqs', newFaqs);
+                      }}
+                      className="mt-2 text-destructive hover:bg-destructive/10 p-2 rounded flex-shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <hr className="border-border" />
+
+            {/* --- GALLERY --- */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <label className={subSectionTitleClass}>
+                  <Layers className="w-4 h-4 text-cyan-500" />
+                  Detail Page Gallery
+                </label>
+                <button
+                  onClick={() => {
+                    const newGallery = ['', ...(service.gallery || [])];
+                    updateServiceNestedField(index, 'gallery', newGallery);
+                  }}
+                  className="text-cyan-500 text-xs font-bold uppercase hover:underline"
+                >
+                  + Add Image
+                </button>
+              </div>
+              <div className="space-y-4">
+                {service.gallery?.map((img: string, i: number) => (
+                  <div key={i} className="relative">
+                    <ImageUpload
+                      value={img}
+                      onChange={(url) => {
+                        const newGallery = [...(service.gallery || [])];
+                        newGallery[i] = url;
+                        updateServiceNestedField(index, 'gallery', newGallery);
+                      }}
+                      label={`Gallery Image ${i + 1}`}
+                      placeholder="Upload image or enter URL"
+                      previewHeight="h-40"
+                      maxSizeMB={2}
+                      maxWidthOrHeight={1920}
+                      helperText="Additional image for service detail page"
+                      showAltInput={false}
+                      compact={false}
+                    />
+                    <button
+                      onClick={() => {
+                        const newGallery = (service.gallery || []).filter((_: any, idx: number) => idx !== i);
+                        updateServiceNestedField(index, 'gallery', newGallery);
+                      }}
+                      className="absolute top-0 right-0 text-destructive hover:bg-destructive/10 p-2 rounded"
+                      title="Remove image"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                {(!service.gallery || service.gallery.length === 0) && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No gallery images added yet. Click "+ Add Image" to add images.
+                  </p>
+                )}
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
     );

@@ -7,6 +7,8 @@
  * This file contains all API calls organized by domain:
  * - Auth API (login, logout, refresh)
  * - Content API (get, update, apply, discard)
+ * - Services API (CRUD for services) [NEW]
+ * - Car Data API (CRUD for brands/models) [NEW]
  * - Booking API (submit booking, contact form)
  * - Media API (upload, list, delete images)
  * 
@@ -63,12 +65,6 @@ export interface RegisterData {
 export const authApi = {
   /**
    * Login user and get tokens
-   * 
-   * @example
-   * const { user, accessToken } = await authApi.login({
-   *   email: 'admin@example.com',
-   *   password: 'password123'
-   * });
    */
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
     const response = await apiClient.post<ApiResponse<{
@@ -79,15 +75,12 @@ export const authApi = {
       credentials
     );
     
-    // Backend returns { user, tokens: { accessToken, refreshToken } }
     const { user, tokens } = response.data.data;
     const { accessToken, refreshToken } = tokens;
     
-    // Store tokens and user
     tokenStorage.setTokens(accessToken, refreshToken);
     tokenStorage.setUser(user);
     
-    // Return flattened structure for frontend compatibility
     return { user, accessToken, refreshToken };
   },
 
@@ -98,7 +91,6 @@ export const authApi = {
     try {
       await apiClient.post('/auth/logout');
     } catch (error) {
-      // Ignore errors on logout
       console.warn('Logout API error (ignored):', error);
     } finally {
       tokenStorage.clearTokens();
@@ -122,7 +114,6 @@ export const authApi = {
       { refreshToken }
     );
     
-    // Backend returns { tokens: { accessToken, refreshToken } }
     const tokens = response.data.data.tokens;
     tokenStorage.setTokens(tokens.accessToken, tokens.refreshToken);
     
@@ -184,11 +175,7 @@ export interface ContentHistoryItem {
 export const contentApi = {
   /**
    * Get published content (for public website)
-   * No authentication required
-   * 
-   * @example
-   * const content = await contentApi.getPublicContent();
-   * // Use content.hero, content.services, etc.
+   * Services and car data are merged from separate collections
    */
   getPublicContent: async (): Promise<SiteContent> => {
     const response = await apiClient.get<ApiResponse<SiteContent>>('/content/public');
@@ -197,9 +184,6 @@ export const contentApi = {
 
   /**
    * Get specific section of published content
-   * 
-   * @example
-   * const hero = await contentApi.getPublicSection('hero');
    */
   getPublicSection: async <K extends keyof SiteContent>(section: K): Promise<SiteContent[K]> => {
     const response = await apiClient.get<ApiResponse<SiteContent[K]>>(`/content/public/${section}`);
@@ -208,10 +192,6 @@ export const contentApi = {
 
   /**
    * Get working content (with draft changes) - Admin only
-   * 
-   * @example
-   * const content = await contentApi.getWorkingContent();
-   * // Includes draft changes if any
    */
   getWorkingContent: async (): Promise<SiteContent> => {
     const response = await apiClient.get<ApiResponse<SiteContent>>('/content/working');
@@ -237,27 +217,17 @@ export const contentApi = {
   },
 
   /**
+   * [NEW] Get a specific section only (for lazy loading)
+   * For services: returns metadata only (badge, headline, description, viewAllCta)
+   * For bookingWidget: returns static fields only (title, labels, cities, fuelTypes)
+   */
+  getSection: async <K extends keyof SiteContent>(section: K): Promise<SiteContent[K]> => {
+    const response = await apiClient.get<ApiResponse<SiteContent[K]>>(`/content/${section}`);
+    return response.data.data;
+  },
+
+  /**
    * Update a specific field in a section
-   * Changes are saved to draft, not published immediately
-   * 
-   * @example
-   * // Update hero headline
-   * await contentApi.updateField('hero', {
-   *   path: 'headline.line1',
-   *   value: 'Premium Car'
-   * });
-   * 
-   * // Update specific service
-   * await contentApi.updateField('services', {
-   *   path: 'items.0.price',
-   *   value: 2999
-   * });
-   * 
-   * // Update booking widget brand
-   * await contentApi.updateField('bookingWidget', {
-   *   path: 'brands.5',
-   *   value: { id: 'kia', name: 'Kia', logo: 'https://...' }
-   * });
    */
   updateField: async (section: keyof SiteContent, data: ContentUpdateFieldRequest): Promise<SiteContent> => {
     const response = await apiClient.patch<ApiResponse<SiteContent>>(
@@ -269,13 +239,6 @@ export const contentApi = {
 
   /**
    * Update entire section
-   * 
-   * @example
-   * await contentApi.updateSection('hero', {
-   *   badge: '#1 Car Service',
-   *   headline: { line1: 'Premium', line2: 'Car', highlight: 'Service' },
-   *   // ... all hero fields
-   * });
    */
   updateSection: async <K extends keyof SiteContent>(
     section: K,
@@ -289,11 +252,22 @@ export const contentApi = {
   },
 
   /**
+   * [NEW] Update section metadata only (for services/bookingWidget)
+   * Does not affect services.items or bookingWidget brands/carModels
+   */
+  updateSectionMetadata: async <K extends keyof SiteContent>(
+    section: K,
+    metadata: Partial<SiteContent[K]>
+  ): Promise<SiteContent[K]> => {
+    const response = await apiClient.patch<ApiResponse<SiteContent[K]>>(
+      `/content/${section}`,
+      metadata
+    );
+    return response.data.data;
+  },
+
+  /**
    * Apply changes - Publish draft to live site
-   * 
-   * @example
-   * await contentApi.applyChanges();
-   * // All draft changes are now live
    */
   applyChanges: async (): Promise<{ content: SiteContent; version: number }> => {
     const response = await apiClient.post<ApiResponse<{ content: SiteContent; version: number }>>(
@@ -304,10 +278,6 @@ export const contentApi = {
 
   /**
    * Discard changes - Revert to last published version
-   * 
-   * @example
-   * await contentApi.discardChanges();
-   * // All draft changes are discarded
    */
   discardChanges: async (): Promise<{ content: SiteContent }> => {
     const response = await apiClient.post<ApiResponse<{ content: SiteContent }>>(
@@ -318,23 +288,11 @@ export const contentApi = {
 
   /**
    * Reset content to defaults
-   * 
-   * @example
-   * await contentApi.resetContent();
-   * // Content is reset to original defaults
    */
-  resetContent: async (): Promise<{ content: SiteContent }> => {
-    const response = await apiClient.post<ApiResponse<{ content: SiteContent }>>(
+  resetContent: async (): Promise<{ content: SiteContent; version: number }> => {
+    const response = await apiClient.post<ApiResponse<{ content: SiteContent; version: number }>>(
       '/content/reset'
     );
-    return response.data.data;
-  },
-
-  /**
-   * Export content as JSON
-   */
-  exportContent: async (): Promise<SiteContent> => {
-    const response = await apiClient.get<ApiResponse<SiteContent>>('/content/export');
     return response.data.data;
   },
 
@@ -350,26 +308,427 @@ export const contentApi = {
   },
 
   /**
-   * Check if there are unsaved changes
+   * Export content as JSON
    */
-  checkUnsavedChanges: async (): Promise<{ hasChanges: boolean }> => {
-    const response = await apiClient.get<ApiResponse<{ hasChanges: boolean }>>(
-      '/content/changes'
-    );
+  exportContent: async (): Promise<SiteContent> => {
+    const response = await apiClient.get<ApiResponse<SiteContent>>('/content/export');
     return response.data.data;
   },
 
   /**
    * Get content change history
    */
-  getHistory: async (params?: {
-    limit?: number;
-    section?: string;
-  }): Promise<ContentHistoryItem[]> => {
+  getHistory: async (limit?: number, section?: string): Promise<ContentHistoryItem[]> => {
     const response = await apiClient.get<ApiResponse<ContentHistoryItem[]>>(
       '/content/history',
+      { params: { limit, section } }
+    );
+    return response.data.data;
+  },
+};
+
+// ============================================
+// [NEW] SERVICES API - Separate Collection
+// ============================================
+
+export interface ServiceProcessStep {
+  title: string;
+  description: string;
+}
+
+export interface ServiceFAQ {
+  question: string;
+  answer: string;
+}
+
+export interface Service {
+  _id: string;
+  title: string;
+  slug: string;
+  description: string;
+  icon?: string;
+  price: number;
+  originalPrice: number;
+  image: string;
+  gallery: string[];
+  features: string[];
+  includes: string[];
+  process: ServiceProcessStep[];
+  faqs: ServiceFAQ[];
+  duration: string;
+  warranty: string;
+  category?: string;
+  displayOrder: number;
+  isActive: boolean;
+  discountPercentage?: number;
+  savings?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateServiceData {
+  title: string;
+  description: string;
+  icon?: string;
+  price: number;
+  originalPrice: number;
+  image: string;
+  gallery?: string[];
+  features?: string[];
+  includes?: string[];
+  process?: ServiceProcessStep[];
+  faqs?: ServiceFAQ[];
+  duration?: string;
+  warranty?: string;
+  category?: string;
+}
+
+export interface UpdateServiceData {
+  title?: string;
+  description?: string;
+  icon?: string;
+  price?: number;
+  originalPrice?: number;
+  image?: string;
+  gallery?: string[];
+  features?: string[];
+  includes?: string[];
+  process?: ServiceProcessStep[];
+  faqs?: ServiceFAQ[];
+  duration?: string;
+  warranty?: string;
+  category?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+}
+
+export interface ServiceListParams {
+  page?: number;
+  limit?: number;
+  category?: string;
+  isActive?: boolean;
+  search?: string;
+  sortBy?: 'displayOrder' | 'title' | 'price' | 'createdAt' | 'updatedAt';
+  sortOrder?: 'asc' | 'desc';
+}
+
+export const servicesApi = {
+  /**
+   * Get all active services (for public website)
+   */
+  getPublicServices: async (): Promise<Service[]> => {
+    const response = await apiClient.get<ApiResponse<Service[]>>('/services/public');
+    return response.data.data;
+  },
+
+  /**
+   * Get a single service by slug (for service detail page)
+   */
+  getPublicServiceBySlug: async (slug: string): Promise<Service> => {
+    const response = await apiClient.get<ApiResponse<Service>>(`/services/public/${slug}`);
+    return response.data.data;
+  },
+
+  /**
+   * Get all services with optional filters (for admin)
+   * [FIX] Handle both response formats:
+   * - Backend returns: { success, data: [...], meta: { page, limit, total } }
+   * - Expected format: { items: [...], page, limit, total, totalPages }
+   */
+  getAll: async (params: ServiceListParams = {}): Promise<{
+    items: Service[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> => {
+    const response = await apiClient.get<any>('/services', { params });
+    
+    // Handle the actual backend response format
+    const responseData = response.data;
+    
+    // Check if data is an array (actual backend format) or has items (expected format)
+    if (Array.isArray(responseData.data)) {
+      // Backend format: { success, data: [...], meta: {...} }
+      return {
+        items: responseData.data,
+        total: responseData.meta?.total || responseData.data.length,
+        page: responseData.meta?.page || 1,
+        limit: responseData.meta?.limit || 100,
+        totalPages: responseData.meta?.totalPages || 1,
+      };
+    } else if (responseData.data?.items) {
+      // Expected format: { success, data: { items: [...], ... } }
+      return responseData.data;
+    }
+    
+    // Fallback
+    console.warn('[servicesApi.getAll] Unexpected response format:', responseData);
+    return {
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 100,
+      totalPages: 0,
+    };
+  },
+
+  /**
+   * Get a single service by ID (for admin editing)
+   */
+  getById: async (id: string): Promise<Service> => {
+    const response = await apiClient.get<ApiResponse<Service>>(`/services/${id}`);
+    return response.data.data;
+  },
+
+  /**
+   * Create a new service
+   */
+  create: async (data: CreateServiceData): Promise<Service> => {
+    const response = await apiClient.post<ApiResponse<Service>>('/services', data);
+    return response.data.data;
+  },
+
+  /**
+   * Update a service
+   */
+  update: async (id: string, data: UpdateServiceData): Promise<Service> => {
+    const response = await apiClient.patch<ApiResponse<Service>>(`/services/${id}`, data);
+    return response.data.data;
+  },
+
+  /**
+   * Delete a service
+   */
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/services/${id}`);
+  },
+
+  /**
+   * Reorder services
+   */
+  reorder: async (orderedIds: string[]): Promise<void> => {
+    await apiClient.patch('/services/reorder', { orderedIds });
+  },
+
+  /**
+   * Toggle service active status
+   */
+  toggleStatus: async (id: string): Promise<Service> => {
+    const response = await apiClient.patch<ApiResponse<Service>>(`/services/${id}/toggle`);
+    return response.data.data;
+  },
+
+  /**
+   * Duplicate a service
+   */
+  duplicate: async (id: string): Promise<Service> => {
+    const response = await apiClient.post<ApiResponse<Service>>(`/services/${id}/duplicate`);
+    return response.data.data;
+  },
+};
+
+// ============================================
+// [NEW] CAR DATA API - Separate Collections
+// ============================================
+
+export interface CarModel {
+  _id: string;
+  brandId: string;
+  name: string;
+  slug: string;
+  type: string;
+  image: string;
+  fuelTypes: string[];
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CarBrand {
+  _id: string;
+  name: string;
+  slug: string;
+  logo: string;
+  urlName: string;
+  displayOrder: number;
+  isActive: boolean;
+  modelCount?: number;
+  models?: CarModel[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBrandData {
+  name: string;
+  logo: string;
+  urlName?: string;
+}
+
+export interface UpdateBrandData {
+  name?: string;
+  logo?: string;
+  urlName?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+}
+
+export interface CreateModelData {
+  name: string;
+  type: string;
+  image?: string;
+  fuelTypes?: string[];
+}
+
+export interface UpdateModelData {
+  name?: string;
+  type?: string;
+  image?: string;
+  fuelTypes?: string[];
+  displayOrder?: number;
+  isActive?: boolean;
+}
+
+export interface BookingWidgetCarData {
+  brands: {
+    id: string;
+    name: string;
+    logo: string;
+    urlName: string;
+  }[];
+  carModels: Record<string, { name: string; type: string; image: string }[]>;
+}
+
+export interface CarDataStats {
+  totalBrands: number;
+  activeBrands: number;
+  totalModels: number;
+  activeModels: number;
+  modelsByType: { type: string; count: number }[];
+}
+
+export const carDataApi = {
+  /**
+   * Get car data formatted for booking widget (public)
+   */
+  getBookingWidgetData: async (): Promise<BookingWidgetCarData> => {
+    const response = await apiClient.get<ApiResponse<BookingWidgetCarData>>('/car-data/booking-widget');
+    return response.data.data;
+  },
+
+  /**
+   * Get all car brands
+   */
+  getAllBrands: async (options: {
+    includeModels?: boolean;
+    includeInactive?: boolean;
+  } = {}): Promise<CarBrand[]> => {
+    const params: Record<string, string> = {};
+    if (options.includeModels) params.includeModels = 'true';
+    if (options.includeInactive) params.includeInactive = 'true';
+
+    const response = await apiClient.get<ApiResponse<CarBrand[]>>('/car-brands', { params });
+    return response.data.data;
+  },
+
+  /**
+   * Get a single brand by ID
+   */
+  getBrandById: async (id: string, includeModels = false): Promise<CarBrand> => {
+    const params = includeModels ? { includeModels: 'true' } : {};
+    const response = await apiClient.get<ApiResponse<CarBrand>>(`/car-brands/${id}`, { params });
+    return response.data.data;
+  },
+
+  /**
+   * Create a new car brand
+   */
+  createBrand: async (data: CreateBrandData): Promise<CarBrand> => {
+    const response = await apiClient.post<ApiResponse<CarBrand>>('/car-brands', data);
+    return response.data.data;
+  },
+
+  /**
+   * Update a car brand
+   */
+  updateBrand: async (id: string, data: UpdateBrandData): Promise<CarBrand> => {
+    const response = await apiClient.patch<ApiResponse<CarBrand>>(`/car-brands/${id}`, data);
+    return response.data.data;
+  },
+
+  /**
+   * Delete a car brand and all its models
+   */
+  deleteBrand: async (id: string): Promise<void> => {
+    await apiClient.delete(`/car-brands/${id}`);
+  },
+
+  /**
+   * Reorder car brands
+   */
+  reorderBrands: async (orderedIds: string[]): Promise<void> => {
+    await apiClient.patch('/car-brands/reorder', { orderedIds });
+  },
+
+  /**
+   * Get all models for a brand
+   */
+  getModelsByBrand: async (brandId: string, includeInactive = false): Promise<CarModel[]> => {
+    const params = includeInactive ? { includeInactive: 'true' } : {};
+    const response = await apiClient.get<ApiResponse<CarModel[]>>(
+      `/car-brands/${brandId}/models`,
       { params }
     );
+    return response.data.data;
+  },
+
+  /**
+   * Add a model to a brand
+   */
+  addModelToBrand: async (brandId: string, data: CreateModelData): Promise<CarModel> => {
+    const response = await apiClient.post<ApiResponse<CarModel>>(
+      `/car-brands/${brandId}/models`,
+      data
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Get a single model by ID
+   */
+  getModelById: async (id: string): Promise<CarModel> => {
+    const response = await apiClient.get<ApiResponse<CarModel>>(`/car-models/${id}`);
+    return response.data.data;
+  },
+
+  /**
+   * Update a car model
+   */
+  updateModel: async (id: string, data: UpdateModelData): Promise<CarModel> => {
+    const response = await apiClient.patch<ApiResponse<CarModel>>(`/car-models/${id}`, data);
+    return response.data.data;
+  },
+
+  /**
+   * Delete a car model
+   */
+  deleteModel: async (id: string): Promise<void> => {
+    await apiClient.delete(`/car-models/${id}`);
+  },
+
+  /**
+   * Reorder models within a brand
+   */
+  reorderModels: async (brandId: string, orderedIds: string[]): Promise<void> => {
+    await apiClient.patch(`/car-brands/${brandId}/models/reorder`, { orderedIds });
+  },
+
+  /**
+   * Get car data statistics
+   */
+  getStats: async (): Promise<CarDataStats> => {
+    const response = await apiClient.get<ApiResponse<CarDataStats>>('/car-data/stats');
     return response.data.data;
   },
 };
@@ -378,63 +737,44 @@ export const contentApi = {
 // BOOKING API
 // ============================================
 
+// src/services/api/index.ts (or wherever BookingSubmitData is defined)
+
 export interface BookingSubmitData {
   phone: string;
-  countryCode?: string;
-  name?: string;
-  email?: string;
+  countryCode: string;
   city: string;
   brand: string;
   brandName: string;
   model: string;
   fuelType: string;
+  source: 'booking_widget' | 'service_detail' | 'contact_page';
+  sourcePage: string;
+  // Update this property to accept the object structure
   service?: {
     id: string;
     name: string;
     price?: number;
   };
-  source?: 'booking_widget' | 'service_page' | 'service_detail' | 'contact_form' | 'whatsapp' | 'call';
-  sourcePage?: string;
-  utm?: {
-    source?: string;
-    medium?: string;
-    campaign?: string;
-  };
 }
 
-export interface ContactFormData {
+export interface ContactSubmitData {
   name: string;
   email: string;
-  phone?: string;
-  service?: string;
-  countryCode?: string; 
+  phone: string;
   message: string;
-  source?: 'contact_page' | 'footer' | 'service_page' | 'faq_page';
-  sourcePage?: string;
+  service?: string;
 }
 
-export interface Booking {
+export interface BookingLead {
   id: string;
   phone: string;
-  countryCode: string;
-  name?: string;
-  email?: string;
   city: string;
   brand: string;
-  brandName: string;
   model: string;
   fuelType: string;
-  service?: {
-    id: string;
-    name: string;
-    price?: number;
-  };
-  source: string;
-  sourcePage?: string;
-  status: 'new' | 'contacted' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled' | 'no_response';
+  service?: string;
+  status: 'new' | 'contacted' | 'converted' | 'lost';
   notes?: string;
-  followUpDate?: string;
-  scheduledDate?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -443,131 +783,70 @@ export interface ContactInquiry {
   id: string;
   name: string;
   email: string;
-  phone?: string;
-  service?: string;
+  phone: string;
   message: string;
+  service?: string;
   status: 'new' | 'read' | 'replied' | 'closed';
   replyMessage?: string;
+  repliedAt?: string;
   createdAt: string;
 }
 
-export interface BookingListParams {
-  page?: number;
-  limit?: number;
-  status?: string;
-  city?: string;
-  brand?: string;
-  source?: string;
-  service?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
 export interface DashboardStats {
-  bookings: {
-    total: number;
-    new: number;
-    contacted: number;
-    scheduled: number;
-    completed: number;
-    cancelled: number;
-  };
-  contacts: {
-    total: number;
-    unread: number;
-  };
-  todayLeads: number;
-  pendingFollowUps: number;
+  totalBookings: number;
+  newBookings: number;
+  contactedBookings: number;
+  convertedBookings: number;
+  totalContacts: number;
+  unreadContacts: number;
+  conversionRate: number;
+  todayBookings: number;
+  weeklyBookings: number;
+  monthlyBookings: number;
 }
 
 export const bookingApi = {
   /**
-   * Submit a booking from booking widget or service page
-   * No authentication required (public endpoint)
-   * 
-   * @example
-   * // From BookingWidget.tsx
-   * await bookingApi.submit({
-   *   phone: '9876543210',
-   *   city: 'chennai',
-   *   brand: 'maruti',
-   *   brandName: 'Maruti Suzuki',
-   *   model: 'Swift',
-   *   fuelType: 'Petrol',
-   *   source: 'booking_widget'
-   * });
-   * 
-   * // From ServiceDetailPage.tsx (with service info)
-   * await bookingApi.submit({
-   *   phone: '9876543210',
-   *   city: 'chennai',
-   *   brand: 'maruti',
-   *   brandName: 'Maruti Suzuki',
-   *   model: 'Swift',
-   *   fuelType: 'Petrol',
-   *   source: 'service_page',
-   *   service: {
-   *     id: 'periodic-service',
-   *     name: 'Periodic Service',
-   *     price: 2999
-   *   }
-   * });
+   * Submit a new booking (public)
    */
-  submit: async (data: BookingSubmitData): Promise<{
-    id: string;
-    message: string;
-    isExisting?: boolean;
-  }> => {
-    const response = await apiClient.post<ApiResponse<{
-      id: string;
-      message: string;
-      isExisting?: boolean;
-    }>>('/bookings/submit', data);
+  submit: async (data: BookingSubmitData): Promise<{ booking: BookingLead; message: string }> => {
+    const response = await apiClient.post<ApiResponse<{ booking: BookingLead; message: string }>>(
+      '/bookings/submit',
+      data
+    );
     return response.data.data;
   },
 
   /**
-   * Submit contact form inquiry
-   * No authentication required (public endpoint)
-   * 
-   * @example
-   * await bookingApi.submitContact({
-   *   name: 'John Doe',
-   *   email: 'john@example.com',
-   *   phone: '9876543210',
-   *   service: 'AC Service',
-   *   message: 'I need AC repair for my car'
-   * });
+   * Submit a contact inquiry (public)
    */
-  submitContact: async (data: ContactFormData): Promise<{
-    id: string;
-    message: string;
-  }> => {
-    const response = await apiClient.post<ApiResponse<{
-      id: string;
-      message: string;
-    }>>('/bookings/contact', data);
+  contact: async (data: ContactSubmitData): Promise<{ inquiry: ContactInquiry; message: string }> => {
+    const response = await apiClient.post<ApiResponse<{ inquiry: ContactInquiry; message: string }>>(
+      '/bookings/contact',
+      data
+    );
     return response.data.data;
   },
 
-  // ============================================
-  // ADMIN ENDPOINTS (Require Authentication)
-  // ============================================
-
   /**
-   * Get all bookings with filters (Admin)
+   * List all bookings (Admin)
    */
-  list: async (params?: BookingListParams): Promise<{
-    items: Booking[];
+  list: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    city?: string;
+    brand?: string;
+    search?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<{
+    items: BookingLead[];
     total: number;
     page: number;
-    limit: number;
     totalPages: number;
   }> => {
-    const response = await apiClient.get<PaginatedResponse<Booking>>(
+    const response = await apiClient.get<PaginatedResponse<BookingLead>>(
       '/bookings',
       { params }
     );
@@ -575,19 +854,22 @@ export const bookingApi = {
   },
 
   /**
-   * Get a single booking by ID (Admin)
+   * Get dashboard statistics (Admin)
    */
-  getById: async (id: string): Promise<Booking> => {
-    const response = await apiClient.get<ApiResponse<Booking>>(`/bookings/${id}`);
+  getStats: async (): Promise<DashboardStats> => {
+    const response = await apiClient.get<ApiResponse<DashboardStats>>('/bookings/stats');
     return response.data.data;
   },
 
   /**
-   * Update a booking (Admin)
+   * Update booking status (Admin)
    */
-  update: async (id: string, data: Partial<Booking>): Promise<Booking> => {
-    const response = await apiClient.patch<ApiResponse<Booking>>(
-      `/bookings/${id}`,
+  updateStatus: async (id: string, data: {
+    status: string;
+    notes?: string;
+  }): Promise<BookingLead> => {
+    const response = await apiClient.patch<ApiResponse<BookingLead>>(
+      `/bookings/${id}/status`,
       data
     );
     return response.data.data;
@@ -601,52 +883,13 @@ export const bookingApi = {
   },
 
   /**
-   * Get dashboard statistics (Admin)
-   */
-  getStats: async (params?: {
-    startDate?: string;
-    endDate?: string;
-  }): Promise<DashboardStats> => {
-    const response = await apiClient.get<ApiResponse<DashboardStats>>(
-      '/bookings/stats',
-      { params }
-    );
-    return response.data.data;
-  },
-
-  /**
-   * Get today's leads (Admin)
-   */
-  getTodayLeads: async (): Promise<Booking[]> => {
-    const response = await apiClient.get<ApiResponse<Booking[]>>('/bookings/today');
-    return response.data.data;
-  },
-
-  /**
-   * Get pending follow-ups (Admin)
-   */
-  getFollowUps: async (): Promise<Booking[]> => {
-    const response = await apiClient.get<ApiResponse<Booking[]>>('/bookings/follow-ups');
-    return response.data.data;
-  },
-
-  /**
-   * Bulk update booking status (Admin)
-   */
-  bulkUpdateStatus: async (ids: string[], status: string): Promise<{
-    updatedCount: number;
-  }> => {
-    const response = await apiClient.post<ApiResponse<{ updatedCount: number }>>(
-      '/bookings/bulk-update',
-      { ids, status }
-    );
-    return response.data.data;
-  },
-
-  /**
    * Export bookings as CSV (Admin)
    */
-  export: async (params?: BookingListParams): Promise<Blob> => {
+  exportCsv: async (params?: {
+    status?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<Blob> => {
     const response = await apiClient.get('/bookings/export', {
       params,
       responseType: 'blob',
@@ -665,11 +908,11 @@ export const bookingApi = {
   },
 
   /**
-   * Get analytics by source (Admin)
+   * Get analytics by brand (Admin)
    */
-  getBySource: async (): Promise<{ _id: string; count: number }[]> => {
+  getByBrand: async (): Promise<{ _id: string; count: number }[]> => {
     const response = await apiClient.get<ApiResponse<{ _id: string; count: number }[]>>(
-      '/bookings/analytics/by-source'
+      '/bookings/analytics/by-brand'
     );
     return response.data.data;
   },
@@ -683,10 +926,6 @@ export const bookingApi = {
     );
     return response.data.data;
   },
-
-  // ============================================
-  // CONTACT INQUIRY ENDPOINTS (Admin)
-  // ============================================
 
   /**
    * List contact inquiries (Admin)
@@ -790,11 +1029,6 @@ export interface StorageStats {
 export const mediaApi = {
   /**
    * Upload a single image
-   * 
-   * @example
-   * const file = event.target.files[0];
-   * const result = await mediaApi.upload(file, 'hero', 'Hero background');
-   * console.log(result.url); // S3 URL of uploaded image
    */
   upload: async (
     file: File,
@@ -972,6 +1206,12 @@ export const mediaApi = {
  * // Content
  * const content = await api.content.getPublicContent();
  * 
+ * // Services [NEW]
+ * const services = await api.services.getAll();
+ * 
+ * // Car Data [NEW]
+ * const brands = await api.carData.getAllBrands({ includeModels: true });
+ * 
  * // Booking
  * await api.booking.submit({ phone, city, brand, ... });
  * 
@@ -981,6 +1221,8 @@ export const mediaApi = {
 export const api = {
   auth: authApi,
   content: contentApi,
+  services: servicesApi,
+  carData: carDataApi,
   booking: bookingApi,
   media: mediaApi,
 };

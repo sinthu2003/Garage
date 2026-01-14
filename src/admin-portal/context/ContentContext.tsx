@@ -1,18 +1,11 @@
 /**
  * ============================================
- * CONTENT CONTEXT (API INTEGRATED)
+ * CONTENT CONTEXT (API INTEGRATED + LAZY LOADING)
  * ============================================
  * 
- * This is the UPDATED ContentContext that integrates with your backend API.
- * 
- * Changes from original:
- * - Loads content from API instead of static JSON
- * - Syncs changes to API (debounced)
- * - applyChanges() calls API to publish
- * - discardChanges() calls API to revert
- * - Supports both PUBLIC mode (website) and ADMIN mode (with drafts)
- * - Keeps undo/redo local for fast editing
- * - Keeps image resolution logic intact
+ * [FIX] Uses refs to prevent duplicate API calls and infinite loops
+ * The key fix is removing loading states from useCallback dependencies
+ * and using refs to track loading/loaded status instead.
  * 
  * @file src/context/ContentContext.tsx
  */
@@ -28,23 +21,32 @@ import React, {
 } from 'react';
 import type { SiteContent, ContentContextValue } from '../types/content.types';
 import defaultContent from '../data/siteContent.json';
-import { contentApi,getErrorMessage } from '../../services/api';
+import { 
+  contentApi, 
+  servicesApi, 
+  carDataApi, 
+  getErrorMessage,
+  type Service,
+  type CarBrand,
+  type CarModel,
+  type CreateServiceData,
+  type UpdateServiceData,
+  type CreateBrandData,
+  type UpdateBrandData,
+  type CreateModelData,
+  type UpdateModelData,
+} from '../../services/api';
 import { tokenStorage } from '../../services/api';
 
 // ============================================
 // IMAGE RESOLUTION LOGIC (UNCHANGED)
 // ============================================
 
-// 1. Import all images using Vite's glob import
 const imageModules = import.meta.glob('../../assets/**/*.{png,jpg,jpeg,svg,webp,avif}', { eager: true });
 
-/**
- * 2. Helper to resolve a single path string to a built image URL
- */
 const resolvePath = (path: string): string => {
   if (!path || typeof path !== 'string') return path;
   
-  // Only try to resolve paths that look like relative asset paths from the JSON
   if (path.startsWith('../assets/')) {
     const filename = path.replace('../assets/', '');
     const localPath = `../../assets/${filename}`;
@@ -59,9 +61,6 @@ const resolvePath = (path: string): string => {
   return path;
 };
 
-/**
- * 3. Deeply traverse the content object and resolve all image strings
- */
 const resolveContentImages = <T,>(content: T): T => {
   if (typeof content === 'string') {
     return resolvePath(content) as unknown as T;
@@ -97,15 +96,39 @@ interface HistoryEntry {
 interface ContentProviderProps {
   children: React.ReactNode;
   initialContent?: SiteContent;
-  /** 
-   * Mode: 'public' loads published content, 'admin' loads working content with drafts 
-   * Default: auto-detect based on authentication
-   */
   mode?: 'public' | 'admin' | 'auto';
-  /** Enable loading from API (default: true) */
   enableApi?: boolean;
-  /** Fallback to localStorage if API fails (default: true) */
   enableFallback?: boolean;
+}
+
+interface ExtendedContentContextValue extends ContentContextValue {
+  isLoading: boolean;
+  error: string | null;
+  isSyncing: boolean;
+  clearError: () => void;
+  
+  loadedSections: Set<string>;
+  loadSection: (section: keyof SiteContent) => Promise<void>;
+  isSectionLoading: (section: keyof SiteContent) => boolean;
+  
+  services: Service[];
+  servicesLoading: boolean;
+  loadServices: () => Promise<void>;
+  createService: (data: CreateServiceData) => Promise<Service>;
+  updateService: (id: string, data: UpdateServiceData) => Promise<Service>;
+  deleteService: (id: string) => Promise<void>;
+  reorderServices: (orderedIds: string[]) => Promise<void>;
+  
+  carBrands: CarBrand[];
+  carBrandsLoading: boolean;
+  loadCarBrands: (includeModels?: boolean) => Promise<void>;
+  createBrand: (data: CreateBrandData) => Promise<CarBrand>;
+  updateBrand: (id: string, data: UpdateBrandData) => Promise<CarBrand>;
+  deleteBrand: (id: string) => Promise<void>;
+  
+  createModel: (brandId: string, data: CreateModelData) => Promise<CarModel>;
+  updateModel: (id: string, data: UpdateModelData) => Promise<CarModel>;
+  deleteModel: (id: string) => Promise<void>;
 }
 
 // ============================================
@@ -115,10 +138,10 @@ interface ContentProviderProps {
 const LOCAL_STORAGE_KEY = 'addax-cms-content';
 const SAVED_CONTENT_KEY = 'addax-cms-saved-content';
 const HISTORY_LIMIT = 50;
-const DEBOUNCE_DELAY = 1000; // 1 second debounce for API sync
+const DEBOUNCE_DELAY = 1000;
 
 // ============================================
-// HELPER FUNCTIONS (UNCHANGED)
+// HELPER FUNCTIONS
 // ============================================
 
 const deepClone = <T,>(obj: T): T => {
@@ -181,7 +204,7 @@ const generateHash = (content: SiteContent): string => {
 // CONTEXT
 // ============================================
 
-const ContentContext = createContext<ContentContextValue | undefined>(undefined);
+const ContentContext = createContext<ExtendedContentContextValue | undefined>(undefined);
 
 // ============================================
 // PROVIDER COMPONENT
@@ -195,16 +218,24 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   enableFallback = true,
 }) => {
   // ----------------------------------------
-  // Refs for debouncing
+  // Refs for debouncing and preventing duplicate calls
+  // [FIX] These refs prevent infinite loops by tracking state without causing re-renders
   // ----------------------------------------
-const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingChangesRef = useRef<Map<string, { path: string; value: unknown }>>(new Map());
+  
+  // [FIX] Use refs to track loading/loaded state - these don't cause useCallback to recreate
+  const servicesLoadingRef = useRef(false);
+  const servicesLoadedRef = useRef(false);
+  const carBrandsLoadingRef = useRef(false);
+  const carBrandsLoadedRef = useRef(false);
+  const loadingSectionsRef = useRef<Set<string>>(new Set());
+  const loadedSectionsRef = useRef<Set<string>>(new Set());
 
   // ----------------------------------------
   // State
   // ----------------------------------------
   const [content, setContent] = useState<SiteContent>(() => {
-    // Start with default content, will be replaced by API data
     return resolveContentImages(initialContent || defaultContent as SiteContent);
   });
   const [savedContent, setSavedContent] = useState<SiteContent>(() => {
@@ -214,12 +245,20 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
-  // Loading and error states (NEW)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Determine actual mode
+  // These state values are for UI display only
+  const [loadedSections, setLoadedSections] = useState<Set<string>>(new Set());
+  const [loadingSections, setLoadingSections] = useState<Set<string>>(new Set());
+
+  const [services, setServices] = useState<Service[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
+
+  const [carBrands, setCarBrands] = useState<CarBrand[]>([]);
+  const [carBrandsLoading, setCarBrandsLoading] = useState(false);
+
   const actualMode = mode === 'auto' 
     ? (tokenStorage.isAuthenticated() ? 'admin' : 'public')
     : mode;
@@ -238,7 +277,6 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const loadContent = async () => {
       if (!enableApi) {
         setIsLoading(false);
-        // Initialize history with current content
         setHistory([{ content: deepClone(content), timestamp: Date.now(), action: 'initial' }]);
         setHistoryIndex(0);
         return;
@@ -251,14 +289,11 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
         let loadedContent: SiteContent;
 
         if (actualMode === 'admin' && tokenStorage.isAuthenticated()) {
-          // Admin mode: load working content (includes drafts)
           loadedContent = await contentApi.getWorkingContent();
         } else {
-          // Public mode: load published content
           loadedContent = await contentApi.getPublicContent();
         }
 
-        // Merge with defaults and resolve images
         const mergedContent = deepMerge(defaultContent as SiteContent, loadedContent);
         const resolvedContent = resolveContentImages(mergedContent);
 
@@ -271,7 +306,6 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
         console.error('Failed to load content from API:', err);
         setError(getErrorMessage(err));
 
-        // Fallback to localStorage if enabled
         if (enableFallback && typeof window !== 'undefined') {
           try {
             const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -298,6 +332,191 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   }, [actualMode, enableApi, enableFallback]);
 
   // ----------------------------------------
+  // [FIX] Load a specific section on demand - using refs for guards
+  // ----------------------------------------
+  const loadSection = useCallback(async (section: keyof SiteContent) => {
+    // [FIX] Use refs to check loading/loaded state - not state variables
+    if (loadedSectionsRef.current.has(section) || loadingSectionsRef.current.has(section)) {
+      return;
+    }
+
+    // Mark as loading in ref
+    loadingSectionsRef.current.add(section);
+    setLoadingSections(prev => new Set(prev).add(section));
+
+    try {
+      const sectionData = await contentApi.getSection(section);
+      const resolvedData = resolveContentImages(sectionData);
+
+      setContent(prev => ({
+        ...prev,
+        [section]: resolvedData,
+      }));
+
+      // Mark as loaded in ref
+      loadedSectionsRef.current.add(section);
+      setLoadedSections(prev => new Set(prev).add(section));
+    } catch (err) {
+      console.error(`Failed to load section ${section}:`, err);
+      setError(getErrorMessage(err));
+    } finally {
+      // Remove from loading in ref
+      loadingSectionsRef.current.delete(section);
+      setLoadingSections(prev => {
+        const next = new Set(prev);
+        next.delete(section);
+        return next;
+      });
+    }
+  }, []); // [FIX] Empty deps - function reference is stable
+
+  const isSectionLoading = useCallback((section: keyof SiteContent) => {
+    return loadingSections.has(section);
+  }, [loadingSections]);
+
+  // ----------------------------------------
+  // [FIX] Services CRUD - using refs for guards
+  // [FIX] Apply resolveContentImages to resolve ../assets/ paths
+  // ----------------------------------------
+  const loadServices = useCallback(async () => {
+    // [FIX] Use refs to prevent duplicate calls - not state
+    if (servicesLoadingRef.current || servicesLoadedRef.current) {
+      return;
+    }
+
+    // Mark as loading in ref FIRST
+    servicesLoadingRef.current = true;
+    setServicesLoading(true);
+
+    try {
+      const result = await servicesApi.getAll({ limit: 100 });
+      // [FIX] Resolve image paths from ../assets/ to actual URLs
+      const resolvedServices = resolveContentImages(result.items);
+      setServices(resolvedServices);
+      // Mark as loaded
+      servicesLoadedRef.current = true;
+    } catch (err) {
+      console.error('Failed to load services:', err);
+      setError(getErrorMessage(err));
+      // Reset ref on error to allow retry
+      servicesLoadedRef.current = false;
+    } finally {
+      servicesLoadingRef.current = false;
+      setServicesLoading(false);
+    }
+  }, []); // [FIX] Empty deps - function reference is stable
+
+  const createServiceFn = useCallback(async (data: CreateServiceData): Promise<Service> => {
+    const newService = await servicesApi.create(data);
+    setServices(prev => [newService, ...prev]);
+    return newService;
+  }, []);
+
+  const updateServiceFn = useCallback(async (id: string, data: UpdateServiceData): Promise<Service> => {
+    const updated = await servicesApi.update(id, data);
+    setServices(prev => prev.map(s => s._id === id ? updated : s));
+    return updated;
+  }, []);
+
+  const deleteServiceFn = useCallback(async (id: string): Promise<void> => {
+    await servicesApi.delete(id);
+    setServices(prev => prev.filter(s => s._id !== id));
+  }, []);
+
+  const reorderServicesFn = useCallback(async (orderedIds: string[]): Promise<void> => {
+    await servicesApi.reorder(orderedIds);
+    setServices(prev => {
+      const serviceMap = new Map(prev.map(s => [s._id, s]));
+      return orderedIds
+        .map(id => serviceMap.get(id))
+        .filter((s): s is Service => s !== undefined);
+    });
+  }, []);
+
+  // ----------------------------------------
+  // [FIX] Car Brands CRUD - using refs for guards
+  // [FIX] Apply resolveContentImages to resolve ../assets/ paths
+  // ----------------------------------------
+  const loadCarBrands = useCallback(async (includeModels = true) => {
+    // [FIX] Use refs to prevent duplicate calls - not state
+    if (carBrandsLoadingRef.current || carBrandsLoadedRef.current) {
+      return;
+    }
+
+    // Mark as loading in ref FIRST
+    carBrandsLoadingRef.current = true;
+    setCarBrandsLoading(true);
+
+    try {
+      const brands = await carDataApi.getAllBrands({ includeModels, includeInactive: true });
+      // [FIX] Resolve image paths from ../assets/ to actual URLs
+      const resolvedBrands = resolveContentImages(brands);
+      setCarBrands(resolvedBrands);
+      // Mark as loaded
+      carBrandsLoadedRef.current = true;
+    } catch (err) {
+      console.error('Failed to load car brands:', err);
+      setError(getErrorMessage(err));
+      // Reset ref on error to allow retry
+      carBrandsLoadedRef.current = false;
+    } finally {
+      carBrandsLoadingRef.current = false;
+      setCarBrandsLoading(false);
+    }
+  }, []); // [FIX] Empty deps - function reference is stable
+
+  const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBrand> => {
+    const newBrand = await carDataApi.createBrand(data);
+    setCarBrands(prev => [...prev, newBrand]);
+    return newBrand;
+  }, []);
+
+  const updateBrandFn = useCallback(async (id: string, data: UpdateBrandData): Promise<CarBrand> => {
+    const updated = await carDataApi.updateBrand(id, data);
+    setCarBrands(prev => prev.map(b => b._id === id ? { ...b, ...updated } : b));
+    return updated;
+  }, []);
+
+  const deleteBrandFn = useCallback(async (id: string): Promise<void> => {
+    await carDataApi.deleteBrand(id);
+    setCarBrands(prev => prev.filter(b => b._id !== id));
+  }, []);
+
+  // ----------------------------------------
+  // Car Models CRUD
+  // ----------------------------------------
+  const createModelFn = useCallback(async (brandId: string, data: CreateModelData): Promise<CarModel> => {
+    const newModel = await carDataApi.addModelToBrand(brandId, data);
+    setCarBrands(prev => prev.map(b => {
+      if (b._id === brandId) {
+        return {
+          ...b,
+          models: [...(b.models || []), newModel],
+        };
+      }
+      return b;
+    }));
+    return newModel;
+  }, []);
+
+  const updateModelFn = useCallback(async (id: string, data: UpdateModelData): Promise<CarModel> => {
+    const updated = await carDataApi.updateModel(id, data);
+    setCarBrands(prev => prev.map(b => ({
+      ...b,
+      models: b.models?.map(m => m._id === id ? { ...m, ...updated } : m),
+    })));
+    return updated;
+  }, []);
+
+  const deleteModelFn = useCallback(async (id: string): Promise<void> => {
+    await carDataApi.deleteModel(id);
+    setCarBrands(prev => prev.map(b => ({
+      ...b,
+      models: b.models?.filter(m => m._id !== id),
+    })));
+  }, []);
+
+  // ----------------------------------------
   // Debounced API sync for field updates
   // ----------------------------------------
   const syncToApi = useCallback(async () => {
@@ -307,7 +526,6 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     setIsSyncing(true);
 
     try {
-      // Process all pending changes
       const changes = Array.from(pendingChangesRef.current.entries());
       
       for (const [section, { path, value }] of changes) {
@@ -317,7 +535,6 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
       pendingChangesRef.current.clear();
     } catch (err) {
       console.error('Failed to sync changes to API:', err);
-      // Don't clear pending changes on error - will retry
     } finally {
       setIsSyncing(false);
     }
@@ -332,7 +549,6 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     }, DEBOUNCE_DELAY);
   }, [syncToApi]);
 
-  // Cleanup debounce timer on unmount
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
@@ -342,7 +558,7 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   }, []);
 
   // ----------------------------------------
-  // Add to history (UNCHANGED)
+  // Add to history
   // ----------------------------------------
   const addToHistory = useCallback(
     (newContent: SiteContent, action?: string) => {
@@ -354,7 +570,6 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
           action,
         });
         
-        // Limit history size
         if (newHistory.length > HISTORY_LIMIT) {
           newHistory.shift();
           return newHistory;
@@ -368,7 +583,7 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   );
 
   // ----------------------------------------
-  // Update field (UPDATED - syncs to API)
+  // Update field
   // ----------------------------------------
   const updateField = useCallback(
     (section: string, path: string, value: unknown) => {
@@ -388,16 +603,13 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
           meta: { ...prev.meta, lastModified: new Date().toISOString() },
         };
         
-        // Add to local history
         addToHistory(newContent, `Update ${section}.${path}`);
         
-        // Queue for API sync (admin mode only)
         if (actualMode === 'admin' && enableApi && tokenStorage.isAuthenticated()) {
           pendingChangesRef.current.set(section, { path, value });
           debouncedSync();
         }
         
-        // Also save to localStorage as backup
         if (enableFallback && typeof window !== 'undefined') {
           try {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newContent));
@@ -413,7 +625,7 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   );
 
   // ----------------------------------------
-  // Update section (UPDATED - syncs to API)
+  // Update section
   // ----------------------------------------
   const updateSection = useCallback(
     (section: string, value: unknown) => {
@@ -426,7 +638,6 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
         };
         addToHistory(newContent, `Update ${section}`);
         
-        // For section updates, sync immediately
         if (actualMode === 'admin' && enableApi && tokenStorage.isAuthenticated()) {
           contentApi.updateSection(sectionKey, value as SiteContent[typeof sectionKey])
             .catch(err => console.error('Failed to sync section:', err));
@@ -439,7 +650,7 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   );
 
   // ----------------------------------------
-  // Undo / Redo (UNCHANGED - local only)
+  // Undo / Redo
   // ----------------------------------------
   const undo = useCallback(() => {
     if (historyIndex > 0) {
@@ -461,7 +672,7 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const canRedo = historyIndex < history.length - 1;
 
   // ----------------------------------------
-  // Reset content (UPDATED - calls API)
+  // Reset content
   // ----------------------------------------
   const resetContent = useCallback(async () => {
     setIsLoading(true);
@@ -469,24 +680,20 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     try {
       if (enableApi && tokenStorage.isAuthenticated()) {
-        // Call API to reset
         const result = await contentApi.resetContent();
         const resolved = resolveContentImages(result.content);
         
         setContent(resolved);
         setSavedContent(resolved);
       } else {
-        // Fallback to default content
         const resolved = resolveContentImages(defaultContent as SiteContent);
         setContent(deepClone(resolved));
         setSavedContent(deepClone(resolved));
       }
 
-      // Reset history
       setHistory([{ content: deepClone(content), timestamp: Date.now(), action: 'reset' }]);
       setHistoryIndex(0);
       
-      // Clear localStorage
       if (typeof window !== 'undefined') {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         localStorage.removeItem(SAVED_CONTENT_KEY);
@@ -495,7 +702,6 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
       console.error('Failed to reset content:', err);
       setError(getErrorMessage(err));
       
-      // Fallback to local reset
       const resolved = resolveContentImages(defaultContent as SiteContent);
       setContent(deepClone(resolved));
       setSavedContent(deepClone(resolved));
@@ -505,33 +711,29 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   }, [enableApi, content]);
 
   // ----------------------------------------
-  // Apply Changes (UPDATED - calls API to publish)
+  // Apply Changes
   // ----------------------------------------
   const applyChanges = useCallback(async (): Promise<void> => {
     setIsSyncing(true);
     setError(null);
 
     try {
-      // Flush any pending changes first
       if (pendingChangesRef.current.size > 0) {
         await syncToApi();
       }
 
       if (enableApi && tokenStorage.isAuthenticated()) {
-        // Call API to publish changes
         const result = await contentApi.applyChanges();
         const resolved = resolveContentImages(result.content);
         
         setSavedContent(resolved);
         setContent(resolved);
       } else {
-        // Fallback: just update saved content locally
         setSavedContent(deepClone(content));
       }
 
       setLastSaved(new Date());
       
-      // Update localStorage
       if (enableFallback && typeof window !== 'undefined') {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(content));
         localStorage.setItem(SAVED_CONTENT_KEY, JSON.stringify(content));
@@ -539,43 +741,38 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     } catch (err) {
       console.error('Failed to apply changes:', err);
       setError(getErrorMessage(err));
-      throw err; // Re-throw so caller can handle
+      throw err;
     } finally {
       setIsSyncing(false);
     }
   }, [content, enableApi, enableFallback, syncToApi]);
 
   // ----------------------------------------
-  // Discard Changes (UPDATED - calls API to revert)
+  // Discard Changes
   // ----------------------------------------
   const discardChanges = useCallback(async (): Promise<void> => {
     setIsSyncing(true);
     setError(null);
 
     try {
-      // Clear pending changes
       pendingChangesRef.current.clear();
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
 
       if (enableApi && tokenStorage.isAuthenticated()) {
-        // Call API to discard draft
         const result = await contentApi.discardChanges();
         const resolved = resolveContentImages(result.content);
         
         setContent(resolved);
         setSavedContent(resolved);
       } else {
-        // Fallback: revert to saved content
         setContent(deepClone(savedContent));
       }
 
-      // Reset history
       setHistory([{ content: deepClone(savedContent), timestamp: Date.now(), action: 'discard' }]);
       setHistoryIndex(0);
       
-      // Update localStorage
       if (enableFallback && typeof window !== 'undefined') {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedContent));
       }
@@ -583,7 +780,6 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
       console.error('Failed to discard changes:', err);
       setError(getErrorMessage(err));
       
-      // Fallback: just revert locally
       setContent(deepClone(savedContent));
     } finally {
       setIsSyncing(false);
@@ -591,7 +787,7 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   }, [savedContent, enableApi, enableFallback]);
 
   // ----------------------------------------
-  // Export / Import (UPDATED)
+  // Export / Import
   // ----------------------------------------
   const exportContent = useCallback((): string => {
     return JSON.stringify(content, null, 2);
@@ -611,7 +807,6 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
         setContent(resolvedMerged);
         addToHistory(resolvedMerged, 'import');
 
-        // Sync to API if authenticated
         if (enableApi && tokenStorage.isAuthenticated()) {
           await contentApi.importContent(parsed);
         }
@@ -627,14 +822,9 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   );
 
   // ----------------------------------------
-  // Context value (EXTENDED)
+  // Context value
   // ----------------------------------------
-  const contextValue = useMemo<ContentContextValue & { 
-    isLoading: boolean; 
-    error: string | null; 
-    isSyncing: boolean;
-    clearError: () => void;
-  }>(
+  const contextValue = useMemo<ExtendedContentContextValue>(
     () => ({
       content,
       updateField,
@@ -650,11 +840,34 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
       lastSaved,
       applyChanges,
       discardChanges,
-      // New properties
+      
       isLoading,
       error,
       isSyncing,
       clearError: () => setError(null),
+      
+      loadedSections,
+      loadSection,
+      isSectionLoading,
+      
+      services,
+      servicesLoading,
+      loadServices,
+      createService: createServiceFn,
+      updateService: updateServiceFn,
+      deleteService: deleteServiceFn,
+      reorderServices: reorderServicesFn,
+      
+      carBrands,
+      carBrandsLoading,
+      loadCarBrands,
+      createBrand: createBrandFn,
+      updateBrand: updateBrandFn,
+      deleteBrand: deleteBrandFn,
+      
+      createModel: createModelFn,
+      updateModel: updateModelFn,
+      deleteModel: deleteModelFn,
     }),
     [
       content,
@@ -674,26 +887,40 @@ const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
       isLoading,
       error,
       isSyncing,
+      loadedSections,
+      loadSection,
+      isSectionLoading,
+      services,
+      servicesLoading,
+      loadServices,
+      createServiceFn,
+      updateServiceFn,
+      deleteServiceFn,
+      reorderServicesFn,
+      carBrands,
+      carBrandsLoading,
+      loadCarBrands,
+      createBrandFn,
+      updateBrandFn,
+      deleteBrandFn,
+      createModelFn,
+      updateModelFn,
+      deleteModelFn,
     ]
   );
 
   return (
-    <ContentContext.Provider value={contextValue as ContentContextValue}>
+    <ContentContext.Provider value={contextValue}>
       {children}
     </ContentContext.Provider>
   );
 };
 
 // ============================================
-// CUSTOM HOOKS (UNCHANGED)
+// CUSTOM HOOKS
 // ============================================
 
-export const useContent = (): ContentContextValue & {
-  isLoading?: boolean;
-  error?: string | null;
-  isSyncing?: boolean;
-  clearError?: () => void;
-} => {
+export const useContent = (): ExtendedContentContextValue => {
   const context = useContext(ContentContext);
   if (context === undefined) {
     throw new Error('useContent must be used within a ContentProvider');
@@ -714,17 +941,17 @@ export const useBrand = () => {
 };
 
 export const useServices = () => {
-  const { content } = useContent();
-  return content.services.items;
+  const { services, content } = useContent();
+  return services.length > 0 ? services : content.services.items;
 };
 
 export const useService = (idOrSlug: string | number) => {
   const services = useServices();
-  return services.find((service) => {
-    if (service.id === idOrSlug || service.id === String(idOrSlug)) {
+  return services.find((service: any) => {
+    if (service._id === idOrSlug || service.id === idOrSlug || service.id === String(idOrSlug)) {
       return true;
     }
-    const slug = service.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+    const slug = service.slug || service.title?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
     return slug === idOrSlug;
   });
 };
@@ -740,7 +967,34 @@ export const useFAQs = () => {
 };
 
 export const useBookingData = () => {
-  const { content } = useContent();
+  const { content, carBrands } = useContent();
+  
+  if (carBrands.length > 0) {
+    const brands = carBrands.map(b => ({
+      id: b._id,
+      name: b.name,
+      logo: b.logo,
+      urlName: b.urlName,
+    }));
+    
+    const carModels: Record<string, { name: string; type: string; image: string }[]> = {};
+    carBrands.forEach(brand => {
+      if (brand.models) {
+        carModels[brand._id] = brand.models.map(m => ({
+          name: m.name,
+          type: m.type,
+          image: m.image,
+        }));
+      }
+    });
+
+    return {
+      ...content.bookingWidget,
+      brands,
+      carModels,
+    };
+  }
+  
   return content.bookingWidget;
 };
 
@@ -759,5 +1013,5 @@ export const usePartners = () => {
 // ============================================
 
 export { ContentContext };
-export type { ContentProviderProps };
+export type { ContentProviderProps, ExtendedContentContextValue };
 export type { ContentContextValue } from '../types/content.types';
