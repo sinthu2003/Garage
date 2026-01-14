@@ -1,41 +1,113 @@
-
-
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Mail,
   Lock,
   Eye,
   EyeOff,
-  LogIn,
+  ArrowRight,
   AlertCircle,
   Loader2,
-  Shield,
+  CheckCircle2,
+  ShieldCheck,
+  Globe,
+  Building2,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-// ============================================
-// COMPONENT
-// ============================================
+// Validation patterns
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-export const AdminLogin: React.FC = () => {
+// Toast types
+type ToastType = 'error' | 'success' | 'warning';
+
+interface Toast {
+  id: number;
+  type: ToastType;
+  title: string;
+  message: string;
+}
+
+interface ValidationErrors {
+  email?: string;
+  password?: string;
+}
+
+// Toast Component
+const ToastNotification = ({ toast, onClose }: { toast: Toast; onClose: (id: number) => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose(toast.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [toast.id, onClose]);
+
+  const bgColors = {
+    error: 'bg-red-500',
+    success: 'bg-green-500',
+    warning: 'bg-amber-500',
+  };
+
+  const icons = {
+    error: <AlertCircle className="w-5 h-5" />,
+    success: <CheckCircle2 className="w-5 h-5" />,
+    warning: <AlertCircle className="w-5 h-5" />,
+  };
+
+  return (
+    <div
+      className={`${bgColors[toast.type]} text-white px-4 py-3 rounded-lg shadow-lg flex items-start gap-3 min-w-[320px] max-w-[420px] animate-slideIn`}
+    >
+      <div className="flex-shrink-0 mt-0.5">{icons[toast.type]}</div>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-sm">{toast.title}</p>
+        <p className="text-sm opacity-90 mt-0.5">{toast.message}</p>
+      </div>
+      <button
+        onClick={() => onClose(toast.id)}
+        className="flex-shrink-0 hover:bg-white/20 rounded p-1 transition-colors"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
+
+export default function AdminLogin() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, isLoading: authLoading, error, clearError } = useAuth();
 
-  // ----------------------------------------
-  // State
-  // ----------------------------------------
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<{ email: boolean; password: boolean }>({
+    email: false,
+    password: false,
+  });
 
-  // ----------------------------------------
+  // Use ref for submission state to avoid React state issues
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
+
+  // Toast helpers
+  const addToast = useCallback((type: ToastType, title: string, message: string) => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, type, title, message }]);
+  }, []);
+
+  const removeToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
   // Redirect if already authenticated
-  // ----------------------------------------
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin';
@@ -43,19 +115,8 @@ export const AdminLogin: React.FC = () => {
     }
   }, [isAuthenticated, authLoading, navigate, location.state]);
 
-  // ----------------------------------------
-  // Clear error when inputs change
-  // ----------------------------------------
   useEffect(() => {
-    if (error) {
-      clearError();
-    }
-  }, [email, password]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ----------------------------------------
-  // Load remembered email
-  // ----------------------------------------
-  useEffect(() => {
+    setMounted(true);
     const rememberedEmail = localStorage.getItem('addax_remembered_email');
     if (rememberedEmail) {
       setEmail(rememberedEmail);
@@ -63,14 +124,93 @@ export const AdminLogin: React.FC = () => {
     }
   }, []);
 
-  // ----------------------------------------
-  // Handle form submit
-  // ----------------------------------------
+  // Show toast when API error occurs
+  useEffect(() => {
+    if (error) {
+      console.log('Error detected in AdminLogin:', error);
+
+      // Safety net: Ensure submitting state is reset when error occurs
+      setIsSubmitting(false);
+      submittingRef.current = false;
+
+      addToast('error', 'Sign-in failed', error);
+      // Clear error after showing toast (timeout to prevent state update during render)
+      setTimeout(() => clearError(), 0);
+    }
+  }, [error]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Clear validation errors when inputs change
+  useEffect(() => {
+    if (touched.email && validationErrors.email) {
+      setValidationErrors((prev) => ({ ...prev, email: validateEmail(email) }));
+    }
+  }, [email]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (touched.password && validationErrors.password) {
+      setValidationErrors((prev) => ({ ...prev, password: validatePassword(password) }));
+    }
+  }, [password]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Validate email
+  const validateEmail = (value: string): string | undefined => {
+    if (!value.trim()) {
+      return 'Email is required';
+    }
+    if (!EMAIL_PATTERN.test(value)) {
+      return 'Please enter a valid email address';
+    }
+    return undefined;
+  };
+
+  // Validate password
+  const validatePassword = (value: string): string | undefined => {
+    if (!value) {
+      return 'Password is required';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    return undefined;
+  };
+
+  // Handle blur events
+  const handleEmailBlur = () => {
+    setEmailFocused(false);
+    setTouched((prev) => ({ ...prev, email: true }));
+    setValidationErrors((prev) => ({ ...prev, email: validateEmail(email) }));
+  };
+
+  const handlePasswordBlur = () => {
+    setPasswordFocused(false);
+    setTouched((prev) => ({ ...prev, password: true }));
+    setValidationErrors((prev) => ({ ...prev, password: validatePassword(password) }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) return;
 
+    // Prevent double submission using ref
+    if (submittingRef.current) return;
+
+    // Mark all fields as touched
+    setTouched({ email: true, password: true });
+
+    // Validate all fields
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+
+    if (emailError || passwordError) {
+      setValidationErrors({
+        email: emailError,
+        password: passwordError,
+      });
+      return;
+    }
+
+    // Set submitting state
+    console.log('Starting login submission...');
+    submittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -81,161 +221,232 @@ export const AdminLogin: React.FC = () => {
         localStorage.removeItem('addax_remembered_email');
       }
 
-      await login(email, password);
+      console.log('Calling login API...');
+      const result = await login(email, password);
+      console.log('Login API result:', result);
+
+    } catch (err) {
+      console.error('Unexpected login error:', err);
     } finally {
+      console.log('Finally block - resetting submission state');
+      // Always reset submitting state
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   };
 
-  // ----------------------------------------
-  // Show loading state while checking auth
-  // ----------------------------------------
+  // Show loading state during initial auth check
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-gray-400">Checking authentication...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-sm text-muted-foreground">Checking authentication...</p>
         </div>
       </div>
     );
   }
 
-  // ----------------------------------------
-  // Render
-  // ----------------------------------------
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-black" />
-      
-      {/* Subtle grid pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.02]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
-      />
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
+            <CheckCircle2 className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Sign-in successful</h2>
+          <p className="text-sm text-muted-foreground">Redirecting to your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
-      {/* Login Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative w-full max-w-md"
-      >
-        {/* Card */}
-        <div className="bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
-          {/* Header */}
-          <div className="px-8 pt-8 pb-6 text-center border-b border-gray-800">
-            {/* Logo/Icon */}
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-              className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center shadow-lg shadow-primary/25"
-            >
-              <Shield className="w-8 h-8 text-white" />
-            </motion.div>
-            
-            <h1 className="text-2xl font-bold text-white mb-1">Admin Login</h1>
-            <p className="text-gray-400 text-sm">Sign in to access the admin panel</p>
+  return (
+    <div className="min-h-screen flex bg-background">
+      {/* Toast Container */}
+      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+        {toasts.map((toast) => (
+          <ToastNotification key={toast.id} toast={toast} onClose={removeToast} />
+        ))}
+      </div>
+
+      {/* Left Side - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: '48px 48px'
+          }} />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col justify-between p-12 text-white w-full">
+          {/* Logo/Brand */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Addax Automotive</h1>
+              <p className="text-sm text-white/80">Admin Portal</p>
+            </div>
+          </div>
+
+          {/* Center Content */}
+          <div className="space-y-8 max-w-md">
+            <div>
+              <h2 className="text-4xl font-bold mb-4 leading-tight">
+                Manage your automotive service business with ease
+              </h2>
+              <p className="text-lg text-white/90 leading-relaxed">
+                Access your dashboard to manage bookings, track services, handle inventory, and grow your business.
+              </p>
+            </div>
+
+            {/* Features */}
+            <div className="space-y-4">
+              {[
+                { icon: ShieldCheck, text: 'Enterprise-grade security' },
+                { icon: Globe, text: 'Access from anywhere' },
+                { icon: CheckCircle2, text: 'Real-time analytics' },
+              ].map((feature, idx) => (
+                <div key={idx} className="flex items-center gap-3 text-white/90">
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <feature.icon className="w-3 h-3" />
+                  </div>
+                  <span className="text-sm">{feature.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-sm text-white/70">
+            © 2026 Addax Automotive. All rights reserved.
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div className={`w-full max-w-md transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+              <Building2 className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-foreground">Addax Automotive</h1>
+              <p className="text-sm text-muted-foreground">Admin Portal</p>
+            </div>
+          </div>
+
+          {/* Sign In Header */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-foreground mb-2">Sign in</h2>
+            <p className="text-muted-foreground">Enter your credentials to access the admin dashboard</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-8 space-y-5">
-            {/* Error Alert */}
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl"
-              >
-                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                <p className="text-red-400 text-sm">{error}</p>
-              </motion.div>
-            )}
-
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Input */}
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
-                Email Address
+            <div className="relative">
+              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+                Email Address <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="w-5 h-5 text-gray-500" />
-                </div>
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                  required
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={handleEmailBlur}
+                  placeholder="you@example.com"
                   autoComplete="email"
-                  className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  className={`w-full px-4 py-3 bg-background border-2 rounded-lg text-foreground placeholder-muted-foreground transition-all duration-200 ${emailFocused
+                    ? 'border-primary shadow-sm'
+                    : validationErrors.email && touched.email
+                      ? 'border-red-400'
+                      : 'border-border hover:border-gray-400'
+                    }`}
                 />
+                <div className={`absolute right-3 top-1/2 -translate-y-1/2 transition-opacity ${email ? 'opacity-100' : 'opacity-0'
+                  }`}>
+                  {validationErrors.email && touched.email ? (
+                    <AlertCircle className="w-5 h-5 text-red-500" />
+                  ) : (
+                    <Mail className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </div>
+              </div>
+              {/* Error text - positioned absolutely to not affect layout */}
+              <div className="h-0 overflow-visible">
+                {validationErrors.email && touched.email && (
+                  <p className="text-xs text-red-500 mt-1 text-right">{validationErrors.email}</p>
+                )}
               </div>
             </div>
 
             {/* Password Input */}
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                Password
-              </label>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="password" className="block text-sm font-medium text-foreground">
+                  Password <span className="text-red-500">*</span>
+                </label>
+              </div>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="w-5 h-5 text-gray-500" />
-                </div>
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={handlePasswordBlur}
+                  placeholder="Enter your password"
                   autoComplete="current-password"
-                  className="w-full pl-12 pr-12 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  className={`w-full px-4 py-3 bg-background border-2 rounded-lg text-foreground placeholder-muted-foreground transition-all duration-200 ${passwordFocused
+                    ? 'border-primary shadow-sm'
+                    : validationErrors.password && touched.password
+                      ? 'border-red-400'
+                      : 'border-border hover:border-gray-400'
+                    }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-gray-300 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
+              </div>
+              {/* Error text - positioned absolutely to not affect layout */}
+              <div className="h-0 overflow-visible">
+                {validationErrors.password && touched.password && (
+                  <p className="text-xs text-red-500 mt-1 text-right">{validationErrors.password}</p>
+                )}
               </div>
             </div>
 
             {/* Remember Me */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center pt-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-primary focus:ring-primary/50 focus:ring-offset-0"
+                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/50"
                 />
-                <span className="text-sm text-gray-400">Remember me</span>
+                <span className="text-sm text-muted-foreground">Remember me</span>
               </label>
-              
-              {/* Forgot Password (optional) */}
-              {/* <a href="#" className="text-sm text-primary hover:text-primary/80 transition-colors">
-                Forgot password?
-              </a> */}
             </div>
 
-            {/* Submit Button */}
-            <motion.button
+            {/* Sign In Button */}
+            <button
               type="submit"
-              disabled={isSubmitting || !email || !password}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="w-full py-3.5 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl shadow-lg shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+              className="w-full py-3 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group shadow-sm hover:shadow"
             >
               {isSubmitting ? (
                 <>
@@ -244,37 +455,79 @@ export const AdminLogin: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <LogIn className="w-5 h-5" />
-                  <span>Sign In</span>
+                  <span>Sign in</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
-            </motion.button>
+            </button>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-background text-muted-foreground">Demo Credentials</span>
+              </div>
+            </div>
+
+            {/* Demo Info */}
+            <div className="bg-secondary/50 border border-border rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Lock className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground mb-1">Test Account</p>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground font-mono">
+                      Email: admin@addax.com
+                    </p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      Password: admin123
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </form>
 
-          {/* Footer */}
-          <div className="px-8 pb-6 text-center">
-            <p className="text-xs text-gray-500">
-              Protected area. Unauthorized access is prohibited.
-            </p>
+          {/* Footer Links */}
+          <div className="mt-8 pt-6 border-t border-border">
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
+              <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
+              <span>•</span>
+              <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
+              <span>•</span>
+              <a href="#" className="hover:text-foreground transition-colors">Contact Support</a>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Back to site link */}
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => navigate('/')}
-            className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
-          >
-            ← Back to website
-          </button>
-        </div>
-      </motion.div>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateX(100%);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out forwards;
+        }
+      `}} />
     </div>
   );
-};
-
-// ============================================
-// DEFAULT EXPORT
-// ============================================
-
-export default AdminLogin;
+}

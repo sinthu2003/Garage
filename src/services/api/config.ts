@@ -198,11 +198,11 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = tokenStorage.getAccessToken();
-    
+
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     return config;
   },
   (error: AxiosError) => {
@@ -247,6 +247,11 @@ apiClient.interceptors.response.use(
 
     // Handle 401 Unauthorized - Token expired
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Don't attempt to refresh token if the failed request was a login attempt
+      if (originalRequest.url?.includes('/auth/login')) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         // Wait for token refresh
         return new Promise((resolve, reject) => {
@@ -303,7 +308,7 @@ apiClient.interceptors.response.use(
 
     // Handle other errors
     const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
-    
+
     // Log error for debugging
     console.error('API Error:', {
       url: originalRequest?.url,
@@ -325,7 +330,7 @@ apiClient.interceptors.response.use(
  */
 export const createFormData = (data: Record<string, unknown>): FormData => {
   const formData = new FormData();
-  
+
   Object.entries(data).forEach(([key, value]) => {
     if (value instanceof File) {
       formData.append(key, value);
@@ -345,7 +350,7 @@ export const createFormData = (data: Record<string, unknown>): FormData => {
       formData.append(key, String(value));
     }
   });
-  
+
   return formData;
 };
 

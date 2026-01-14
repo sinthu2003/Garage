@@ -125,7 +125,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Login
   // ----------------------------------------
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
+    // Note: Don't set isLoading here - that's for initial auth check only
+    // The login component handles its own isSubmitting state
     setError(null);
 
     try {
@@ -134,7 +135,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Get the redirect path (if any)
       const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/admin';
-      
+
       // Navigate to intended destination or admin dashboard
       navigate(from, { replace: true });
 
@@ -144,8 +145,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setError(errorMessage);
       console.error('Login error:', err);
       return false;
-    } finally {
-      setIsLoading(false);
     }
   }, [navigate, location.state]);
 
@@ -179,16 +178,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // ----------------------------------------
   const hasRole = useCallback((role: 'admin' | 'editor' | 'viewer'): boolean => {
     if (!user) return false;
-    
+
     // Admin has all permissions
     if (user.role === 'admin') return true;
-    
+
     // Editor has editor and viewer permissions
     if (user.role === 'editor' && (role === 'editor' || role === 'viewer')) return true;
-    
+
     // Viewer only has viewer permission
     if (user.role === 'viewer' && role === 'viewer') return true;
-    
+
     return false;
   }, [user]);
 
