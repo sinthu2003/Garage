@@ -493,12 +493,13 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
     }
   }, []); // [FIX] Empty deps - function reference is stable
 
-  const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBrand> => {
+const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBrand> => {
     const newBrand = await carDataApi.createBrand(data);
-    const resolvedBrand = resolveContentImages(newBrand);
-    setCarBrands(prev => [...prev, resolvedBrand]);
-    return resolvedBrand;
+    // [FIX] Add new brand at BEGINNING of array (most recent first)
+    setCarBrands(prev => [newBrand, ...prev]);
+    return newBrand;
   }, []);
+
 
   const updateBrandFn = useCallback(async (id: string, data: UpdateBrandData): Promise<CarBrand> => {
     const updated = await carDataApi.updateBrand(id, data);
@@ -515,19 +516,21 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   // ----------------------------------------
   // Car Models CRUD
   // ----------------------------------------
-  const createModelFn = useCallback(async (brandId: string, data: CreateModelData): Promise<CarModel> => {
+    const createModelFn = useCallback(async (brandId: string, data: CreateModelData): Promise<CarModel> => {
     const newModel = await carDataApi.addModelToBrand(brandId, data);
     setCarBrands(prev => prev.map(b => {
       if (b._id === brandId) {
         return {
           ...b,
-          models: [...(b.models || []), newModel],
+          // [FIX] Add new model at BEGINNING of array (most recent first)
+          models: [newModel, ...(b.models || [])],
         };
       }
       return b;
     }));
     return newModel;
   }, []);
+
 
   const updateModelFn = useCallback(async (id: string, data: UpdateModelData): Promise<CarModel> => {
     const updated = await carDataApi.updateModel(id, data);

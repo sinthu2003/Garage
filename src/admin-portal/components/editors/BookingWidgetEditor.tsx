@@ -247,10 +247,20 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
   // [UPDATED] Add new brand - uses new API if available
   const addBrand = async () => {
+    // [FIX] Generate unique name to avoid duplicate conflicts
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const uniqueName = `New Brand ${randomSuffix}`;
+    const uniqueUrlName = `new-brand-${randomSuffix.toLowerCase()}`;
+    
     if (useNewApi && createBrandApi) {
       setIsSaving(true);
       try {
-        await createBrandApi({ name: 'New Brand', logo: '', urlName: 'new-brand' });
+        // [FIX] Include placeholder logo to pass backend validation
+        await createBrandApi({ 
+          name: uniqueName, 
+          logo: '/images/placeholder-brand.png',
+          urlName: uniqueUrlName 
+        });
         setExpandedBrands(new Set([0]));
       } catch (error) {
         console.error('Failed to create brand:', error);
@@ -261,9 +271,9 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
       // Legacy fallback
       const newBrand: Brand = {
         id: `brand-${Date.now()}`,
-        name: 'New Brand',
-        logo: '',
-        urlName: 'new-brand',
+        name: uniqueName,
+        logo: '/images/placeholder-brand.png',
+        urlName: uniqueUrlName,
       };
       handleUpdate('brands', [newBrand, ...brands]);
       setExpandedBrands(new Set([0]));
@@ -352,11 +362,19 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
   // [UPDATED] Add new model to brand - uses new API if available
   const addModel = async (brandId: string) => {
+    // [FIX] Generate unique name to avoid duplicate conflicts
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const uniqueName = `New Model ${randomSuffix}`;
+    
     if (useNewApi && createModelApi) {
       setIsSaving(true);
       try {
-        // API signature: createModelApi(brandId, data)
-        await createModelApi(brandId, { name: 'New Model', type: 'Sedan', image: '' });
+        // [FIX] Include placeholder image
+        await createModelApi(brandId, { 
+          name: uniqueName, 
+          type: 'Sedan', 
+          image: '/images/placeholder-car.png' 
+        });
         setExpandedModels(new Set([`${brandId}-0`]));
       } catch (error) {
         console.error('Failed to create model:', error);
@@ -366,9 +384,9 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
     } else {
       // Legacy fallback
       const newModel: CarModel = {
-        name: 'New Model',
+        name: uniqueName,
         type: 'Sedan',
-        image: '',
+        image: '/images/placeholder-car.png',
       };
       const brandModels = carModels[brandId] || [];
       handleUpdate('carModels', {

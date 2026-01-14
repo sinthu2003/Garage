@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useServicesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { SectionLoader } from '../shared/Sectionloader';
@@ -8,11 +8,17 @@ interface ServicesEditorProps {
 }
 
 export const ServicesEditor: React.FC<ServicesEditorProps> = ({ }) => {
-  const { updateField } = useContent();
+  const { updateField, loadServices, servicesLoading } = useContent();
   const content = useServicesContent();
 
+  // [FIX] Load services from API when this editor is mounted
+  // This ensures the ServiceGrid preview has data to display
+  useEffect(() => {
+    loadServices();
+  }, [loadServices]);
+
   // [LAZY LOADING] Show loading state
-  if (content.isLoading) {
+  if (content.isLoading || servicesLoading) {
     return <SectionLoader section="Services" />;
   }
 

@@ -276,8 +276,14 @@ const ServiceDetailPreviewWrapper: React.FC<ServiceDetailPreviewProps> = ({ edit
 // Inner component that renders the service detail preview
 const ServiceDetailPreviewContent: React.FC<{ editingIndex: number }> = ({ editingIndex }) => {
   // Get content from the imported useContent hook
-  const { content } = useContent();
-  const services = content?.services?.items || [];
+  // [FIX] Get BOTH API services and legacy content - prefer API services
+  const { content, services: apiServices } = useContent();
+  
+  // [FIX] Use API services if available, otherwise fallback to legacy content
+  const services = (apiServices && apiServices.length > 0) 
+    ? apiServices 
+    : (content?.services?.items || []);
+  
   const service = services[editingIndex];
 
   if (!service) {

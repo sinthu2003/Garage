@@ -278,15 +278,23 @@ export const ServiceDetailPage = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true });
 
-  // Get content from context - images are already resolved by ContentContext
-  const { content } = useContent();
-  const services = content.services.items;
+  // [FIX] Get services from API (with resolved images) first, fallback to legacy content
+  const { content, services: apiServices } = useContent();
+  
+  // [FIX] Prefer API services (images already resolved), fallback to legacy content.services.items
+  const services = (apiServices && apiServices.length > 0) 
+    ? apiServices 
+    : content.services.items;
+  
   const globalContent = content.global;
 
   // Get service from state or find by slug
-  const service = location.state?.service || services.find((s: { title: string; }) => 
-    s.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and') === serviceSlug
-  );
+  // [FIX] Handle both API services (with _id) and legacy services (with id)
+  const service = location.state?.service || services.find((s: any) => {
+    const title = s.title || '';
+    const slug = s.slug || title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+    return slug === serviceSlug || title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and') === serviceSlug;
+  });
 
   // Get extended data - prefer from service.process/faqs/includes if available, else use fallback
   const getExtendedData = (): ExtendedServiceData => {
@@ -309,14 +317,14 @@ export const ServiceDetailPage = () => {
 
   const extendedData = getExtendedData();
 
-  // Get images from siteContent.json gallery array (already resolved by ContentContext)
-  // Falls back to main image if no gallery exists
+  // [FIX] Get images from service - handle both API (resolved) and legacy (may need resolution)
   const getServiceImages = (): string[] => {
     if (!service) return [];
     
     // Check if gallery exists and has images
     if (service.gallery && Array.isArray(service.gallery) && service.gallery.length > 0) {
-      return service.gallery;
+      // Filter out empty strings and return valid images
+      return service.gallery.filter((img: string) => img && img.trim() !== '');
     }
     
     // Fallback to main image only
@@ -392,16 +400,28 @@ export const ServiceDetailPage = () => {
               transition={{ duration: 0.5 }}
             >
               {/* Main Image */}
-              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4 aspect-[4/3] group">
-                <motion.img 
-                  key={activeImage}
-                  src={images[activeImage] || ''}
-                  alt={service.title}
-                  className="w-full h-full object-cover"
-                  initial={{ opacity: 0, scale: 1.05 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4 }}
-                />
+              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4 aspect-[4/3] group bg-secondary">
+                {images.length > 0 && images[activeImage] ? (
+                  <motion.img 
+                    key={activeImage}
+                    src={images[activeImage]}
+                    alt={service.title}
+                    className="w-full h-full object-cover"
+                    initial={{ opacity: 0, scale: 1.05 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4 }}
+                    onError={(e) => {
+                      // Handle broken images gracefully
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null;
+                      target.src = '/images/placeholder-service.jpg';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                    <span className="text-6xl">🔧</span>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 
                 {/* Navigation Arrows */}
@@ -461,6 +481,11 @@ export const ServiceDetailPage = () => {
                         src={img} 
                         alt={`${service.title} ${idx + 1}`}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null;
+                          target.src = '/images/placeholder-service.jpg';
+                        }}
                       />
                       {activeImage === idx && (
                         <div className="absolute inset-0 bg-primary/10" />

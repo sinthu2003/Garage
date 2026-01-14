@@ -11,6 +11,8 @@ import {
   Layers,
   Wrench,
   Loader2,
+  AlertTriangle,
+  X,
 } from 'lucide-react';
 import { useServicesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
@@ -19,9 +21,20 @@ import { ImageUpload } from '../shared/ImageUpload';
 interface ServiceDetailEditorProps {
   isDarkMode: boolean;
   onEditingIndexChange?: (index: number | null) => void;
+  showNotification?: (type: 'success' | 'error', message: string) => void;
 }
 
-export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEditingIndexChange }) => {
+// [NEW] Delete confirmation state interface
+interface DeleteConfirmation {
+  isOpen: boolean;
+  serviceIndex: number | null;
+  serviceTitle: string;
+}
+
+export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ 
+  onEditingIndexChange,
+  showNotification 
+}) => {
   const { updateField } = useContent();
   
   // [NEW] Get services from separate collection + loading functions
@@ -43,12 +56,18 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
   // [FIX] Local state for the service being edited - allows immediate UI updates
   const [localService, setLocalService] = useState<any>(null);
   
+  // [NEW] Delete confirmation modal state
+  const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmation>({
+    isOpen: false,
+    serviceIndex: null,
+    serviceTitle: '',
+  });
+  
   // [FIX] Debounce timers ref - prevents too many API calls
-const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const DEBOUNCE_DELAY = 1000; // ms
+  const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const DEBOUNCE_DELAY = 500; // ms
 
   // [FIX] Determine which data source to use
-  // Only use legacy if services array is empty AND not currently loading
   const useNewApi = services && services.length > 0;
   const servicesList = useNewApi ? services : (legacyContent?.items || []);
 
@@ -58,12 +77,11 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
   };
 
   // [FIX] Load services if not loaded yet
-  // This ensures services are loaded even if AdminPage's useEffect hasn't triggered yet
   useEffect(() => {
     if (!services || services.length === 0) {
       loadServices?.();
     }
-  }, []);  // Only run once on mount
+  }, []);
 
   // [FIX] Sync local service state when editingIndex changes
   useEffect(() => {
@@ -103,35 +121,41 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
   // --- Actions ---
   const addNewService = async () => {
+    // [FIX] Generate unique title with timestamp + random suffix to avoid duplicate conflicts
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const uniqueTitle = `New Service ${randomSuffix}`;
+    
+    // Complete service data matching backend validation requirements
     const newServiceData = {
-      title: 'New Service',
-      description: 'Service description goes here',
+      title: uniqueTitle,
+      description: 'Service description goes here. Add more details about what this service includes and its benefits.',
       price: 999,
       originalPrice: 1499,
-      image: '',
+      image: '/images/placeholder-service.jpg',
       gallery: [],
       features: ['Feature 1'],
       includes: ['Standard Inspection'],
-      process: [{ title: 'Step 1', description: 'Description' }],
-      faqs: [{ question: 'Question?', answer: 'Answer.' }],
+      process: [{ title: 'Step 1', description: 'Description of this step' }],
+      faqs: [{ question: 'Common question?', answer: 'Answer to the question.' }],
       duration: '1-2 hours',
       warranty: '3 months',
+      category: 'general',
     };
 
     if (useNewApi && createService) {
-      // [NEW] Use new API
       setIsSaving(true);
       try {
         await createService(newServiceData);
-        setEditingIndex(0); // New service added at beginning
-      } catch (error) {
+        setEditingIndex(0);
+        showNotification?.('success', 'Service created successfully');
+      } catch (error: any) {
         console.error('Failed to create service:', error);
-        alert('Failed to create service. Please try again.');
+        const errorMsg = error?.response?.data?.message || error?.message || 'Failed to create service';
+        showNotification?.('error', errorMsg);
       } finally {
         setIsSaving(false);
       }
     } else {
-      // [LEGACY] Fallback
       const newService = {
         id: `service-${Date.now()}`,
         ...newServiceData,
@@ -139,32 +163,56 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
       const newItems = [newService, ...(legacyContent?.items || [])];
       handleUpdate('items', newItems);
       setEditingIndex(0);
+      showNotification?.('success', 'Service added');
     }
   };
 
-  const deleteService = async (index: number) => {
-    if (!window.confirm('Are you sure you want to delete this service?')) return;
+  // [NEW] Open delete confirmation modal
+  const openDeleteConfirmation = (index: number) => {
+    const service = servicesList[index];
+    setDeleteConfirmation({
+      isOpen: true,
+      serviceIndex: index,
+      serviceTitle: service?.title || 'this service',
+    });
+  };
+
+  // [NEW] Close delete confirmation modal
+  const closeDeleteConfirmation = () => {
+    setDeleteConfirmation({
+      isOpen: false,
+      serviceIndex: null,
+      serviceTitle: '',
+    });
+  };
+
+  // [NEW] Confirm and execute delete
+  const confirmDelete = async () => {
+    const index = deleteConfirmation.serviceIndex;
+    if (index === null) return;
 
     const service = servicesList[index];
     const serviceId = getServiceId(service);
 
+    closeDeleteConfirmation();
+
     if (useNewApi && deleteServiceApi && serviceId) {
-      // [NEW] Use new API
       setIsSaving(true);
       try {
         await deleteServiceApi(serviceId);
         if (editingIndex === index) setEditingIndex(null);
-      } catch (error) {
+        showNotification?.('success', 'Service deleted successfully');
+      } catch (error: any) {
         console.error('Failed to delete service:', error);
-        alert('Failed to delete service. Please try again.');
+        showNotification?.('error', error?.message || 'Failed to delete service');
       } finally {
         setIsSaving(false);
       }
     } else {
-      // [LEGACY] Fallback
       const newItems = legacyContent?.items?.filter((_: unknown, i: number) => i !== index);
       handleUpdate('items', newItems);
       if (editingIndex === index) setEditingIndex(null);
+      showNotification?.('success', 'Service deleted');
     }
   };
 
@@ -173,10 +221,10 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
     const service = servicesList[index];
     const serviceId = getServiceId(service);
 
-    // [FIX] Update local state immediately for responsive UI
+    // Update local state immediately for responsive UI
     setLocalService((prev: any) => prev ? { ...prev, [field]: value } : null);
 
-    // [FIX] Debounce the API call
+    // Debounce the API call
     const timerKey = `service-${serviceId}-${field}`;
     const existingTimer = debounceTimersRef.current.get(timerKey);
     if (existingTimer) clearTimeout(existingTimer);
@@ -184,13 +232,12 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
     const timer = setTimeout(async () => {
       if (useNewApi && updateServiceApi && serviceId) {
         try {
-          console.log('[Debounced] Updating service:', serviceId, { [field]: value });
           await updateServiceApi(serviceId, { [field]: value });
         } catch (error) {
           console.error('[updateServiceField] API Error:', error);
+          showNotification?.('error', 'Failed to save changes');
         }
       } else {
-        // [LEGACY] Fallback
         const newItems = [...(legacyContent?.items || [])];
         newItems[index] = { ...newItems[index], [field]: value };
         handleUpdate('items', newItems);
@@ -199,17 +246,17 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
     }, DEBOUNCE_DELAY);
 
     debounceTimersRef.current.set(timerKey, timer);
-  }, [servicesList, useNewApi, updateServiceApi, legacyContent?.items, handleUpdate]);
+  }, [servicesList, useNewApi, updateServiceApi, legacyContent?.items, handleUpdate, showNotification]);
 
-  // [FIX] Update nested service field - with debouncing to prevent too many API calls
+  // [FIX] Update nested service field - with debouncing
   const updateServiceNestedField = useCallback((index: number, field: string, nestedValue: unknown) => {
     const service = servicesList[index];
     const serviceId = getServiceId(service);
 
-    // [FIX] Update local state immediately for responsive UI
+    // Update local state immediately
     setLocalService((prev: any) => prev ? { ...prev, [field]: nestedValue } : null);
 
-    // [FIX] Debounce the API call
+    // Debounce the API call
     const timerKey = `service-${serviceId}-${field}`;
     const existingTimer = debounceTimersRef.current.get(timerKey);
     if (existingTimer) clearTimeout(existingTimer);
@@ -217,13 +264,12 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
     const timer = setTimeout(async () => {
       if (useNewApi && updateServiceApi && serviceId) {
         try {
-          console.log('[Debounced] Updating nested field:', serviceId, field);
           await updateServiceApi(serviceId, { [field]: nestedValue });
         } catch (error) {
           console.error('[updateServiceNestedField] API Error:', error);
+          showNotification?.('error', 'Failed to save changes');
         }
       } else {
-        // [LEGACY] Fallback
         const newItems = [...(legacyContent?.items || [])];
         newItems[index] = { ...newItems[index], [field]: nestedValue };
         handleUpdate('items', newItems);
@@ -232,11 +278,76 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
     }, DEBOUNCE_DELAY);
 
     debounceTimersRef.current.set(timerKey, timer);
-  }, [servicesList, useNewApi, updateServiceApi, legacyContent?.items, handleUpdate]);
+  }, [servicesList, useNewApi, updateServiceApi, legacyContent?.items, handleUpdate, showNotification]);
 
-  // --- Renderers ---
+  // [NEW] Delete Confirmation Modal Component
+  const DeleteConfirmationModal = () => {
+    if (!deleteConfirmation.isOpen) return null;
 
-  // Show loading state while services are being fetched
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={closeDeleteConfirmation}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', duration: 0.3 }}
+            className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start gap-4 mb-4">
+              <div className="p-3 rounded-full bg-destructive/10">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-foreground">Delete Service</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Are you sure you want to delete <span className="font-semibold text-foreground">"{deleteConfirmation.serviceTitle}"</span>? This action cannot be undone.
+                </p>
+              </div>
+              <button
+                onClick={closeDeleteConfirmation}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+              >
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={closeDeleteConfirmation}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-border text-foreground font-medium hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isSaving}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-destructive text-destructive-foreground font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                Delete
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  };
+
+  // Show loading state
   if (servicesLoading && (!services || services.length === 0)) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -246,7 +357,7 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
     );
   }
 
-  // 1. Services List View (Cards on mobile, Table on desktop)
+  // 1. Services List View
   const renderServicesList = () => (
     <div className={sectionClass}>
       <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border">
@@ -257,10 +368,6 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
             </h3>
             <p className="text-xs text-muted-foreground">
               Manage your individual service offerings
-              {/* [DEBUG] Show which mode is active */}
-              {/* <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
-                {useNewApi ? '🔗 API Mode' : '📁 Legacy Mode'}
-              </span> */}
             </p>
           </div>
         </div>
@@ -278,7 +385,6 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
         </button>
       </div>
 
-      {/* Services List */}
       <div className="divide-y divide-border">
         {servicesList.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
@@ -291,7 +397,6 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
               key={getServiceId(service) || index}
               className="p-3 sm:p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors"
             >
-              {/* Service Image */}
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                 {service.image ? (
                   <img
@@ -306,7 +411,6 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
                 )}
               </div>
 
-              {/* Service Info */}
               <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-foreground truncate">
                   {service.title}
@@ -326,7 +430,6 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setEditingIndex(index)}
@@ -336,7 +439,7 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => deleteService(index)}
+                  onClick={() => openDeleteConfirmation(index)}
                   disabled={isSaving}
                   className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors disabled:opacity-50"
                   title="Delete Service"
@@ -353,7 +456,6 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
   // 2. Service Editor View
   const renderServiceEditor = (index: number) => {
-    // [FIX] Use localService for responsive UI, fallback to servicesList
     const service = localService || servicesList[index];
     if (!service) {
       setEditingIndex(null);
@@ -362,7 +464,6 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
     return (
       <div className="space-y-4">
-        {/* Header */}
         <div className="flex items-center gap-3 pb-3 border-b border-border">
           <button
             onClick={() => setEditingIndex(null)}
@@ -374,19 +475,15 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
             <h3 className="text-lg font-bold text-foreground">
               Edit: {service.title}
             </h3>
-            {/* <p className="text-xs text-muted-foreground">
-              ID: {getServiceId(service)}
-              <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
-                {useNewApi ? '🔗 API Mode' : '📁 Legacy Mode'}
-              </span>
-            </p> */}
+            <p className="text-xs text-muted-foreground">
+              Changes auto-save as you type
+            </p>
           </div>
         </div>
 
-        {/* Editor Form */}
         <div className={sectionClass}>
           <div className="p-4 space-y-6">
-            {/* --- BASIC INFO --- */}
+            {/* BASIC INFO */}
             <div className="space-y-4">
               <h4 className={subSectionTitleClass}>
                 <Wrench className="w-4 h-4 text-primary" />
@@ -468,7 +565,6 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
                 </div>
               </div>
 
-              {/* Main Image */}
               <div>
                 <label className={labelClass}>Main Image</label>
                 <ImageUpload
@@ -483,7 +579,7 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
             <hr className="border-border" />
 
-            {/* --- FEATURES --- */}
+            {/* FEATURES */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className={subSectionTitleClass}>
@@ -529,7 +625,7 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
             <hr className="border-border" />
 
-            {/* --- INCLUDES --- */}
+            {/* INCLUDES */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className={subSectionTitleClass}>
@@ -575,7 +671,7 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
             <hr className="border-border" />
 
-            {/* --- PROCESS STEPS --- */}
+            {/* PROCESS STEPS */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className={subSectionTitleClass}>
@@ -637,7 +733,7 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
             <hr className="border-border" />
 
-            {/* --- FAQS --- */}
+            {/* FAQS */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className={subSectionTitleClass}>
@@ -696,7 +792,7 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
             <hr className="border-border" />
 
-            {/* --- GALLERY --- */}
+            {/* GALLERY */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <label className={subSectionTitleClass}>
@@ -760,6 +856,9 @@ const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new
 
   return (
     <div className="space-y-4 sm:space-y-6 w-full">
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal />
+
       <AnimatePresence mode="wait">
         <motion.div
           key={editingIndex !== null ? 'edit' : 'list'}

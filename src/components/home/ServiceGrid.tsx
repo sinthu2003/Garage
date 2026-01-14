@@ -4,7 +4,6 @@ import { motion, useInView } from 'framer-motion';
 import { ArrowRight, Settings, Wrench, Car } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../../admin-portal';
-import { services } from '../../utils/data';
 
 export const ServiceGrid = () => {
   const sectionRef = useRef(null);
@@ -13,18 +12,24 @@ export const ServiceGrid = () => {
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
   const navigate = useNavigate();
 
-  // Get content from context
-  const { content } = useContent();
+  // [FIX] Get services from API (with resolved images) first, fallback to legacy content
+  const { content, services: apiServices } = useContent();
   const servicesContent = content.services;
 
-// 2. Optional: Add a safety check before slicing
-  const items = services || [];
+  // [FIX] Prefer API services (images already resolved), fallback to legacy content.services.items
+  const allServices = (apiServices && apiServices.length > 0) 
+    ? apiServices 
+    : servicesContent.items;
+
+  // Safety check and limit to 8 items for homepage
+  const items = allServices || [];
   const displayedServices = items.slice(0, 8);
 
   if (!items.length) {
     return <div className="text-center p-4">No services available.</div>;
   }
-  const hasMoreServices = servicesContent.items.length > 8;
+  
+  const hasMoreServices = items.length > 8;
 
   const handleViewAll = () => {
     navigate('/services');
@@ -125,18 +130,18 @@ export const ServiceGrid = () => {
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
-          {displayedServices.map((service, index) => (
+          {displayedServices.map((service: any, index: number) => (
             <ServiceCard 
-              key={service.id} 
+              key={service._id || service.id || index} 
               service={{
-                id: String(service.id),
+                id: String(service._id || service.id),
                 title: service.title,
                 description: service.description,
                 icon: service.icon || 'Settings',
                 price: service.price,
                 originalPrice: service.originalPrice,
                 image: service.image,
-                features: service.features,
+                features: service.features || [],
                 category: service.category || 'maintenance',
                 duration: service.duration,
                 warranty: service.warranty,
@@ -161,7 +166,7 @@ export const ServiceGrid = () => {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              View All {servicesContent.items.length} Services
+              View All {items.length} Services
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </motion.div>
