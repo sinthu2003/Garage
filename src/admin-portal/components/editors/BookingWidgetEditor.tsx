@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Type,
@@ -20,6 +20,7 @@ import {
 import { useBookingWidgetContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
+import { SectionLoader } from '../shared/Sectionloader';
 
 interface BookingWidgetEditorProps {
   isDarkMode: boolean;
@@ -74,6 +75,14 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
   // [NEW] Saving state for async operations
   const [isSaving, setIsSaving] = useState(false);
 
+  // [FIX] Debounce timers ref - prevents too many API calls
+const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const DEBOUNCE_DELAY = 1000; // ms
+
+  // [FIX] Local state for brands/models being edited - allows immediate UI updates
+  const [localBrands, setLocalBrands] = useState<Brand[]>([]);
+  const [localModels, setLocalModels] = useState<Record<string, CarModel[]>>({});
+
   // [NEW] Determine which data source to use - API if available, otherwise legacy content
   const useNewApi = apiBrands && apiBrands.length > 0;
 
@@ -106,6 +115,72 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
     }
     return content.carModels || {};
   }, [useNewApi, apiBrands, content.carModels]);
+
+  // Default data - moved before loading check since filteredBrands uses brands
+  const cities: string[] = content.cities || ['Chennai'];
+  const fuelTypes: FuelType[] = content.fuelTypes || [
+    { id: 'petrol', name: 'Petrol', icon: '⛽', color: '#22C55E' },
+    { id: 'diesel', name: 'Diesel', icon: '🛢️', color: '#EAB308' },
+    { id: 'cng', name: 'CNG', icon: '💨', color: '#3B82F6' },
+    { id: 'electric', name: 'Electric', icon: '⚡', color: '#8B5CF6' },
+  ];
+
+  // [FIX] Sync local brands/models with API data when it changes
+  React.useEffect(() => {
+    if (useNewApi && apiBrands) {
+      const transformedBrands = apiBrands.map((b: any) => ({
+        id: b._id || b.id,
+        name: b.name,
+        logo: b.logo || '',
+        urlName: b.urlName || b.name?.toLowerCase().replace(/\s+/g, '-') || '',
+      }));
+      setLocalBrands(transformedBrands);
+      
+      const transformedModels: Record<string, CarModel[]> = {};
+      apiBrands.forEach((brand: any) => {
+        const brandId = brand._id || brand.id;
+        transformedModels[brandId] = (brand.models || []).map((m: any) => ({
+          name: m.name,
+          type: m.type || 'Sedan',
+          image: m.image || '',
+        }));
+      });
+      setLocalModels(transformedModels);
+    } else {
+      setLocalBrands(content.brands || []);
+      setLocalModels(content.carModels || {});
+    }
+  }, [useNewApi, apiBrands, content.brands, content.carModels]);
+
+  // [FIX] Cleanup debounce timers on unmount
+  React.useEffect(() => {
+    return () => {
+      debounceTimersRef.current.forEach(timer => clearTimeout(timer));
+      debounceTimersRef.current.clear();
+    };
+  }, []);
+
+  // [FIX] Use local state for brands/models - falls back to computed if local is empty
+  const displayBrands = localBrands.length > 0 ? localBrands : brands;
+  const displayModels = Object.keys(localModels).length > 0 ? localModels : carModels;
+
+  // Filtered brands based on search - MUST be before loading check (it's a hook!)
+  const filteredBrands = useMemo(() => {
+    if (!brandSearch.trim()) return displayBrands;
+    const searchLower = brandSearch.toLowerCase().trim();
+    return displayBrands.filter(brand => 
+      brand.name.toLowerCase().includes(searchLower) ||
+      // Also search in models
+      (displayModels[brand.id] || []).some(model => 
+        model.name.toLowerCase().includes(searchLower)
+      )
+    );
+  }, [displayBrands, brandSearch, displayModels]);
+
+  // [LAZY LOADING] Show loading state - MUST be after ALL hooks (useState, useMemo, useEffect, etc.)
+  if (content.isLoading || carBrandsLoading) {
+    return <SectionLoader section="Booking Widget" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -151,28 +226,6 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
 
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
-  // Default data
-  const cities: string[] = content.cities || ['Chennai'];
-  const fuelTypes: FuelType[] = content.fuelTypes || [
-    { id: 'petrol', name: 'Petrol', icon: '⛽', color: '#22C55E' },
-    { id: 'diesel', name: 'Diesel', icon: '🛢️', color: '#EAB308' },
-    { id: 'cng', name: 'CNG', icon: '💨', color: '#3B82F6' },
-    { id: 'electric', name: 'Electric', icon: '⚡', color: '#8B5CF6' },
-  ];
-
-  // Filtered brands based on search
-  const filteredBrands = useMemo(() => {
-    if (!brandSearch.trim()) return brands;
-    const searchLower = brandSearch.toLowerCase().trim();
-    return brands.filter(brand => 
-      brand.name.toLowerCase().includes(searchLower) ||
-      // Also search in models
-      (carModels[brand.id] || []).some(model => 
-        model.name.toLowerCase().includes(searchLower)
-      )
-    );
-  }, [brands, brandSearch, carModels]);
-
   // Get filtered models for a specific brand
   const getFilteredModels = (brandId: string) => {
     const models = carModels[brandId] || [];
@@ -217,28 +270,57 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ }) => 
     }
   };
 
-  // [UPDATED] Update brand - uses new API if available
-  const updateBrand = async (index: number, field: keyof Brand, value: string) => {
-    if (useNewApi && updateBrandApi) {
-      const brandId = brands[index]?.id;
-      if (brandId) {
+  // [FIX] Update brand - with debouncing to prevent too many API calls
+  const updateBrand = (index: number, field: keyof Brand, value: string) => {
+    const brandId = displayBrands[index]?.id;
+    
+    // [FIX] Update local state immediately for responsive UI
+    setLocalBrands(prev => {
+      const newBrands = [...prev];
+      newBrands[index] = { ...newBrands[index], [field]: value };
+      if (field === 'name') {
+        newBrands[index].urlName = generateId(value);
+      }
+      return newBrands;
+    });
+
+    // [FIX] Debounce the API call
+    if (useNewApi && updateBrandApi && brandId) {
+      const timerKey = `brand-${brandId}-${field}`;
+      const existingTimer = debounceTimersRef.current.get(timerKey);
+      if (existingTimer) clearTimeout(existingTimer);
+      
+      const timer = setTimeout(async () => {
         try {
           const updateData: any = { [field]: value };
           if (field === 'name') updateData.urlName = generateId(value);
           await updateBrandApi(brandId, updateData);
+          console.log(`[Debounced] Updated brand ${brandId}:`, updateData);
         } catch (error) {
           console.error('Failed to update brand:', error);
         }
-      }
+        debounceTimersRef.current.delete(timerKey);
+      }, DEBOUNCE_DELAY);
+      
+      debounceTimersRef.current.set(timerKey, timer);
     } else {
-      // Legacy fallback
-      const newBrands = [...brands];
-      newBrands[index] = { ...newBrands[index], [field]: value };
-      if (field === 'name') {
-        newBrands[index].id = generateId(value);
-        newBrands[index].urlName = generateId(value);
-      }
-      handleUpdate('brands', newBrands);
+      // Legacy fallback - also debounce
+      const timerKey = `legacy-brand-${index}-${field}`;
+      const existingTimer = debounceTimersRef.current.get(timerKey);
+      if (existingTimer) clearTimeout(existingTimer);
+      
+      const timer = setTimeout(() => {
+        const newBrands = [...brands];
+        newBrands[index] = { ...newBrands[index], [field]: value };
+        if (field === 'name') {
+          newBrands[index].id = generateId(value);
+          newBrands[index].urlName = generateId(value);
+        }
+        handleUpdate('brands', newBrands);
+        debounceTimersRef.current.delete(timerKey);
+      }, DEBOUNCE_DELAY);
+      
+      debounceTimersRef.current.set(timerKey, timer);
     }
   };
 

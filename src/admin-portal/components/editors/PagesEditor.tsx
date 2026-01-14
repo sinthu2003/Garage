@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SectionLoader } from '../shared/Sectionloader';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Type,
@@ -34,6 +35,11 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
   useEffect(() => {
     onPageChange?.(activePage);
   }, [activePage, onPageChange]);
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Pages" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

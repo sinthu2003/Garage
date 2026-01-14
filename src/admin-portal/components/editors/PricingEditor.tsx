@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  DollarSign,
+import { SectionLoader } from '../shared/Sectionloader';
+ import { DollarSign,
   Type,
   ChevronRight,
   ChevronDown,
@@ -34,6 +34,11 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
     new Set(['header', 'items'])
   );
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Pricing" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

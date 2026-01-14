@@ -131,7 +131,7 @@ export const AdminPage: React.FC = () => {
   } = useContent();
 
   // [NEW] Editor ID to section name mapping for lazy loading
-  const editorToSectionMap: Record<string, keyof typeof content | 'services-api' | 'carBrands-api'> = {
+  const editorToSectionMap: Record<string, keyof typeof content | 'services-api' | 'carBrands-api' | 'bookingWidget+carBrands'> = {
     hero: 'hero',
     services: 'services',
     serviceDetail: 'services-api',  // Uses services API
@@ -143,10 +143,10 @@ export const AdminPage: React.FC = () => {
     partners: 'partners',
     gallery: 'gallery',
     beforeAfter: 'beforeAfter',
-    navbar: 'navbar',
+    navbar: 'global',  // [FIX] Navbar content is inside global (brand, navbar)
     footer: 'footer',
     global: 'global',
-    bookingWidget: 'carBrands-api',  // Uses car brands API
+    bookingWidget: 'bookingWidget+carBrands',  // [FIX] Load both section content AND car brands
     pages: 'pages',
   };
 
@@ -230,6 +230,10 @@ export const AdminPage: React.FC = () => {
       loadServices?.();
     } else if (sectionKey === 'carBrands-api') {
       // Load car brands from separate API
+      loadCarBrands?.(true); // true = include models
+    } else if (sectionKey === 'bookingWidget+carBrands') {
+      // [FIX] BookingWidget needs BOTH: section content (labels, cities, etc.) AND car brands
+      loadSection?.('bookingWidget');
       loadCarBrands?.(true); // true = include models
     } else {
       // Load section from content API

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
@@ -40,6 +40,13 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // [FIX] Local state for the service being edited - allows immediate UI updates
+  const [localService, setLocalService] = useState<any>(null);
+  
+  // [FIX] Debounce timers ref - prevents too many API calls
+const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const DEBOUNCE_DELAY = 1000; // ms
+
   // [FIX] Determine which data source to use
   // Only use legacy if services array is empty AND not currently loading
   const useNewApi = services && services.length > 0;
@@ -57,6 +64,23 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
       loadServices?.();
     }
   }, []);  // Only run once on mount
+
+  // [FIX] Sync local service state when editingIndex changes
+  useEffect(() => {
+    if (editingIndex !== null && servicesList[editingIndex]) {
+      setLocalService({ ...servicesList[editingIndex] });
+    } else {
+      setLocalService(null);
+    }
+  }, [editingIndex, servicesList]);
+
+  // [FIX] Cleanup debounce timers on unmount
+  useEffect(() => {
+    return () => {
+      debounceTimersRef.current.forEach(timer => clearTimeout(timer));
+      debounceTimersRef.current.clear();
+    };
+  }, []);
 
   // Notify parent whenever editingIndex changes
   useEffect(() => {
@@ -144,70 +168,71 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
     }
   };
 
-  // [FIX] Update service field - with better error handling and debug logging
-  const updateServiceField = async (index: number, field: string, value: unknown) => {
+  // [FIX] Update service field - with debouncing to prevent too many API calls
+  const updateServiceField = useCallback((index: number, field: string, value: unknown) => {
     const service = servicesList[index];
     const serviceId = getServiceId(service);
 
-    console.log('[updateServiceField] Called:', { 
-      index, 
-      field, 
-      value, 
-      serviceId, 
-      useNewApi,
-      servicesLength: services?.length 
-    });
+    // [FIX] Update local state immediately for responsive UI
+    setLocalService((prev: any) => prev ? { ...prev, [field]: value } : null);
 
-    if (useNewApi && updateServiceApi && serviceId) {
-      // [NEW] Use new API - debounced update
-      try {
-        console.log('[updateServiceField] Calling API:', `PATCH /api/services/${serviceId}`, { [field]: value });
-        const updated = await updateServiceApi(serviceId, { [field]: value });
-        console.log('[updateServiceField] API response:', updated);
-      } catch (error) {
-        console.error('[updateServiceField] API Error:', error);
-        // Show error to user
-        alert(`Failed to update service: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // [FIX] Debounce the API call
+    const timerKey = `service-${serviceId}-${field}`;
+    const existingTimer = debounceTimersRef.current.get(timerKey);
+    if (existingTimer) clearTimeout(existingTimer);
+
+    const timer = setTimeout(async () => {
+      if (useNewApi && updateServiceApi && serviceId) {
+        try {
+          console.log('[Debounced] Updating service:', serviceId, { [field]: value });
+          await updateServiceApi(serviceId, { [field]: value });
+        } catch (error) {
+          console.error('[updateServiceField] API Error:', error);
+        }
+      } else {
+        // [LEGACY] Fallback
+        const newItems = [...(legacyContent?.items || [])];
+        newItems[index] = { ...newItems[index], [field]: value };
+        handleUpdate('items', newItems);
       }
-    } else {
-      // [LEGACY] Fallback - update entire items array
-      console.log('[updateServiceField] Using LEGACY mode');
-      const newItems = [...(legacyContent?.items || [])];
-      newItems[index] = { ...newItems[index], [field]: value };
-      handleUpdate('items', newItems);
-    }
-  };
+      debounceTimersRef.current.delete(timerKey);
+    }, DEBOUNCE_DELAY);
 
-  // [FIX] Update nested service field (e.g., process, faqs, gallery) - with better error handling
-  const updateServiceNestedField = async (index: number, field: string, nestedValue: unknown) => {
+    debounceTimersRef.current.set(timerKey, timer);
+  }, [servicesList, useNewApi, updateServiceApi, legacyContent?.items, handleUpdate]);
+
+  // [FIX] Update nested service field - with debouncing to prevent too many API calls
+  const updateServiceNestedField = useCallback((index: number, field: string, nestedValue: unknown) => {
     const service = servicesList[index];
     const serviceId = getServiceId(service);
 
-    console.log('[updateServiceNestedField] Called:', { 
-      index, 
-      field, 
-      serviceId, 
-      useNewApi 
-    });
+    // [FIX] Update local state immediately for responsive UI
+    setLocalService((prev: any) => prev ? { ...prev, [field]: nestedValue } : null);
 
-    if (useNewApi && updateServiceApi && serviceId) {
-      // [NEW] Use new API
-      try {
-        console.log('[updateServiceNestedField] Calling API:', `PATCH /api/services/${serviceId}`, { [field]: nestedValue });
-        const updated = await updateServiceApi(serviceId, { [field]: nestedValue });
-        console.log('[updateServiceNestedField] API response:', updated);
-      } catch (error) {
-        console.error('[updateServiceNestedField] API Error:', error);
-        alert(`Failed to update service: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // [FIX] Debounce the API call
+    const timerKey = `service-${serviceId}-${field}`;
+    const existingTimer = debounceTimersRef.current.get(timerKey);
+    if (existingTimer) clearTimeout(existingTimer);
+
+    const timer = setTimeout(async () => {
+      if (useNewApi && updateServiceApi && serviceId) {
+        try {
+          console.log('[Debounced] Updating nested field:', serviceId, field);
+          await updateServiceApi(serviceId, { [field]: nestedValue });
+        } catch (error) {
+          console.error('[updateServiceNestedField] API Error:', error);
+        }
+      } else {
+        // [LEGACY] Fallback
+        const newItems = [...(legacyContent?.items || [])];
+        newItems[index] = { ...newItems[index], [field]: nestedValue };
+        handleUpdate('items', newItems);
       }
-    } else {
-      // [LEGACY] Fallback
-      console.log('[updateServiceNestedField] Using LEGACY mode');
-      const newItems = [...(legacyContent?.items || [])];
-      newItems[index] = { ...newItems[index], [field]: nestedValue };
-      handleUpdate('items', newItems);
-    }
-  };
+      debounceTimersRef.current.delete(timerKey);
+    }, DEBOUNCE_DELAY);
+
+    debounceTimersRef.current.set(timerKey, timer);
+  }, [servicesList, useNewApi, updateServiceApi, legacyContent?.items, handleUpdate]);
 
   // --- Renderers ---
 
@@ -233,16 +258,16 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
             <p className="text-xs text-muted-foreground">
               Manage your individual service offerings
               {/* [DEBUG] Show which mode is active */}
-              <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
+              {/* <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
                 {useNewApi ? '🔗 API Mode' : '📁 Legacy Mode'}
-              </span>
+              </span> */}
             </p>
           </div>
         </div>
         <button
           onClick={addNewService}
           disabled={isSaving || servicesLoading}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-medium text-sm w-full sm:w-auto disabled:opacity-50"
+          className="flex items-center whitespace-nowrap justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-medium text-sm w-full sm:w-auto disabled:opacity-50"
         >
           {isSaving ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -328,7 +353,8 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
 
   // 2. Service Editor View
   const renderServiceEditor = (index: number) => {
-    const service = servicesList[index];
+    // [FIX] Use localService for responsive UI, fallback to servicesList
+    const service = localService || servicesList[index];
     if (!service) {
       setEditingIndex(null);
       return null;
@@ -348,12 +374,12 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
             <h3 className="text-lg font-bold text-foreground">
               Edit: {service.title}
             </h3>
-            <p className="text-xs text-muted-foreground">
+            {/* <p className="text-xs text-muted-foreground">
               ID: {getServiceId(service)}
               <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
                 {useNewApi ? '🔗 API Mode' : '📁 Legacy Mode'}
               </span>
-            </p>
+            </p> */}
           </div>
         </div>
 
@@ -412,7 +438,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ onEdit
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>Original Price (₹)</label>
+                  <label className={labelClass}>MRP(₹)</label>
                   <input
                     type="number"
                     value={service.originalPrice || 0}

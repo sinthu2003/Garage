@@ -1,6 +1,7 @@
 import React from 'react';
 import { useServicesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
+import { SectionLoader } from '../shared/Sectionloader';
 
 interface ServicesEditorProps {
   isDarkMode: boolean;
@@ -9,6 +10,11 @@ interface ServicesEditorProps {
 export const ServicesEditor: React.FC<ServicesEditorProps> = ({ }) => {
   const { updateField } = useContent();
   const content = useServicesContent();
+
+  // [LAZY LOADING] Show loading state
+  if (content.isLoading) {
+    return <SectionLoader section="Services" />;
+  }
 
   const handleUpdate = (path: string, value: unknown) => {
     updateField('services', path, value);

@@ -16,6 +16,7 @@ import {
 import { usePartnersContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import type { PartnerTrustBadge } from '../../types/content.types';
+import { SectionLoader } from '../shared/Sectionloader';
 
 interface PartnersEditorProps {
   isDarkMode: boolean;
@@ -36,7 +37,12 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
   const content = usePartnersContent();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'trustBadges'])
-  );
+);
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Partners" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -333,7 +339,6 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
     </div>
-  );
-};
+)};
 
 export default PartnersEditor;

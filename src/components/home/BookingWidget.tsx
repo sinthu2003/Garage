@@ -35,15 +35,41 @@ interface TargetedService {
 
 export const BookingWidget = () => {
   // Get content from context
-  const { content } = useContent();
+  const { content, carBrands: apiBrands, carBrandsLoading } = useContent();
   const location = useLocation(); // Hook to access navigation state
-  const bookingContent = content.bookingWidget;
+  const bookingContent = content?.bookingWidget || {};
   
-  // Extract data from content
-  const brands = bookingContent.brands;
-  const carModels = bookingContent.carModels as Record<string, { name: string; type: string; image: string }[]>;
-  const fuelTypes = bookingContent.fuelTypes;
-  const cities = bookingContent.cities;
+  // [FIX] Extract data with safe defaults to prevent undefined errors
+  // Use API car brands if available, otherwise fall back to bookingContent.brands
+  const brands = (apiBrands && apiBrands.length > 0) 
+    ? apiBrands.map((b: any) => ({
+        id: b._id || b.id,
+        name: b.name,
+        logo: b.logo || '',
+        urlName: b.urlName || b.name?.toLowerCase().replace(/\s+/g, '-') || '',
+      }))
+    : (bookingContent.brands || []);
+  
+  // [FIX] Use API car models if available
+  const carModels: Record<string, { name: string; type: string; image: string }[]> = (apiBrands && apiBrands.length > 0)
+    ? apiBrands.reduce((acc: any, brand: any) => {
+        const brandId = brand._id || brand.id;
+        acc[brandId] = (brand.models || []).map((m: any) => ({
+          name: m.name,
+          type: m.type || 'Sedan',
+          image: m.image || '',
+        }));
+        return acc;
+      }, {})
+    : (bookingContent.carModels as Record<string, { name: string; type: string; image: string }[]> || {});
+  
+  const fuelTypes = bookingContent.fuelTypes || [
+    { id: 'petrol', name: 'Petrol', icon: '⛽', color: '#22C55E' },
+    { id: 'diesel', name: 'Diesel', icon: '🛢️', color: '#EAB308' },
+    { id: 'cng', name: 'CNG', icon: '💨', color: '#3B82F6' },
+    { id: 'electric', name: 'Electric', icon: '⚡', color: '#8B5CF6' },
+  ];
+  const cities = bookingContent.cities || ['Chennai'];
 
   const [currentView, setCurrentView] = useState<ViewState>('main');
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,6 +206,26 @@ export const BookingWidget = () => {
   const closeResultModal = () => {
     setSubmissionResult(null);
   };
+
+  // [FIX] Show loading state while car brands are loading
+  if (carBrandsLoading && brands.length === 0) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md relative"
+        id="booking-widget"
+      >
+        <div className="bg-card rounded-3xl shadow-2xl shadow-primary/20 overflow-hidden">
+          <div className="h-1.5 bg-gradient-to-r from-primary via-primary/80 to-primary" />
+          <div className="p-6 sm:p-8 flex flex-col items-center justify-center min-h-[300px]">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Loading booking options...</p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div 

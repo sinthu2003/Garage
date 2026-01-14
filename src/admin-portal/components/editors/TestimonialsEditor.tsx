@@ -18,6 +18,7 @@ import { useTestimonialsContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { TestimonialItem } from '../../types/content.types';
+import { SectionLoader } from '../shared/Sectionloader';
 
 interface TestimonialsEditorProps {
   isDarkMode: boolean;
@@ -30,6 +31,11 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
     new Set(['header', 'items'])
   );
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Testimonials" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

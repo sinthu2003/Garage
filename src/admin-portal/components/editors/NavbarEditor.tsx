@@ -15,6 +15,7 @@ import {
 import { useGlobalContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
+import { SectionLoader } from '../shared/Sectionloader';
 
 interface NavbarEditorProps {
   isDarkMode: boolean;
@@ -32,6 +33,11 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['brand', 'navigation', 'contact', 'cta'])
   );
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Navbar" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

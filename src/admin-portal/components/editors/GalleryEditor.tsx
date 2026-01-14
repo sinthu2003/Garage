@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SectionLoader } from '../shared/Sectionloader';
 import {
+
   Image,
   Type,
   ChevronRight,
@@ -44,6 +46,11 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
   );
   const [expandedImages, setExpandedImages] = useState<Set<number>>(new Set());
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Gallery" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

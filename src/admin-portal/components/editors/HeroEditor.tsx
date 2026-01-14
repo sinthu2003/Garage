@@ -16,6 +16,7 @@ import { useHeroContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { HeroStat, HeroScrollingBrand } from '../../types/content.types';
+import { SectionLoader } from '../shared/Sectionloader';
 
 // Type for background images
 interface BackgroundImage {
@@ -34,6 +35,11 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
     new Set(['headline', 'stats'])
   );
   const [expandedImages, setExpandedImages] = useState<Set<number>>(new Set([0]));
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Hero" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

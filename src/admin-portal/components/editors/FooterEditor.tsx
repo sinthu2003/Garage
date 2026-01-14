@@ -19,6 +19,7 @@ import {
 import { useFooterContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
+import { SectionLoader } from '../shared/Sectionloader';
 
 interface FooterEditorProps {
   isDarkMode: boolean;
@@ -30,6 +31,11 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['brand', 'contact', 'services', 'company', 'support', 'cities'])
   );
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Footer" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

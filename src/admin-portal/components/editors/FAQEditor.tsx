@@ -19,6 +19,7 @@ import {
 import { useFAQContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import type { FAQContactCard, FAQItem, BusinessHour, ContactServiceOption } from '../../types/content.types';
+import { SectionLoader } from '../shared/Sectionloader';
 
 interface FAQEditorProps {
   isDarkMode: boolean;
@@ -53,6 +54,11 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
   useEffect(() => {
     onPageChange?.(activeTab);
   }, [activeTab, onPageChange]);
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="FAQ" />;
+  }
 
   const handleTabChange = (tabId: TabId) => {
     setActiveTab(tabId);

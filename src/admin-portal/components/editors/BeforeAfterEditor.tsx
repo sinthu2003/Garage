@@ -16,6 +16,7 @@ import { useBeforeAfterContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { BeforeAfterItem } from '../../types/content.types';
+import { SectionLoader } from '../shared/Sectionloader';
 
 interface BeforeAfterEditorProps {
   isDarkMode: boolean;
@@ -28,6 +29,11 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
     new Set(['header', 'items'])
   );
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Before \& After" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

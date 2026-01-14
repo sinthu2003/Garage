@@ -20,6 +20,7 @@ import { useHowItWorksContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { HowItWorksStep } from '../../types/content.types';
+import { SectionLoader } from '../shared/Sectionloader';
 
 interface HowItWorksEditorProps {
   isDarkMode: boolean;
@@ -42,6 +43,11 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
     new Set(['header', 'steps'])
   );
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="How It Works" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

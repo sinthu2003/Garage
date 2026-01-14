@@ -22,6 +22,7 @@ import { useFeaturesContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { FeatureItem } from '../../types/content.types';
+import { SectionLoader } from '../shared/Sectionloader';
 
 interface FeaturesEditorProps {
   isDarkMode: boolean;
@@ -47,6 +48,11 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
     new Set(['header', 'mainFeature', 'items'])
   );
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Features" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SectionLoader } from '../shared/Sectionloader';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -21,6 +22,11 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['seo', 'ogTags'])
   );
+
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
+  if (content.isLoading) {
+    return <SectionLoader section="Global Settings" />;
+  }
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
