@@ -1,26 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Upload,
-  X,
-  Image as ImageIcon,
-  Link,
-  Trash2,
-  Eye,
-  EyeOff,
-  Check,
-  AlertCircle,
-  Loader2,
-  Copy,
-  ExternalLink,
-  FolderOpen,
-  RefreshCw,
-  Clipboard,
-  Info,
-  Download,
-  Maximize2,
-  HardDrive,
-  Cloud, // NEW: Cloud icon for S3 upload indicator
+  Upload, X, Image as ImageIcon, Link, Trash2, Eye, EyeOff, Check,
+  AlertCircle, Loader2, Copy, ExternalLink, FolderOpen, RefreshCw,
+  Clipboard, Info, Download, Maximize2, HardDrive, Cloud,
 } from 'lucide-react';
 import { mediaApi } from '../../../services/api';
 
@@ -28,7 +11,7 @@ import { mediaApi } from '../../../services/api';
 // LOCAL STORAGE UTILITY
 // ============================================
 const STORAGE_KEY = 'uploaded_images_cache';
-const MAX_STORAGE_ITEMS = 50; // Limit stored images
+const MAX_STORAGE_ITEMS = 50;
 
 interface StoredImage {
   id: string;
@@ -38,14 +21,10 @@ interface StoredImage {
   timestamp: number;
 }
 
-/**
- * Save image to localStorage
- */
 const saveToLocalStorage = (imageData: { url: string; name?: string; size?: number }): string => {
   try {
     const stored = getFromLocalStorage();
     const id = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
     const newImage: StoredImage = {
       id,
       url: imageData.url,
@@ -53,13 +32,8 @@ const saveToLocalStorage = (imageData: { url: string; name?: string; size?: numb
       size: imageData.size || 0,
       timestamp: Date.now(),
     };
-    
-    // Add new image and limit storage
     stored.unshift(newImage);
-    if (stored.length > MAX_STORAGE_ITEMS) {
-      stored.pop();
-    }
-    
+    if (stored.length > MAX_STORAGE_ITEMS) stored.pop();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
     console.log('Image saved to localStorage:', id);
     return id;
@@ -69,9 +43,6 @@ const saveToLocalStorage = (imageData: { url: string; name?: string; size?: numb
   }
 };
 
-/**
- * Get all images from localStorage
- */
 const getFromLocalStorage = (): StoredImage[] => {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -81,9 +52,6 @@ const getFromLocalStorage = (): StoredImage[] => {
   }
 };
 
-/**
- * Remove image from localStorage
- */
 const removeFromLocalStorage = (id: string): void => {
   try {
     const stored = getFromLocalStorage();
@@ -94,9 +62,6 @@ const removeFromLocalStorage = (id: string): void => {
   }
 };
 
-/**
- * Clear all images from localStorage
- */
 const clearLocalStorage = (): void => {
   try {
     localStorage.removeItem(STORAGE_KEY);
@@ -106,25 +71,129 @@ const clearLocalStorage = (): void => {
 };
 
 // ============================================
-// NEW: S3 UPLOAD UTILITY
+// AUTO-DETECT FOLDER FROM LABEL
 // ============================================
-
 /**
- * Upload image to S3 via backend API
- * @param file - The file to upload
- * @param folder - Optional folder path in S3 (e.g., 'services', 'gallery')
- * @returns Promise<string> - The S3 URL of the uploaded image
+ * Auto-detect S3 folder based on ImageUpload label
+ * 
+ * IMPORTANT: These paths do NOT include 'addax-cms/' prefix!
+ * The backend automatically prepends 'addax-cms/' to all uploads.
+ * 
+ * Final S3 structure:
+ * addax-cms-assets/
+ * └── addax-cms/           ← Backend adds this prefix
+ *     ├── logo/
+ *     ├── hero/
+ *     ├── services/
+ *     ├── pricing/
+ *     ├── how-it-works/
+ *     ├── booking-widget/
+ *     │   ├── brands/
+ *     │   └── models/{brand-name}/
+ *     └── general/
  */
+const detectFolderFromLabel = (label?: string): string => {
+  if (!label) return 'general';
+  
+  const labelLower = label.toLowerCase();
+
+  // ORDER MATTERS! More specific patterns MUST come before generic ones
+  const folderMap: [string, string][] = [
+    // === BOOKING WIDGET (most specific first) ===
+    ['brand logo', 'booking-widget/brands'],
+    ['model image', 'booking-widget/models'],
+    
+    // === LOGO (Navbar & Footer) ===
+    ['footer logo', 'logo'],
+    ['logo', 'logo'],
+    
+    // === HERO SECTION ===
+    ['hero', 'hero'],
+    ['background', 'hero'],
+    ['banner', 'hero'],
+    ['slide', 'hero'],
+    
+    // === BEFORE/AFTER ===
+    ['before', 'before-after'],
+    ['after', 'before-after'],
+    ['transformation', 'before-after'],
+    
+    // === PRICING (separate from services) ===
+    ['pricing image', 'pricing'],
+    ['pricing', 'pricing'],
+    ['price', 'pricing'],
+    
+    // === HOW IT WORKS ===
+    ['step image', 'how-it-works'],
+    ['how it works', 'how-it-works'],
+    ['process', 'how-it-works'],
+    
+    // === SERVICES ===
+    ['service image', 'services'],
+    ['service icon', 'services'],
+    ['service', 'services'],
+    
+    // === GALLERY ===
+    ['gallery', 'gallery'],
+    
+    // === TESTIMONIALS ===
+    ['testimonial', 'testimonials'],
+    ['review', 'testimonials'],
+    ['customer', 'testimonials'],
+    
+    // === TEAM ===
+    ['team', 'team'],
+    ['member', 'team'],
+    ['employee', 'team'],
+    ['staff', 'team'],
+    
+    // === ABOUT ===
+    ['about', 'about'],
+    ['profile', 'about'],
+    ['company', 'about'],
+    
+    // === WHY CHOOSE US ===
+    ['why choose', 'why-choose'],
+    ['why us', 'why-choose'],
+    
+    // === FEATURES ===
+    ['feature', 'features'],
+    ['benefit', 'features'],
+    
+    // === CONTACT ===
+    ['contact', 'contact'],
+    
+    // === ICONS ===
+    ['icon', 'icons'],
+    
+    // === FAQ ===
+    ['faq', 'faq'],
+    
+    // === STATS ===
+    ['stat', 'stats'],
+    ['counter', 'stats'],
+  ];
+  
+  for (const [pattern, folder] of folderMap) {
+    if (labelLower.includes(pattern)) {
+      return folder;
+    }
+  }
+  
+  return 'general';
+};
+
+// ============================================
+// S3 UPLOAD UTILITY
+// ============================================
 const uploadToS3 = async (file: File, folder?: string): Promise<string> => {
   try {
     console.log('=== Uploading to S3 ===');
     console.log('File:', file.name, 'Size:', formatFileSize(file.size));
-    
+    console.log('Folder:', folder || 'general');
     const result = await mediaApi.upload(file, folder);
-    
     console.log('S3 Upload successful:', result.url);
     console.log('========================');
-    
     return result.url;
   } catch (error) {
     console.error('S3 Upload failed:', error);
@@ -132,17 +201,9 @@ const uploadToS3 = async (file: File, folder?: string): Promise<string> => {
   }
 };
 
-/**
- * Delete image from S3 via backend API
- * @param url - The S3 URL or key of the image to delete
- */
 const deleteFromS3 = async (url: string): Promise<void> => {
   try {
-    // Extract key from URL if full URL is provided
-    const key = url.includes('amazonaws.com') 
-      ? url.split('.com/')[1] 
-      : url;
-    
+    const key = url.includes('amazonaws.com') ? url.split('.com/')[1] : url;
     await mediaApi.delete(key);
     console.log('Deleted from S3:', key);
   } catch (error) {
@@ -178,9 +239,6 @@ const defaultCompressionOptions: CompressionOptions = {
   convertToWebP: false,
 };
 
-/**
- * Compress and optionally resize an image
- */
 const compressImage = async (
   file: File,
   options: Partial<CompressionOptions> = {}
@@ -195,39 +253,30 @@ const compressImage = async (
 
     img.onload = () => {
       let { width, height } = img;
-
-      // Calculate new dimensions if needed
       if (width > opts.maxWidthOrHeight || height > opts.maxWidthOrHeight) {
-        const ratio = Math.min(
-          opts.maxWidthOrHeight / width,
-          opts.maxWidthOrHeight / height
-        );
+        const ratio = Math.min(opts.maxWidthOrHeight / width, opts.maxWidthOrHeight / height);
         width = Math.round(width * ratio);
         height = Math.round(height * ratio);
       }
-
       canvas.width = width;
       canvas.height = height;
-
+      
       if (!ctx) {
         reject(new Error('Could not get canvas context'));
         return;
       }
-
-      // Draw image on canvas
+      
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Determine output format
       const outputFormat = opts.convertToWebP ? 'image/webp' : 'image/jpeg';
       const formatName = opts.convertToWebP ? 'webp' : 'jpeg';
 
-      // Compress with quality adjustment
       const compress = (quality: number): Promise<Blob> => {
-        return new Promise((res) => {
+        return new Promise((res, rej) => {
           canvas.toBlob(
             (blob) => {
               if (blob) res(blob);
-              else reject(new Error('Compression failed'));
+              else rej(new Error('Compression failed'));
             },
             outputFormat,
             quality
@@ -235,20 +284,17 @@ const compressImage = async (
         });
       };
 
-      // Iteratively reduce quality if still too large
       const compressToSize = async (): Promise<Blob> => {
         let quality = opts.quality;
         let blob = await compress(quality);
         let iterations = 0;
         const maxIterations = 10;
-
         while (blob.size > opts.maxSizeMB * 1024 * 1024 && iterations < maxIterations) {
           quality -= 0.1;
           if (quality < 0.1) quality = 0.1;
           blob = await compress(quality);
           iterations++;
         }
-
         return blob;
       };
 
@@ -273,9 +319,6 @@ const compressImage = async (
   });
 };
 
-/**
- * Convert blob to base64 for localStorage
- */
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -285,9 +328,6 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
   });
 };
 
-/**
- * Format file size for display
- */
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
@@ -300,63 +340,34 @@ const formatFileSize = (bytes: number): string => {
 // TYPES
 // ============================================
 export interface ImageUploadProps {
-  /** Current image URL */
   value: string;
-  /** Callback when image changes */
   onChange: (url: string) => void;
-  /** Optional callback with full image data */
   onImageData?: (data: { url: string; file?: File; compressed?: CompressionResult }) => void;
-  /** Optional alt text value */
   altText?: string;
-  /** Callback when alt text changes */
   onAltChange?: (alt: string) => void;
-  /** Placeholder text */
   placeholder?: string;
-  /** Label for the input */
   label?: string;
-  /** Helper text below input */
   helperText?: string;
-  /** Show preview by default */
   showPreviewDefault?: boolean;
-  /** Max file size in MB (auto compress if larger) */
   maxSizeMB?: number;
-  /** Max width or height in pixels */
   maxWidthOrHeight?: number;
-  /** Compression quality (0-1) */
   compressionQuality?: number;
-  /** Convert to WebP format */
   convertToWebP?: boolean;
-  /** Aspect ratio for preview (e.g., "16/9", "1/1", "4/3") */
   aspectRatio?: string;
-  /** Preview height class */
   previewHeight?: string;
-  /** Enable drag and drop */
   enableDragDrop?: boolean;
-  /** Enable URL input */
   enableUrlInput?: boolean;
-  /** Enable file upload */
   enableFileUpload?: boolean;
-  /** Enable paste from clipboard */
   enablePaste?: boolean;
-  /** Save to localStorage (fallback if no onUpload provided) */
   saveToStorage?: boolean;
-  /** NEW: Upload to S3 instead of localStorage */
   uploadToCloud?: boolean;
-  /** NEW: S3 folder path */
   cloudFolder?: string;
-  /** Custom upload handler (for server upload) */
   onUpload?: (file: File, compressed: CompressionResult) => Promise<string>;
-  /** Show alt text input */
   showAltInput?: boolean;
-  /** Show image info (dimensions, size) */
   showImageInfo?: boolean;
-  /** Disabled state */
   disabled?: boolean;
-  /** Error message */
   error?: string;
-  /** Additional class names */
   className?: string;
-  /** Compact mode */
   compact?: boolean;
 }
 
@@ -372,7 +383,7 @@ interface ImageInfo {
 }
 
 // ============================================
-// COMPONENT
+// IMAGE UPLOAD COMPONENT
 // ============================================
 export const ImageUpload: React.FC<ImageUploadProps> = ({
   value,
@@ -395,8 +406,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   enableFileUpload = true,
   enablePaste = true,
   saveToStorage = true,
-  uploadToCloud = false, // NEW: Default to false for backward compatibility
-  cloudFolder,           // NEW: S3 folder
+  uploadToCloud = true,
+  cloudFolder: cloudFolderProp,
   onUpload,
   showAltInput = false,
   showImageInfo = true,
@@ -422,31 +433,25 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Input styling
   const inputClass = `w-full px-3 py-2.5 rounded-xl text-sm transition-all bg-secondary border text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 ${
     disabled ? 'opacity-50 cursor-not-allowed' : ''
   } ${error ? 'border-destructive' : 'border-border'}`;
 
-  // Handle paste from clipboard
+  // Paste handler
   useEffect(() => {
     if (!enablePaste || disabled) return;
-
     const handlePaste = async (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (!items) return;
-
       for (const item of items) {
         if (item.type.startsWith('image/')) {
           e.preventDefault();
           const file = item.getAsFile();
-          if (file) {
-            await handleFileSelect(file);
-          }
+          if (file) await handleFileSelect(file);
           break;
         }
       }
     };
-
     const container = containerRef.current;
     if (container) {
       container.addEventListener('paste', handlePaste);
@@ -454,13 +459,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     }
   }, [enablePaste, disabled]);
 
-  // Load image info when URL changes
+  // Load image info
   useEffect(() => {
     if (!value || !showImageInfo) {
       setImageInfo(null);
       return;
     }
-
     const img = new Image();
     img.onload = () => {
       setImageInfo((prev) => ({
@@ -475,7 +479,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     img.src = value;
   }, [value, showImageInfo]);
 
-  // Handle URL change
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value;
     onChange(url);
@@ -484,15 +487,115 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setImageInfo(null);
   };
 
-  // Handle file selection with compression - UPDATED to support S3 upload
+  // Auto-upload external URLs to S3 (debounced)
+  useEffect(() => {
+    if (!uploadToCloud || !value || !value.trim()) return;
+    
+    // Skip if already an S3 URL or not a valid URL
+    if (value.includes('amazonaws.com')) return;
+    if (!value.startsWith('http://') && !value.startsWith('https://')) return;
+    
+    // Skip if it's a data URL (base64)
+    if (value.startsWith('data:')) return;
+
+    const timeoutId = setTimeout(() => {
+      handleUrlToS3Upload(value);
+    }, 1000); // Wait 1 second after user stops typing
+
+    return () => clearTimeout(timeoutId);
+  }, [value, uploadToCloud]);
+
+  // Download image from URL and upload to S3
+  const handleUrlToS3Upload = async (urlToUpload: string) => {
+    if (!urlToUpload || !urlToUpload.trim()) return;
+
+    setUploadError(null);
+    setUploadStatus('uploading');
+    setCompressionProgress('Downloading image from URL...');
+
+    try {
+      // Fetch the image from URL
+      const response = await fetch(urlToUpload);
+      if (!response.ok) {
+        throw new Error('Failed to fetch image from URL');
+      }
+
+      const blob = await response.blob();
+      
+      // Check if it's an image
+      if (!blob.type.startsWith('image/')) {
+        throw new Error('URL does not point to a valid image');
+      }
+
+      // Create a File object from the blob
+      const extension = blob.type.split('/')[1] || 'jpg';
+      const fileName = `url-image-${Date.now()}.${extension}`;
+      const file = new File([blob], fileName, { type: blob.type });
+
+      setCompressionProgress('Compressing image...');
+
+      // Compress the image
+      const compressed = await compressImage(file, {
+        maxSizeMB,
+        maxWidthOrHeight,
+        quality: compressionQuality,
+        convertToWebP,
+      });
+
+      setImageInfo({
+        width: compressed.width,
+        height: compressed.height,
+        size: compressed.compressedSize,
+        originalSize: file.size,
+        format: compressed.format,
+      });
+
+      setCompressionProgress('Uploading to S3...');
+
+      // Upload to S3
+      const cloudFolder = cloudFolderProp || detectFolderFromLabel(label);
+      const compressedFile = new File(
+        [compressed.blob],
+        fileName.replace(/\.[^/.]+$/, `.${compressed.format}`),
+        { type: `image/${compressed.format}` }
+      );
+      const s3Url = await uploadToS3(compressedFile, cloudFolder);
+
+      onChange(s3Url);
+      onImageData?.({ url: s3Url, file, compressed });
+      setUploadStatus('success');
+      setCompressionProgress('');
+
+      console.log('=== URL Auto-Uploaded to S3 ===');
+      console.log('Original URL:', urlToUpload);
+      console.log('S3 URL:', s3Url);
+      console.log('Folder:', cloudFolder);
+      console.log('================================');
+
+      setTimeout(() => {
+        setUploadStatus('idle');
+      }, 3000);
+    } catch (err) {
+      console.error('URL to S3 upload error:', err);
+      // Don't show error for CORS issues - just keep the original URL
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        console.log('CORS issue - keeping original URL');
+        setUploadStatus('idle');
+        setCompressionProgress('');
+      } else {
+        setUploadError(err instanceof Error ? err.message : 'Failed to upload to S3');
+        setUploadStatus('error');
+        setCompressionProgress('');
+      }
+    }
+  };
+
   const handleFileSelect = useCallback(
     async (file: File) => {
-      // Validate it's an image (accept all image types)
       if (!file.type.startsWith('image/')) {
         setUploadError('Please select an image file');
         return;
       }
-
       setUploadError(null);
       setUploadStatus('compressing');
       setCompressionProgress('Analyzing image...');
@@ -500,14 +603,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       try {
         const originalSize = file.size;
         const needsCompression = originalSize > maxSizeMB * 1024 * 1024;
-
         setCompressionProgress(
           needsCompression
             ? `Compressing ${formatFileSize(originalSize)} image...`
             : 'Processing image...'
         );
 
-        // Compress the image
         const compressed = await compressImage(file, {
           maxSizeMB,
           maxWidthOrHeight,
@@ -517,33 +618,29 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
         setCompressionProgress('');
         setUploadStatus('uploading');
-
-        // Update image info
         setImageInfo({
           width: compressed.width,
           height: compressed.height,
           size: compressed.compressedSize,
-          originalSize: originalSize,
+          originalSize,
           format: compressed.format,
         });
 
         let finalUrl = compressed.url;
 
         if (onUpload) {
-          // Custom upload handler (server upload)
           finalUrl = await onUpload(file, compressed);
         } else if (uploadToCloud) {
-          // NEW: Upload to S3
           setCompressionProgress('Uploading to cloud...');
-          // Create a new File from the compressed blob
+          // Use cloudFolder prop if provided, otherwise auto-detect from label
+          const cloudFolder = cloudFolderProp || detectFolderFromLabel(label);
           const compressedFile = new File(
-            [compressed.blob], 
+            [compressed.blob],
             file.name.replace(/\.[^/.]+$/, `.${compressed.format}`),
             { type: `image/${compressed.format}` }
           );
           finalUrl = await uploadToS3(compressedFile, cloudFolder);
         } else if (saveToStorage) {
-          // Save to localStorage as base64 (fallback)
           const base64 = await blobToBase64(compressed.blob);
           saveToLocalStorage({
             url: base64,
@@ -555,30 +652,28 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
         onChange(finalUrl);
         onImageData?.({ url: finalUrl, file, compressed });
-
         setUploadStatus('success');
-        
-        // Store compression result for display
+
         const savings = Math.round((1 - compressed.compressedSize / originalSize) * 100);
         setCompressionResult({
           originalSize,
           compressedSize: compressed.compressedSize,
           savings: savings > 0 ? savings : 0,
         });
-        
-        // Log compression details to console for verification
+
+        const detectedFolder = cloudFolderProp || detectFolderFromLabel(label);
         console.log('=== Image Processing Result ===');
         console.log('Original Size:', formatFileSize(originalSize));
         console.log('Compressed Size:', formatFileSize(compressed.compressedSize));
         console.log('Dimensions:', compressed.width, '×', compressed.height);
         console.log('Format:', compressed.format);
-        console.log('Saved to:', uploadToCloud ? 'S3 Cloud' : (saveToStorage ? 'localStorage' : 'memory'));
+        console.log('Folder:', detectedFolder);
+        console.log('Saved to:', uploadToCloud ? `S3 Cloud (${detectedFolder})` : saveToStorage ? 'localStorage' : 'memory');
         if (originalSize > compressed.compressedSize) {
           console.log('Savings:', savings + '%');
         }
         console.log('================================');
-        
-        // Clear compression result after 5 seconds
+
         setTimeout(() => {
           setUploadStatus('idle');
           setCompressionResult(null);
@@ -590,28 +685,19 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         setCompressionProgress('');
       }
     },
-    [maxSizeMB, maxWidthOrHeight, compressionQuality, convertToWebP, onChange, onUpload, onImageData, saveToStorage, uploadToCloud, cloudFolder]
+    [maxSizeMB, maxWidthOrHeight, compressionQuality, convertToWebP, onChange, onUpload, onImageData, saveToStorage, uploadToCloud, cloudFolderProp, label]
   );
 
-  // Handle file input change
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-    // Reset input value so same file can be selected again
-    if (e.target) {
-      e.target.value = '';
-    }
+    if (file) handleFileSelect(file);
+    if (e.target) e.target.value = '';
   };
 
-  // Handle drag events
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!disabled && enableDragDrop) {
-      setIsDragging(true);
-    }
+    if (!disabled && enableDragDrop) setIsDragging(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -629,57 +715,30 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-
     if (disabled || !enableDragDrop) return;
-
     const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
+    if (file) handleFileSelect(file);
   };
 
-  // Clear image - FIXED VERSION
   const handleClear = useCallback(() => {
-    console.log('handleClear called, current value:', value);
-    
-    // Clear the URL value by calling parent onChange with empty string
     onChange('');
-    
-    // Clear alt text if callback exists
-    if (onAltChange) {
-      onAltChange('');
-    }
-    
-    // Reset all internal states
+    if (onAltChange) onAltChange('');
     setImageError(false);
     setUploadError(null);
     setImageInfo(null);
     setCompressionResult(null);
     setShowPreview(false);
-    
-    // Clear file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    
-    console.log('handleClear completed, onChange called with empty string');
-  }, [onChange, onAltChange, value]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [onChange, onAltChange]);
 
-  // Copy URL to clipboard
   const handleCopyUrl = async () => {
-    if (value) {
-      await navigator.clipboard.writeText(value);
-    }
+    if (value) await navigator.clipboard.writeText(value);
   };
 
-  // Open image in new tab
   const handleOpenExternal = () => {
-    if (value) {
-      window.open(value, '_blank');
-    }
+    if (value) window.open(value, '_blank');
   };
 
-  // Download image
   const handleDownload = () => {
     if (value) {
       const link = document.createElement('a');
@@ -690,6 +749,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   };
 
   const hasImage = value && value.trim() !== '';
+  const detectedFolder = cloudFolderProp || detectFolderFromLabel(label);
 
   return (
     <div ref={containerRef} className={`space-y-2 ${className}`} tabIndex={0}>
@@ -701,7 +761,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         </label>
       )}
 
-      {/* Mode Tabs (if both modes enabled) */}
+      {/* Mode Tabs */}
       {enableUrlInput && enableFileUpload && !compact && (
         <div className="flex items-center justify-between">
           <div className="flex gap-1 p-1 bg-secondary/50 rounded-lg">
@@ -732,13 +792,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               Upload
             </button>
           </div>
-
           <div className="flex items-center gap-2">
-            {/* NEW: Show cloud indicator if uploadToCloud is enabled */}
             {uploadToCloud && (
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Cloud className="w-3 h-3 text-blue-500" />
-                Cloud
+                <span className="hidden sm:inline">{detectedFolder}</span>
               </span>
             )}
             {saveToStorage && !uploadToCloud && (
@@ -802,7 +860,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 </div>
               )}
             </div>
-            {/* Choose File Button */}
             {enableFileUpload && (
               <>
                 <input
@@ -818,6 +875,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                   onClick={() => fileInputRef.current?.click()}
                   disabled={disabled}
                   className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm font-medium transition-all bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+                  title="Choose file from computer"
                 >
                   <FolderOpen className="w-4 h-4" />
                 </button>
@@ -842,7 +900,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               : 'border-border hover:border-primary/50'
           } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
-          {/* Hidden file input - only render here if URL mode didn't render it */}
           {mode === 'file' && (
             <input
               ref={fileInputRef}
@@ -855,7 +912,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           )}
 
           {hasImage && !imageError ? (
-            // Preview with overlay controls
             <div className="relative group">
               <img
                 src={value}
@@ -864,7 +920,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 style={aspectRatio ? { aspectRatio } : undefined}
                 onError={() => setImageError(true)}
               />
-              
+
               {/* Overlay Controls */}
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-2">
                 <button
@@ -926,7 +982,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 </div>
               )}
 
-              {/* Cloud indicator for S3-hosted images */}
+              {/* Cloud indicator */}
               {value && value.includes('amazonaws.com') && (
                 <div className="absolute top-2 right-2 px-2 py-1 bg-blue-500/80 backdrop-blur-sm rounded-lg text-white text-xs flex items-center gap-1">
                   <Cloud className="w-3 h-3" />
@@ -935,7 +991,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               )}
             </div>
           ) : (
-            // Upload prompt
             <div
               onClick={() => !disabled && fileInputRef.current?.click()}
               className={`p-8 text-center ${disabled ? '' : 'cursor-pointer'}`}
@@ -976,7 +1031,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       PNG, JPG, WebP up to {maxSizeMB}MB
-                      {uploadToCloud && ' • Uploads to cloud'}
+                      {uploadToCloud && ` • Folder: ${detectedFolder}`}
                     </p>
                   </div>
                 </div>
@@ -1001,8 +1056,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             style={aspectRatio ? { aspectRatio } : undefined}
             onError={() => setImageError(true)}
           />
-          
-          {/* Preview overlay controls */}
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-2">
             <button
               type="button"
@@ -1029,8 +1082,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               <ExternalLink className="w-5 h-5" />
             </button>
           </div>
-
-          {/* Image Info */}
           {showImageInfo && imageInfo && (
             <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs flex items-center gap-2">
               <span>{imageInfo.width} × {imageInfo.height}</span>
@@ -1062,6 +1113,23 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         </p>
       )}
 
+      {/* Auto-upload status indicator */}
+      {uploadToCloud && mode === 'url' && value && !value.includes('amazonaws.com') && 
+       value.startsWith('http') && uploadStatus === 'idle' && (
+        <p className="text-xs text-blue-500 flex items-center gap-1">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Will auto-upload to S3...
+        </p>
+      )}
+
+      {/* Compression/Upload progress */}
+      {compressionProgress && (
+        <p className="text-xs text-blue-500 flex items-center gap-1">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          {compressionProgress}
+        </p>
+      )}
+
       {/* Error Message */}
       {(error || uploadError) && (
         <p className="text-xs text-destructive flex items-center gap-1">
@@ -1087,7 +1155,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           className="text-xs text-green-600 flex items-center gap-1"
         >
           <Check className="w-3 h-3" />
-          {uploadToCloud ? 'Uploaded to cloud successfully!' : 'Image processed successfully!'}
+          {uploadToCloud ? `Uploaded to ${detectedFolder} successfully!` : 'Image processed successfully!'}
         </motion.div>
       )}
 
@@ -1134,8 +1202,8 @@ export interface MultiImageUploadProps {
   maxSizeMB?: number;
   maxWidthOrHeight?: number;
   saveToStorage?: boolean;
-  uploadToCloud?: boolean;    // NEW
-  cloudFolder?: string;       // NEW
+  uploadToCloud?: boolean;
+  cloudFolder?: string;
   onUpload?: (file: File, compressed: CompressionResult) => Promise<string>;
   disabled?: boolean;
   className?: string;
@@ -1154,8 +1222,8 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   maxSizeMB = 2,
   maxWidthOrHeight = 1920,
   saveToStorage = true,
-  uploadToCloud = false,      // NEW
-  cloudFolder,                // NEW
+  uploadToCloud = true,
+  cloudFolder: cloudFolderProp,
   onUpload,
   disabled = false,
   className = '',
@@ -1167,13 +1235,12 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const multiFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle multiple file selection - UPDATED to support S3 upload
+  const cloudFolder = cloudFolderProp || detectFolderFromLabel(label);
+
   const handleMultiFileSelect = async (files: FileList) => {
     if (disabled || isProcessing) return;
-
     const remainingSlots = maxImages - value.length;
     const filesToProcess = Array.from(files).slice(0, remainingSlots);
-
     if (filesToProcess.length === 0) return;
 
     setIsProcessing(true);
@@ -1181,24 +1248,17 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 
     try {
       const newImages: Array<{ url: string; alt?: string }> = [];
-
       for (let i = 0; i < filesToProcess.length; i++) {
         const file = filesToProcess[i];
         setProcessingCount({ current: i + 1, total: filesToProcess.length });
-
         if (!file.type.startsWith('image/')) continue;
 
-        const compressed = await compressImage(file, {
-          maxSizeMB,
-          maxWidthOrHeight,
-        });
-
+        const compressed = await compressImage(file, { maxSizeMB, maxWidthOrHeight });
         let finalUrl = compressed.url;
 
         if (onUpload) {
           finalUrl = await onUpload(file, compressed);
         } else if (uploadToCloud) {
-          // NEW: Upload to S3
           const compressedFile = new File(
             [compressed.blob],
             file.name.replace(/\.[^/.]+$/, `.${compressed.format}`),
@@ -1214,42 +1274,34 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
           });
           finalUrl = base64;
         }
-
         newImages.push({ url: finalUrl, alt: '' });
       }
-
       onChange([...value, ...newImages]);
     } catch (err) {
       console.error('Multi-upload error:', err);
     } finally {
       setIsProcessing(false);
       setProcessingCount({ current: 0, total: 0 });
-      if (multiFileInputRef.current) {
-        multiFileInputRef.current.value = '';
-      }
+      if (multiFileInputRef.current) multiFileInputRef.current.value = '';
     }
   };
 
-  // Update single image URL
   const handleUpdateImage = (index: number, url: string) => {
     const newImages = [...value];
     newImages[index] = { ...newImages[index], url };
     onChange(newImages);
   };
 
-  // Update alt text
   const handleUpdateAlt = (index: number, alt: string) => {
     const newImages = [...value];
     newImages[index] = { ...newImages[index], alt };
     onChange(newImages);
   };
 
-  // Remove image
   const handleRemoveImage = (index: number) => {
     onChange(value.filter((_, i) => i !== index));
   };
 
-  // Drag and drop reordering
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
   };
@@ -1257,7 +1309,6 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-
     const newImages = [...value];
     const draggedItem = newImages[draggedIndex];
     newImages.splice(draggedIndex, 1);
@@ -1272,7 +1323,6 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Hidden multi-file input */}
       <input
         ref={multiFileInputRef}
         type="file"
@@ -1283,7 +1333,6 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         className="hidden"
       />
 
-      {/* Header */}
       {label && (
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -1292,16 +1341,13 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary">
               {value.length}/{maxImages}
             </span>
-            {/* NEW: Cloud indicator */}
             {uploadToCloud && (
               <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center gap-1">
                 <Cloud className="w-3 h-3" />
-                Cloud
+                {cloudFolder}
               </span>
             )}
           </label>
-
-          {/* Bulk Upload Button */}
           {enableMultiSelect && value.length < maxImages && (
             <button
               type="button"
@@ -1325,7 +1371,6 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         </div>
       )}
 
-      {/* Images Grid */}
       <div className="space-y-3">
         {value.map((image, index) => (
           <motion.div
@@ -1341,7 +1386,6 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
             }`}
           >
             <div className="flex items-start gap-3">
-              {/* Drag Handle */}
               <div className="pt-2 cursor-grab text-muted-foreground hover:text-foreground">
                 <svg
                   className="w-5 h-5"
@@ -1357,8 +1401,6 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                   />
                 </svg>
               </div>
-
-              {/* Image Upload */}
               <div className="flex-1">
                 <ImageUpload
                   value={image.url}
@@ -1377,10 +1419,9 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                   compact
                   placeholder={`Image #${index + 1} URL`}
                   showImageInfo={true}
+                  label={label}
                 />
               </div>
-
-              {/* Remove Button */}
               <button
                 type="button"
                 onClick={() => handleRemoveImage(index)}
@@ -1391,8 +1432,6 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
-
-            {/* Index Badge */}
             {index === 0 && (
               <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-xs bg-primary/20 text-primary">
                 Default Image
@@ -1402,19 +1441,15 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         ))}
       </div>
 
-      {/* Add Button */}
       {value.length < maxImages && (
         <button
           type="button"
           onClick={() => {
             const newIndex = value.length;
             onChange([...value, { url: '', alt: '' }]);
-            // Scroll to the newly added image slot
             setTimeout(() => {
               const newSlot = document.getElementById(`${idPrefix}-${newIndex}`);
-              if (newSlot) {
-                newSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }
+              if (newSlot) newSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 100);
           }}
           disabled={disabled || isProcessing}
@@ -1425,10 +1460,7 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         </button>
       )}
 
-      {/* Helper Text */}
       {helperText && <p className="text-xs text-muted-foreground">{helperText}</p>}
-
-      {/* Max Reached */}
       {value.length >= maxImages && (
         <p className="text-xs text-muted-foreground text-center">
           Maximum {maxImages} images allowed
@@ -1441,6 +1473,16 @@ export const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 // ============================================
 // EXPORTS
 // ============================================
-export { compressImage, formatFileSize, saveToLocalStorage, getFromLocalStorage, removeFromLocalStorage, clearLocalStorage, uploadToS3, deleteFromS3 };
+export {
+  compressImage,
+  formatFileSize,
+  saveToLocalStorage,
+  getFromLocalStorage,
+  removeFromLocalStorage,
+  clearLocalStorage,
+  uploadToS3,
+  deleteFromS3,
+  detectFolderFromLabel,
+};
 export type { CompressionResult, CompressionOptions, StoredImage };
 export default ImageUpload;
