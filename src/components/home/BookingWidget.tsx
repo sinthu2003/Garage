@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-import { 
-  MapPin, 
-  Car, 
-  Phone, 
-  ChevronRight, 
+import {
+  MapPin,
+  Car,
+  Phone,
+  ChevronRight,
   ChevronLeft,
-  Search, 
-  X, 
+  Search,
+  X,
   Sparkles,
   CheckCircle2,
   Loader2,
@@ -38,31 +38,31 @@ export const BookingWidget = () => {
   const { content, carBrands: apiBrands, carBrandsLoading } = useContent();
   const location = useLocation(); // Hook to access navigation state
   const bookingContent = content?.bookingWidget || {};
-  
+
   // [FIX] Extract data with safe defaults to prevent undefined errors
   // Use API car brands if available, otherwise fall back to bookingContent.brands
-  const brands = (apiBrands && apiBrands.length > 0) 
+  const brands = (apiBrands && apiBrands.length > 0)
     ? apiBrands.map((b: any) => ({
-        id: b._id || b.id,
-        name: b.name,
-        logo: b.logo || '',
-        urlName: b.urlName || b.name?.toLowerCase().replace(/\s+/g, '-') || '',
-      }))
+      id: b._id || b.id,
+      name: b.name,
+      logo: b.logo || '',
+      urlName: b.urlName || b.name?.toLowerCase().replace(/\s+/g, '-') || '',
+    }))
     : (bookingContent.brands || []);
-  
+
   // [FIX] Use API car models if available
   const carModels: Record<string, { name: string; type: string; image: string }[]> = (apiBrands && apiBrands.length > 0)
     ? apiBrands.reduce((acc: any, brand: any) => {
-        const brandId = brand._id || brand.id;
-        acc[brandId] = (brand.models || []).map((m: any) => ({
-          name: m.name,
-          type: m.type || 'Sedan',
-          image: m.image || '',
-        }));
-        return acc;
-      }, {})
+      const brandId = brand._id || brand.id;
+      acc[brandId] = (brand.models || []).map((m: any) => ({
+        name: m.name,
+        type: m.type || 'Sedan',
+        image: m.image || '',
+      }));
+      return acc;
+    }, {})
     : (bookingContent.carModels as Record<string, { name: string; type: string; image: string }[]> || {});
-  
+
   const fuelTypes = bookingContent.fuelTypes || [
     { id: 'petrol', name: 'Petrol', icon: '⛽', color: '#22C55E' },
     { id: 'diesel', name: 'Diesel', icon: '🛢️', color: '#EAB308' },
@@ -79,6 +79,21 @@ export const BookingWidget = () => {
   const [selectedModel, setSelectedModel] = useState<{ name: string; type: string; image: string } | null>(null);
   const [selectedFuel, setSelectedFuel] = useState<typeof fuelTypes[0] | null>(null);
   const [mobileNumber, setMobileNumber] = useState('');
+
+  // Handle outside trigger to open brand selection
+  useEffect(() => {
+    const handleOpenSelection = () => {
+      // If we are on main view, switch to brands to start selection
+      if (currentView === 'main') {
+        setCurrentView('brands');
+      }
+      // If we are already on brands/models/fuel, we usually don't need to do anything
+      // as the user is already interacting.
+    };
+
+    window.addEventListener('open-booking-car-selector', handleOpenSelection);
+    return () => window.removeEventListener('open-booking-car-selector', handleOpenSelection);
+  }, [currentView]);
 
   // NEW: State for targeted service
   const [targetedService, setTargetedService] = useState<TargetedService | null>(null);
@@ -98,14 +113,14 @@ export const BookingWidget = () => {
     }
   }, [location.state]);
 
-  const filteredBrands = brands.filter(brand => 
+  const filteredBrands = brands.filter(brand =>
     brand.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredModels = selectedBrand 
+  const filteredModels = selectedBrand
     ? (carModels[selectedBrand.id] || []).filter(model =>
-        model.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      model.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : [];
 
   const handleBrandSelect = (brand: typeof brands[0]) => {
@@ -192,7 +207,7 @@ export const BookingWidget = () => {
       resetCarSelection();
       setMobileNumber('');
       // Optionally clear the targeted service after successful booking
-      setTargetedService(null); 
+      setTargetedService(null);
     } catch (error) {
       setSubmissionResult({
         success: false,
@@ -210,7 +225,7 @@ export const BookingWidget = () => {
   // [FIX] Show loading state while car brands are loading
   if (carBrandsLoading && brands.length === 0) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md relative"
@@ -228,7 +243,7 @@ export const BookingWidget = () => {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -252,20 +267,18 @@ export const BookingWidget = () => {
               className="bg-card rounded-3xl p-8 max-w-sm w-full shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
-                submissionResult.success 
-                  ? 'bg-green-100 dark:bg-green-900/30' 
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${submissionResult.success
+                  ? 'bg-green-100 dark:bg-green-900/30'
                   : 'bg-red-100 dark:bg-red-900/30'
-              }`}>
+                }`}>
                 {submissionResult.success ? (
                   <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                 ) : (
                   <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
                 )}
               </div>
-              <h3 className={`text-xl font-bold text-center mb-2 ${
-                submissionResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-              }`}>
+              <h3 className={`text-xl font-bold text-center mb-2 ${submissionResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                }`}>
                 {submissionResult.success ? 'Booking Received!' : 'Oops!'}
               </h3>
               <p className="text-center text-muted-foreground mb-6">
@@ -273,11 +286,10 @@ export const BookingWidget = () => {
               </p>
               <button
                 onClick={closeResultModal}
-                className={`w-full py-3 rounded-xl font-semibold transition-colors ${
-                  submissionResult.success
+                className={`w-full py-3 rounded-xl font-semibold transition-colors ${submissionResult.success
                     ? 'bg-green-600 hover:bg-green-700 text-white'
                     : 'bg-red-600 hover:bg-red-700 text-white'
-                }`}
+                  }`}
               >
                 {submissionResult.success ? 'Great!' : 'Try Again'}
               </button>
@@ -288,12 +300,12 @@ export const BookingWidget = () => {
 
       <div className="bg-card rounded-3xl shadow-2xl shadow-primary/20 overflow-hidden">
         {/* Top Accent Bar */}
-        <motion.div 
+        <motion.div
           className="h-1.5 bg-gradient-to-r from-primary via-primary/80 to-primary bg-[length:200%_100%]"
           animate={{ backgroundPosition: ['0% 0%', '100% 0%', '0% 0%'] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
         />
-        
+
         <div className="p-6 sm:p-8">
           <AnimatePresence mode="wait">
             {/* ==================== MAIN VIEW ==================== */}
@@ -318,7 +330,7 @@ export const BookingWidget = () => {
 
                 {/* VISUAL INDICATOR: Targeted Service Display */}
                 {targetedService && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 rounded-xl"
@@ -332,7 +344,7 @@ export const BookingWidget = () => {
                         <p className="text-sm font-bold text-foreground leading-tight">{targetedService.name}</p>
                       </div>
                     </div>
-                    <button 
+                    <button
                       onClick={clearTargetedService}
                       className="p-1.5 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors"
                       title="Clear service selection"
@@ -359,7 +371,7 @@ export const BookingWidget = () => {
                     </div>
                     <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isCityOpen ? 'rotate-90' : ''}`} />
                   </button>
-                  
+
                   <AnimatePresence>
                     {isCityOpen && (
                       <motion.div
@@ -373,11 +385,10 @@ export const BookingWidget = () => {
                           <button
                             key={city}
                             onClick={() => { setSelectedCity(city); setIsCityOpen(false); }}
-                            className={`w-full px-4 py-3.5 text-left text-sm font-medium transition-all flex items-center justify-between ${
-                              selectedCity === city 
-                                ? 'text-primary bg-primary/10' 
+                            className={`w-full px-4 py-3.5 text-left text-sm font-medium transition-all flex items-center justify-between ${selectedCity === city
+                                ? 'text-primary bg-primary/10'
                                 : 'text-muted-foreground hover:bg-secondary'
-                            }`}
+                              }`}
                           >
                             {city}
                             {selectedCity === city && <CheckCircle2 className="w-4 h-4 text-primary" />}
@@ -395,24 +406,22 @@ export const BookingWidget = () => {
                   </label>
                   <button
                     onClick={() => setCurrentView('brands')}
-                    className={`w-full flex items-center justify-between px-4 py-4 border rounded-2xl transition-all ${
-                      isCarSelected 
-                        ? 'bg-primary/5 border-primary/20' 
+                    className={`w-full flex items-center justify-between px-4 py-4 border rounded-2xl transition-all ${isCarSelected
+                        ? 'bg-primary/5 border-primary/20'
                         : 'bg-secondary/50 border-border hover:border-primary/50 hover:bg-primary/5'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden ${
-                        isCarSelected 
-                          ? 'bg-card shadow-md border border-primary/20' 
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden ${isCarSelected
+                          ? 'bg-card shadow-md border border-primary/20'
                           : 'bg-secondary'
-                      }`}>
+                        }`}>
                         {isCarSelected && selectedBrand ? (
-                          <img 
-                            src={selectedBrand.logo} 
+                          <img
+                            src={selectedBrand.logo}
                             alt={selectedBrand.name}
                             className="w-7 h-7 object-contain"
-                            onError={(e) => { 
+                            onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.onerror = null;
                               target.src = `https://ui-avatars.com/api/?name=${selectedBrand.name.charAt(0)}&background=FF5733&color=fff&size=56&bold=true`;
@@ -432,7 +441,7 @@ export const BookingWidget = () => {
                       </div>
                     </div>
                     {isCarSelected ? (
-                      <button 
+                      <button
                         onClick={(e) => { e.stopPropagation(); resetCarSelection(); }}
                         className="p-2 hover:bg-destructive/10 rounded-full transition-colors group"
                       >
@@ -468,7 +477,7 @@ export const BookingWidget = () => {
                 </div>
 
                 {/* Submit Button */}
-                <motion.button 
+                <motion.button
                   whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                   whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                   disabled={!isCarSelected || mobileNumber.length !== 10 || isSubmitting}
@@ -501,8 +510,8 @@ export const BookingWidget = () => {
               >
                 {/* Header with Back */}
                 <div className="flex items-center gap-3 mb-5">
-                  <button 
-                    onClick={goBack} 
+                  <button
+                    onClick={goBack}
                     className="p-2 -ml-2 hover:bg-secondary rounded-xl transition-colors"
                   >
                     <ChevronLeft className="w-5 h-5 text-muted-foreground" />
@@ -545,8 +554,8 @@ export const BookingWidget = () => {
                       className="flex flex-col items-center p-4 bg-secondary/30 hover:bg-primary/5 border-2 border-transparent hover:border-primary/20 rounded-2xl transition-all"
                     >
                       <div className="w-14 h-14 mb-2 flex items-center justify-center">
-                        <img 
-                          src={brand.logo} 
+                        <img
+                          src={brand.logo}
                           alt={brand.name}
                           className="w-full h-full object-contain"
                           onError={(e) => {
@@ -584,15 +593,15 @@ export const BookingWidget = () => {
               >
                 {/* Header with Back */}
                 <div className="flex items-center gap-3 mb-5">
-                  <button 
-                    onClick={goBack} 
+                  <button
+                    onClick={goBack}
                     className="p-2 -ml-2 hover:bg-secondary rounded-xl transition-colors"
                   >
                     <ChevronLeft className="w-5 h-5 text-muted-foreground" />
                   </button>
                   <div className="flex items-center gap-3">
-                    <img 
-                      src={selectedBrand.logo} 
+                    <img
+                      src={selectedBrand.logo}
                       alt={selectedBrand.name}
                       className="w-10 h-10 object-contain"
                       onError={(e) => {
@@ -639,8 +648,8 @@ export const BookingWidget = () => {
                       className="flex flex-col items-center p-3 bg-secondary/30 hover:bg-primary/5 border-2 border-transparent hover:border-primary/20 rounded-2xl transition-all text-center"
                     >
                       <div className="w-full h-16 mb-2 flex items-center justify-center">
-                        <img 
-                          src={model.image} 
+                        <img
+                          src={model.image}
                           alt={model.name}
                           className="w-full h-full object-contain"
                           onError={(e) => {
@@ -680,8 +689,8 @@ export const BookingWidget = () => {
               >
                 {/* Header with Back */}
                 <div className="flex items-center gap-3 mb-5">
-                  <button 
-                    onClick={goBack} 
+                  <button
+                    onClick={goBack}
                     className="p-2 -ml-2 hover:bg-secondary rounded-xl transition-colors"
                   >
                     <ChevronLeft className="w-5 h-5 text-muted-foreground" />
@@ -695,8 +704,8 @@ export const BookingWidget = () => {
                 {/* Selected Car Summary */}
                 <div className="flex items-center gap-4 p-4 bg-primary/5 border border-primary/20 rounded-2xl mb-5">
                   <div className="w-16 h-12 flex items-center justify-center">
-                    <img 
-                      src={selectedModel?.image} 
+                    <img
+                      src={selectedModel?.image}
                       alt={selectedModel?.name}
                       className="w-full h-full object-contain"
                       onError={(e) => {
@@ -715,8 +724,8 @@ export const BookingWidget = () => {
                       {selectedModel?.type} • Almost there!
                     </p>
                   </div>
-                  <img 
-                    src={selectedBrand?.logo} 
+                  <img
+                    src={selectedBrand?.logo}
                     alt={selectedBrand?.name}
                     className="w-8 h-8 object-contain opacity-50"
                   />
@@ -736,7 +745,7 @@ export const BookingWidget = () => {
                       className="w-full flex items-center justify-between p-4 bg-secondary/30 hover:bg-primary/5 border-2 border-transparent hover:border-primary/20 rounded-2xl transition-all group"
                     >
                       <div className="flex items-center gap-4">
-                        <div 
+                        <div
                           className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
                           style={{ backgroundColor: `${fuel.color}15` }}
                         >

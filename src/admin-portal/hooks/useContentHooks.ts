@@ -48,7 +48,7 @@ import type {
 export const useGlobalContent = (): GlobalContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('global') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.global || {} as GlobalContent),
     isLoading,
@@ -61,10 +61,10 @@ export const useGlobalContent = (): GlobalContent & { isLoading: boolean } => {
 export const useNavbarContent = (): NavbarContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('navbar') ?? false;
-  
+
   // Navbar can be at content?.navbar or content?.global.navbar
   const navbarData = content?.navbar || (content?.global as any)?.navbar || {};
-  
+
   return useMemo(() => ({
     ...navbarData,
     isLoading,
@@ -77,10 +77,10 @@ export const useNavbarContent = (): NavbarContent & { isLoading: boolean } => {
 export const useHeroContent = (): HeroContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('hero') ?? false;
-  
+
   // [FIX] Safety check for undefined content
   const heroData = content?.hero || {} as HeroContent;
-  
+
   return useMemo(() => ({
     ...heroData,
     isLoading,
@@ -93,7 +93,7 @@ export const useHeroContent = (): HeroContent & { isLoading: boolean } => {
 export const useBookingWidgetContent = (): BookingWidgetContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('bookingWidget') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.bookingWidget || {} as BookingWidgetContent),
     isLoading,
@@ -106,7 +106,7 @@ export const useBookingWidgetContent = (): BookingWidgetContent & { isLoading: b
 export const useHowItWorksContent = (): HowItWorksContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('howItWorks') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.howItWorks || {} as HowItWorksContent),
     isLoading,
@@ -119,7 +119,7 @@ export const useHowItWorksContent = (): HowItWorksContent & { isLoading: boolean
 export const useFeaturesContent = (): FeaturesContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('features') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.features || {} as FeaturesContent),
     isLoading,
@@ -132,7 +132,7 @@ export const useFeaturesContent = (): FeaturesContent & { isLoading: boolean } =
 export const useServicesContent = (): ServicesContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('services') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.services || {} as ServicesContent),
     isLoading,
@@ -145,7 +145,7 @@ export const useServicesContent = (): ServicesContent & { isLoading: boolean } =
 export const usePricingContent = (): PricingContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('pricing') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.pricing || {} as PricingContent),
     isLoading,
@@ -158,7 +158,7 @@ export const usePricingContent = (): PricingContent & { isLoading: boolean } => 
 export const useBeforeAfterContent = (): BeforeAfterContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('beforeAfter') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.beforeAfter || {} as BeforeAfterContent),
     isLoading,
@@ -171,7 +171,7 @@ export const useBeforeAfterContent = (): BeforeAfterContent & { isLoading: boole
 export const useTestimonialsContent = (): TestimonialsContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('testimonials') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.testimonials || {} as TestimonialsContent),
     isLoading,
@@ -184,7 +184,7 @@ export const useTestimonialsContent = (): TestimonialsContent & { isLoading: boo
 export const useGalleryContent = (): GalleryContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('gallery') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.gallery || {} as GalleryContent),
     isLoading,
@@ -197,7 +197,7 @@ export const useGalleryContent = (): GalleryContent & { isLoading: boolean } => 
 export const usePartnersContent = (): PartnersContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('partners') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.partners || {} as PartnersContent),
     isLoading,
@@ -210,7 +210,7 @@ export const usePartnersContent = (): PartnersContent & { isLoading: boolean } =
 export const useFAQContent = (): FAQContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('faq') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.faq || {} as FAQContent),
     isLoading,
@@ -223,7 +223,7 @@ export const useFAQContent = (): FAQContent & { isLoading: boolean } => {
 export const useFooterContent = (): FooterContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('footer') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.footer || {} as FooterContent),
     isLoading,
@@ -236,7 +236,7 @@ export const useFooterContent = (): FooterContent & { isLoading: boolean } => {
 export const usePagesContent = (): PagesContent & { isLoading: boolean } => {
   const { content, isSectionLoading } = useContent();
   const isLoading = isSectionLoading?.('pages') ?? false;
-  
+
   return useMemo(() => ({
     ...(content?.pages || {} as PagesContent),
     isLoading,
@@ -294,7 +294,8 @@ export const useBrandContent = () => {
   return useMemo(
     () => ({
       name: globalContent.brand?.name || 'Addax',
-      tagline: globalContent.brand?.tagline || 'Automotive',
+      title: globalContent.brand?.title || 'Automotive',
+      tagline: globalContent.brand?.tagline || 'Drive with Confidence',
       phone: globalContent.brand?.phone || '',
       email: globalContent.brand?.email || '',
       address: globalContent.brand?.address || '',
@@ -411,4 +412,31 @@ export const useFeatureItems = () => {
     items: featuresContent.items || [],
     isLoading: featuresContent.isLoading,
   }), [featuresContent]);
+};
+
+export const usePrivacyPolicyContent = () => {
+  const { content, isSectionLoading } = useContent();
+  const isLoading = isSectionLoading?.('pages') ?? false;
+  return useMemo(() => ({
+    ...(content?.pages?.privacyPolicy || {}),
+    isLoading,
+  }), [content?.pages?.privacyPolicy, isLoading]);
+};
+
+export const useTermsContent = () => {
+  const { content, isSectionLoading } = useContent();
+  const isLoading = isSectionLoading?.('pages') ?? false;
+  return useMemo(() => ({
+    ...(content?.pages?.termsOfService || {}),
+    isLoading,
+  }), [content?.pages?.termsOfService, isLoading]);
+};
+
+export const useWarrantyPolicyContent = () => {
+  const { content, isSectionLoading } = useContent();
+  const isLoading = isSectionLoading?.('pages') ?? false;
+  return useMemo(() => ({
+    ...(content?.pages?.warrantyPolicy || {}),
+    isLoading,
+  }), [content?.pages?.warrantyPolicy, isLoading]);
 };

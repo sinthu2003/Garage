@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Check, 
-  Clock, 
-  Shield, 
-  Star, 
+import {
+  ArrowLeft,
+  Check,
+  Clock,
+  Shield,
+  Star,
   Phone,
   MessageCircle,
   ChevronDown,
@@ -278,38 +278,30 @@ export const ServiceDetailPage = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true });
 
-  // [FIX] Get services from API (with resolved images) first, fallback to legacy content
-  const { content, services: apiServices } = useContent();
-  
-  // [FIX] Prefer API services (images already resolved), fallback to legacy content.services.items
-  const services = (apiServices && apiServices.length > 0) 
-    ? apiServices 
-    : content.services.items;
-  
+  // Get content from context - images are already resolved by ContentContext
+  const { content } = useContent();
+  const services = content.services.items;
   const globalContent = content.global;
 
   // Get service from state or find by slug
-  // [FIX] Handle both API services (with _id) and legacy services (with id)
-  const service = location.state?.service || services.find((s: any) => {
-    const title = s.title || '';
-    const slug = s.slug || title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
-    return slug === serviceSlug || title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and') === serviceSlug;
-  });
+  const service = location.state?.service || services.find((s: { title: string; }) =>
+    s.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and') === serviceSlug
+  );
 
   // Get extended data - prefer from service.process/faqs/includes if available, else use fallback
   const getExtendedData = (): ExtendedServiceData => {
     if (!service) return defaultExtendedData;
-    
+
     const fallbackData = serviceExtendedData[service.title] || defaultExtendedData;
-    
+
     return {
       duration: service.duration || fallbackData.duration,
       warranty: service.warranty || fallbackData.warranty,
       includes: service.includes || fallbackData.includes,
-      process: service.process?.map((p: { title: string; description: string }, idx: number) => ({ 
-        step: idx + 1, 
-        title: p.title, 
-        description: p.description 
+      process: service.process?.map((p: { title: string; description: string }, idx: number) => ({
+        step: idx + 1,
+        title: p.title,
+        description: p.description
       })) || fallbackData.process,
       faqs: service.faqs || fallbackData.faqs
     };
@@ -317,16 +309,16 @@ export const ServiceDetailPage = () => {
 
   const extendedData = getExtendedData();
 
-  // [FIX] Get images from service - handle both API (resolved) and legacy (may need resolution)
+  // Get images from siteContent.json gallery array (already resolved by ContentContext)
+  // Falls back to main image if no gallery exists
   const getServiceImages = (): string[] => {
     if (!service) return [];
-    
+
     // Check if gallery exists and has images
     if (service.gallery && Array.isArray(service.gallery) && service.gallery.length > 0) {
-      // Filter out empty strings and return valid images
-      return service.gallery.filter((img: string) => img && img.trim() !== '');
+      return service.gallery;
     }
-    
+
     // Fallback to main image only
     return service.image ? [service.image] : [];
   };
@@ -340,7 +332,7 @@ export const ServiceDetailPage = () => {
   // Auto-advance gallery
   useEffect(() => {
     if (images.length <= 1) return;
-    
+
     const interval = setInterval(() => {
       setActiveImage((prev) => (prev + 1) % images.length);
     }, 5000);
@@ -360,7 +352,7 @@ export const ServiceDetailPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Service not found</h1>
-          <button 
+          <button
             onClick={() => navigate('/services')}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-full"
           >
@@ -379,7 +371,7 @@ export const ServiceDetailPage = () => {
     <div className="min-h-screen bg-background">
       {/* Back Button - with proper top padding for fixed navbar */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-24 sm:pt-28">
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
@@ -392,7 +384,7 @@ export const ServiceDetailPage = () => {
       <section className="relative pb-8 sm:pb-12 lg:pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-            
+
             {/* Image Gallery */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -400,30 +392,18 @@ export const ServiceDetailPage = () => {
               transition={{ duration: 0.5 }}
             >
               {/* Main Image */}
-              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4 aspect-[4/3] group bg-secondary">
-                {images.length > 0 && images[activeImage] ? (
-                  <motion.img 
-                    key={activeImage}
-                    src={images[activeImage]}
-                    alt={service.title}
-                    className="w-full h-full object-cover"
-                    initial={{ opacity: 0, scale: 1.05 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4 }}
-                    onError={(e) => {
-                      // Handle broken images gracefully
-                      const target = e.target as HTMLImageElement;
-                      target.onerror = null;
-                      target.src = '/images/placeholder-service.jpg';
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                    <span className="text-6xl">🔧</span>
-                  </div>
-                )}
+              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4 aspect-[4/3] group">
+                <motion.img
+                  key={activeImage}
+                  src={images[activeImage] || ''}
+                  alt={service.title}
+                  className="w-full h-full object-cover"
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                
+
                 {/* Navigation Arrows */}
                 {images.length > 1 && (
                   <>
@@ -469,23 +449,17 @@ export const ServiceDetailPage = () => {
                     <motion.button
                       key={idx}
                       onClick={() => setActiveImage(idx)}
-                      className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden transition-all ${
-                        activeImage === idx 
-                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' 
-                          : 'opacity-60 hover:opacity-100'
-                      }`}
+                      className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden transition-all ${activeImage === idx
+                        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                        : 'opacity-60 hover:opacity-100'
+                        }`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <img 
-                        src={img} 
+                      <img
+                        src={img}
                         alt={`${service.title} ${idx + 1}`}
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.onerror = null;
-                          target.src = '/images/placeholder-service.jpg';
-                        }}
                       />
                       {activeImage === idx && (
                         <div className="absolute inset-0 bg-primary/10" />
@@ -511,9 +485,9 @@ export const ServiceDetailPage = () => {
               <div className="flex flex-wrap items-center gap-4 mb-4">
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Star 
-                      key={star} 
-                      className={`w-4 h-4 ${star <= 4 ? 'fill-yellow-400 text-yellow-400' : 'fill-yellow-400/50 text-yellow-400/50'}`} 
+                    <Star
+                      key={star}
+                      className={`w-4 h-4 ${star <= 4 ? 'fill-yellow-400 text-yellow-400' : 'fill-yellow-400/50 text-yellow-400/50'}`}
                     />
                   ))}
                 </div>
@@ -593,14 +567,14 @@ export const ServiceDetailPage = () => {
 
               {/* Quick Contact */}
               <div className="flex gap-3">
-                <a 
+                <a
                   href={`tel:${globalContent.brand.phone}`}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-secondary rounded-xl text-foreground font-medium hover:bg-secondary/80 transition-colors"
                 >
                   <Phone className="w-4 h-4" />
                   Call Now
                 </a>
-                <a 
+                <a
                   href={`https://wa.me/${globalContent.brand.phone.replace(/\D/g, '')}`}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors"
                 >
@@ -625,7 +599,7 @@ export const ServiceDetailPage = () => {
               What's Included
             </h2>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {extendedData.includes.map((item: string, idx: number) => (
                 <motion.div
                   key={idx}
@@ -668,9 +642,9 @@ export const ServiceDetailPage = () => {
             <div className="relative">
               {/* Horizontal Line */}
               <div className="absolute top-7 left-[8%] right-[8%] h-0.5 bg-gray-200 dark:bg-gray-800" />
-              
+
               {/* Progress Line (animated) */}
-              <motion.div 
+              <motion.div
                 className="absolute top-7 left-[8%] h-0.5 bg-primary"
                 initial={{ width: 0 }}
                 whileInView={{ width: '84%' }}
@@ -679,10 +653,10 @@ export const ServiceDetailPage = () => {
               />
 
               {/* Steps Grid */}
-              <div 
+              <div
                 className="grid gap-4"
-                style={{ 
-                  gridTemplateColumns: `repeat(${Math.min(extendedData.process.length, 6)}, 1fr)` 
+                style={{
+                  gridTemplateColumns: `repeat(${Math.min(extendedData.process.length, 6)}, 1fr)`
                 }}
               >
                 {extendedData.process.slice(0, 6).map((step: ProcessStep, idx: number) => (
@@ -723,17 +697,17 @@ export const ServiceDetailPage = () => {
             {extendedData.process.length > 6 && (
               <div className="relative mt-16">
                 <div className="absolute top-7 left-[8%] right-[8%] h-0.5 bg-gray-200 dark:bg-gray-800" />
-                <motion.div 
+                <motion.div
                   className="absolute top-7 left-[8%] h-0.5 bg-primary"
                   initial={{ width: 0 }}
                   whileInView={{ width: '84%' }}
                   viewport={{ once: true }}
                   transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
                 />
-                <div 
+                <div
                   className="grid gap-4"
-                  style={{ 
-                    gridTemplateColumns: `repeat(${extendedData.process.length - 6}, 1fr)` 
+                  style={{
+                    gridTemplateColumns: `repeat(${extendedData.process.length - 6}, 1fr)`
                   }}
                 >
                   {extendedData.process.slice(6).map((step: ProcessStep, idx: number) => (
@@ -785,7 +759,7 @@ export const ServiceDetailPage = () => {
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
                     {step.step}
                   </div>
-                  
+
                   {/* Content */}
                   <div>
                     <h3 className="text-lg font-semibold text-foreground mb-1">
@@ -810,18 +784,29 @@ export const ServiceDetailPage = () => {
           {/* Process Steps - Mobile */}
           <div className="sm:hidden">
             <div className="relative">
-              {/* Vertical Line */}
-              <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-800" />
-              
-              {/* Animated Progress Line */}
-              <motion.div 
-                className="absolute left-6 top-0 w-0.5 bg-primary"
+              {/* Vertical Line - stops at last circle */}
+              <div
+                className="absolute left-6 top-5 w-0.5 bg-gray-200 dark:bg-gray-800"
+                style={{
+                  height: extendedData.process.length > 1
+                    ? `calc((100% / ${extendedData.process.length}) * ${extendedData.process.length - 1})`
+                    : '0px'
+                }}
+              />
+
+              {/* Animated Progress Line - stops at last circle */}
+              <motion.div
+                className="absolute left-6 top-5 w-0.5 bg-primary"
                 initial={{ height: 0 }}
-                whileInView={{ height: '100%' }}
+                whileInView={{
+                  height: extendedData.process.length > 1
+                    ? `calc((100% / ${extendedData.process.length}) * ${extendedData.process.length - 1})`
+                    : '0px'
+                }}
                 viewport={{ once: true }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
               />
-              
+
               <div className="space-y-6">
                 {extendedData.process.map((step: ProcessStep, idx: number) => (
                   <motion.div
@@ -842,7 +827,7 @@ export const ServiceDetailPage = () => {
                     >
                       {step.step}
                     </motion.div>
-                    
+
                     {/* Content Card */}
                     <div className="flex-1 pb-6">
                       <div className="p-4 bg-card rounded-xl border border-border">
@@ -877,9 +862,8 @@ export const ServiceDetailPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className={`rounded-xl border overflow-hidden transition-all ${
-                  openFaq === idx ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'
-                }`}
+                className={`rounded-xl border overflow-hidden transition-all ${openFaq === idx ? 'border-primary/30 bg-primary/5' : 'border-border bg-card'
+                  }`}
               >
                 <button
                   onClick={() => setOpenFaq(openFaq === idx ? null : idx)}

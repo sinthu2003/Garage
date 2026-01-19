@@ -21,10 +21,10 @@ import React, {
 } from 'react';
 import type { SiteContent, ContentContextValue } from '../types/content.types';
 import defaultContent from '../data/siteContent.json';
-import { 
-  contentApi, 
-  servicesApi, 
-  carDataApi, 
+import {
+  contentApi,
+  servicesApi,
+  carDataApi,
   getErrorMessage,
   type Service,
   type CarBrand,
@@ -46,7 +46,7 @@ const imageModules = import.meta.glob('../../assets/**/*.{png,jpg,jpeg,svg,webp,
 
 const resolvePath = (path: string): string => {
   if (!path || typeof path !== 'string') return path;
-  
+
   if (path.startsWith('../assets/')) {
     const filename = path.replace('../assets/', '');
     const localPath = `../../assets/${filename}`;
@@ -57,7 +57,7 @@ const resolvePath = (path: string): string => {
     }
     console.warn(`Could not resolve image: ${path}`);
   }
-  
+
   return path;
 };
 
@@ -65,11 +65,11 @@ const resolveContentImages = <T,>(content: T): T => {
   if (typeof content === 'string') {
     return resolvePath(content) as unknown as T;
   }
-  
+
   if (Array.isArray(content)) {
     return content.map(item => resolveContentImages(item)) as unknown as T;
   }
-  
+
   if (content !== null && typeof content === 'object') {
     const result: any = {};
     for (const key in content) {
@@ -79,7 +79,7 @@ const resolveContentImages = <T,>(content: T): T => {
     }
     return result;
   }
-  
+
   return content;
 };
 
@@ -106,11 +106,11 @@ interface ExtendedContentContextValue extends ContentContextValue {
   error: string | null;
   isSyncing: boolean;
   clearError: () => void;
-  
+
   loadedSections: Set<string>;
   loadSection: (section: keyof SiteContent) => Promise<void>;
   isSectionLoading: (section: keyof SiteContent) => boolean;
-  
+
   services: Service[];
   servicesLoading: boolean;
   loadServices: () => Promise<void>;
@@ -118,14 +118,14 @@ interface ExtendedContentContextValue extends ContentContextValue {
   updateService: (id: string, data: UpdateServiceData) => Promise<Service>;
   deleteService: (id: string) => Promise<void>;
   reorderServices: (orderedIds: string[]) => Promise<void>;
-  
+
   carBrands: CarBrand[];
   carBrandsLoading: boolean;
   loadCarBrands: (includeModels?: boolean) => Promise<void>;
   createBrand: (data: CreateBrandData) => Promise<CarBrand>;
   updateBrand: (id: string, data: UpdateBrandData) => Promise<CarBrand>;
   deleteBrand: (id: string) => Promise<void>;
-  
+
   createModel: (brandId: string, data: CreateModelData) => Promise<CarModel>;
   updateModel: (id: string, data: UpdateModelData) => Promise<CarModel>;
   deleteModel: (id: string) => Promise<void>;
@@ -172,7 +172,7 @@ const setNestedValue = (obj: any, path: string, value: unknown): any => {
 
 const deepMerge = <T,>(target: T, source: any): T => {
   if (!source) return target;
-  
+
   const result = { ...target } as any;
 
   for (const key of Object.keys(source)) {
@@ -223,7 +223,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   // ----------------------------------------
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingChangesRef = useRef<Map<string, { path: string; value: unknown }>>(new Map());
-  
+
   // [FIX] Use refs to track loading/loaded state - these don't cause useCallback to recreate
   const servicesLoadingRef = useRef(false);
   const servicesLoadedRef = useRef(false);
@@ -244,7 +244,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -259,7 +259,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   const [carBrands, setCarBrands] = useState<CarBrand[]>([]);
   const [carBrandsLoading, setCarBrandsLoading] = useState(false);
 
-  const actualMode = mode === 'auto' 
+  const actualMode = mode === 'auto'
     ? (tokenStorage.isAuthenticated() ? 'admin' : 'public')
     : mode;
 
@@ -310,7 +310,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
           setSavedContent(resolvedContent);
           setHistory([{ content: deepClone(resolvedContent), timestamp: Date.now(), action: 'loaded' }]);
           setHistoryIndex(0);
-          
+
           console.log('[ContentContext] ✅ Public mode: All content loaded.');
         } catch (err) {
           console.error('[ContentContext] ❌ Failed to load public content:', err);
@@ -360,8 +360,19 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
     try {
       const sectionData = await contentApi.getSection(section);
       console.log(`[loadSection] ✅ API Response for '${section}':`, sectionData);
-      
-      const resolvedData = resolveContentImages(sectionData);
+
+      let mergedSectionData = sectionData;
+
+      // If API returned empty/null, try to fallback (though backend should handle this)
+      if (!mergedSectionData || (typeof mergedSectionData === 'object' && Object.keys(mergedSectionData).length === 0)) {
+        const defaultSectionData = (defaultContent as any)[section];
+        if (defaultSectionData) {
+          console.warn(`[loadSection] API returned empty for ${section}, using frontend default.`);
+          mergedSectionData = deepMerge(defaultSectionData, sectionData || {});
+        }
+      }
+
+      const resolvedData = resolveContentImages(mergedSectionData);
 
       // [FIX] Update BOTH content AND savedContent to prevent false "unsaved changes"
       // When we load a section from API, that IS the saved state
@@ -369,7 +380,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
         ...prev,
         [section]: resolvedData,
       }));
-      
+
       setSavedContent(prev => ({
         ...prev,
         [section]: resolvedData,
@@ -378,7 +389,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
       // Mark as loaded in ref
       loadedSectionsRef.current.add(section);
       setLoadedSections(prev => new Set(prev).add(section));
-      
+
       console.log(`[loadSection] ✅ Section '${section}' loaded and stored in content.${section}`);
     } catch (err) {
       console.error(`[loadSection] ❌ Failed to load section ${section}:`, err);
@@ -493,7 +504,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
     }
   }, []); // [FIX] Empty deps - function reference is stable
 
-const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBrand> => {
+  const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBrand> => {
     const newBrand = await carDataApi.createBrand(data);
     // [FIX] Add new brand at BEGINNING of array (most recent first)
     setCarBrands(prev => [newBrand, ...prev]);
@@ -516,7 +527,7 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
   // ----------------------------------------
   // Car Models CRUD
   // ----------------------------------------
-    const createModelFn = useCallback(async (brandId: string, data: CreateModelData): Promise<CarModel> => {
+  const createModelFn = useCallback(async (brandId: string, data: CreateModelData): Promise<CarModel> => {
     const newModel = await carDataApi.addModelToBrand(brandId, data);
     setCarBrands(prev => prev.map(b => {
       if (b._id === brandId) {
@@ -560,7 +571,7 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
 
     try {
       const changes = Array.from(pendingChangesRef.current.entries());
-      
+
       for (const [section, { path, value }] of changes) {
         await contentApi.updateField(section as keyof SiteContent, { path, value });
       }
@@ -602,12 +613,12 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
           timestamp: Date.now(),
           action,
         });
-        
+
         if (newHistory.length > HISTORY_LIMIT) {
           newHistory.shift();
           return newHistory;
         }
-        
+
         return newHistory;
       });
       setHistoryIndex((prev) => Math.min(prev + 1, HISTORY_LIMIT - 1));
@@ -635,14 +646,14 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
           [sectionKey]: updatedSection,
           meta: { ...prev.meta, lastModified: new Date().toISOString() },
         };
-        
+
         addToHistory(newContent, `Update ${section}.${path}`);
-        
+
         if (actualMode === 'admin' && enableApi && tokenStorage.isAuthenticated()) {
           pendingChangesRef.current.set(section, { path, value });
           debouncedSync();
         }
-        
+
         if (enableFallback && typeof window !== 'undefined') {
           try {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newContent));
@@ -670,12 +681,12 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
           meta: { ...prev.meta, lastModified: new Date().toISOString() },
         };
         addToHistory(newContent, `Update ${section}`);
-        
+
         if (actualMode === 'admin' && enableApi && tokenStorage.isAuthenticated()) {
           contentApi.updateSection(sectionKey, value as SiteContent[typeof sectionKey])
             .catch(err => console.error('Failed to sync section:', err));
         }
-        
+
         return newContent;
       });
     },
@@ -713,11 +724,11 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
 
     try {
       let newContent: SiteContent;
-      
+
       if (enableApi && tokenStorage.isAuthenticated()) {
         const result = await contentApi.resetContent();
         // [FIX] Merge API result with defaults to ensure all sections exist
-        const mergedContent = result.content 
+        const mergedContent = result.content
           ? deepMerge(defaultContent as SiteContent, result.content)
           : defaultContent as SiteContent;
         newContent = resolveContentImages(mergedContent);
@@ -727,11 +738,11 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
 
       setContent(deepClone(newContent));
       setSavedContent(deepClone(newContent));
-      
+
       // [FIX] Clear loaded sections refs to force reload on next access
       loadedSectionsRef.current.clear();
       setLoadedSections(new Set());
-      
+
       // [FIX] Reset services and car brands loaded state
       servicesLoadedRef.current = false;
       carBrandsLoadedRef.current = false;
@@ -740,17 +751,17 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
 
       setHistory([{ content: deepClone(newContent), timestamp: Date.now(), action: 'reset' }]);
       setHistoryIndex(0);
-      
+
       if (typeof window !== 'undefined') {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         localStorage.removeItem(SAVED_CONTENT_KEY);
       }
-      
+
       console.log('[resetContent] ✅ Content reset to defaults');
     } catch (err) {
       console.error('[resetContent] ❌ Failed to reset content:', err);
       setError(getErrorMessage(err));
-      
+
       // Fallback to defaults
       const resolved = resolveContentImages(defaultContent as SiteContent);
       setContent(deepClone(resolved));
@@ -774,24 +785,24 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
 
       if (enableApi && tokenStorage.isAuthenticated()) {
         const result = await contentApi.applyChanges();
-        
+
         // [FIX] Merge result with current content to preserve loaded sections
         // The API might return partial content, so we merge it
-        const mergedContent = result.content 
+        const mergedContent = result.content
           ? deepMerge(content, result.content)
           : content;
         const resolved = resolveContentImages(mergedContent);
-        
+
         setSavedContent(resolved);
         setContent(resolved);
-        
+
         console.log('[applyChanges] ✅ Changes applied successfully');
       } else {
         setSavedContent(deepClone(content));
       }
 
       setLastSaved(new Date());
-      
+
       if (enableFallback && typeof window !== 'undefined') {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(content));
         localStorage.setItem(SAVED_CONTENT_KEY, JSON.stringify(content));
@@ -820,20 +831,20 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
 
       if (enableApi && tokenStorage.isAuthenticated()) {
         const result = await contentApi.discardChanges();
-        
+
         // [FIX] Merge result with defaults to ensure all sections exist
-        const mergedContent = result.content 
+        const mergedContent = result.content
           ? deepMerge(defaultContent as SiteContent, result.content)
           : savedContent;
         const resolved = resolveContentImages(mergedContent);
-        
+
         setContent(resolved);
         setSavedContent(resolved);
-        
+
         // [FIX] Clear loaded sections to force reload on next access
         loadedSectionsRef.current.clear();
         setLoadedSections(new Set());
-        
+
         console.log('[discardChanges] ✅ Changes discarded successfully');
       } else {
         setContent(deepClone(savedContent));
@@ -841,14 +852,14 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
 
       setHistory([{ content: deepClone(savedContent), timestamp: Date.now(), action: 'discard' }]);
       setHistoryIndex(0);
-      
+
       if (enableFallback && typeof window !== 'undefined') {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedContent));
       }
     } catch (err) {
       console.error('[discardChanges] ❌ Failed to discard changes:', err);
       setError(getErrorMessage(err));
-      
+
       setContent(deepClone(savedContent));
     } finally {
       setIsSyncing(false);
@@ -869,7 +880,7 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
         if (!parsed || typeof parsed !== 'object') {
           throw new Error('Invalid content structure');
         }
-        
+
         const mergedContent = deepMerge(defaultContent as SiteContent, parsed);
         const resolvedMerged = resolveContentImages(mergedContent);
 
@@ -909,16 +920,16 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
       lastSaved,
       applyChanges,
       discardChanges,
-      
+
       isLoading,
       error,
       isSyncing,
       clearError: () => setError(null),
-      
+
       loadedSections,
       loadSection,
       isSectionLoading,
-      
+
       services,
       servicesLoading,
       loadServices,
@@ -926,14 +937,14 @@ const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBran
       updateService: updateServiceFn,
       deleteService: deleteServiceFn,
       reorderServices: reorderServicesFn,
-      
+
       carBrands,
       carBrandsLoading,
       loadCarBrands,
       createBrand: createBrandFn,
       updateBrand: updateBrandFn,
       deleteBrand: deleteBrandFn,
-      
+
       createModel: createModelFn,
       updateModel: updateModelFn,
       deleteModel: deleteModelFn,
@@ -1037,7 +1048,7 @@ export const useFAQs = () => {
 
 export const useBookingData = () => {
   const { content, carBrands } = useContent();
-  
+
   if (carBrands.length > 0) {
     const brands = carBrands.map(b => ({
       id: b._id,
@@ -1045,7 +1056,7 @@ export const useBookingData = () => {
       logo: b.logo,
       urlName: b.urlName,
     }));
-    
+
     const carModels: Record<string, { name: string; type: string; image: string }[]> = {};
     carBrands.forEach(brand => {
       if (brand.models) {
@@ -1063,7 +1074,7 @@ export const useBookingData = () => {
       carModels,
     };
   }
-  
+
   return content.bookingWidget;
 };
 
