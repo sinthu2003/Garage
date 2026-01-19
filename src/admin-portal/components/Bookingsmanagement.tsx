@@ -1,6 +1,6 @@
 /**
  * ============================================
- * BOOKINGS MANAGEMENT - REDESIGNED V7
+ * BOOKINGS MANAGEMENT - REDESIGNED V8
  * ============================================
  * Features:
  * - User-centric inline filter bar
@@ -9,6 +9,8 @@
  * - Smart responsive design
  * - Compact yet accessible
  * - Fuel Type filter (replaced City filter)
+ * - Brand filter linked to car_brands table
+ * - Shared Dropdown component integration
  * 
  * @file src/admin-portal/components/Bookingsmanagement.tsx
  */
@@ -44,6 +46,7 @@ import {
   Fuel,
   CircleDot,
   Settings,
+  Hash,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -59,6 +62,8 @@ import {
   formatPhone,
   getRelativeTime,
 } from '../../services/api/bookingsApi';
+import { getAllBrands, type CarBrand } from '../../services/api/carDataApi';
+import { Dropdown, type DropdownOption } from './shared/Dropdown';
 
 // ============================================
 // INTERFACES & TYPES
@@ -79,8 +84,8 @@ interface DateRange {
 // CONSTANTS
 // ============================================
 
-const STATUS_OPTIONS: { value: BookingStatus | ''; label: string }[] = [
-  { value: '', label: 'All' },
+const STATUS_OPTIONS: DropdownOption[] = [
+  { value: '', label: 'All Status' },
   { value: 'new', label: 'New' },
   { value: 'contacted', label: 'Contacted' },
   { value: 'scheduled', label: 'Scheduled' },
@@ -88,14 +93,15 @@ const STATUS_OPTIONS: { value: BookingStatus | ''; label: string }[] = [
   { value: 'cancelled', label: 'Cancelled' },
 ];
 
-const DATE_FILTER_OPTIONS: { value: DateFilterType; label: string }[] = [
+const STATUS_OPTIONS_NO_ALL: DropdownOption[] = STATUS_OPTIONS.filter(s => s.value !== '');
+
+const DATE_FILTER_OPTIONS: DropdownOption[] = [
+  { value: 'all', label: 'All Dates' },
   { value: 'today', label: 'Today' },
   { value: 'yesterday', label: 'Yesterday' },
   { value: 'last7days', label: 'Last 7 Days' },
   { value: 'custom', label: 'Custom Range' },
 ];
-
-const PAGE_SIZES = [10, 20, 50, 100];
 
 // Status colors mapping
 const STATUS_STYLES: Record<BookingStatus, { bg: string; text: string; dot: string; border: string; activeBg: string }> = {
@@ -303,7 +309,6 @@ const BookingCard: React.FC<BookingCardProps> = ({
         {/* Phone & City - Two Columns */}
         <div className="grid grid-cols-2 gap-x-4">
           <div className="flex items-center gap-2">
-            {/* <Phone size={12} className="text-green-500 flex-shrink-0" /> */}
             <span className="text-muted-foreground">Phone:</span>
             <span className="font-medium text-foreground truncate">{formatPhone(booking.phone, booking.countryCode)}</span>
           </div>
@@ -544,15 +549,13 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ booking, isOpen, onClose, onU
                   <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
                     <span className="text-base font-medium text-muted-foreground">Status</span>
                     {isEditing ? (
-                      <select
+                      <Dropdown
+                        options={STATUS_OPTIONS_NO_ALL}
                         value={status}
-                        onChange={(e) => setStatus(e.target.value as BookingStatus)}
-                        className="px-4 py-2 rounded-lg bg-background border border-border text-base font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      >
-                        {STATUS_OPTIONS.filter(s => s.value).map(s => (
-                          <option key={s.value} value={s.value}>{s.label}</option>
-                        ))}
-                      </select>
+                        onChange={(val) => setStatus(val as BookingStatus)}
+                        size="sm"
+                        variant="default"
+                      />
                     ) : (
                       <StatusBadge status={booking.status} size="md" />
                     )}
@@ -749,8 +752,8 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  // Updated facets to include fuelTypes instead of cities
   const [facets, setFacets] = useState<{ fuelTypes: string[]; brands: string[] }>({ fuelTypes: [], brands: [] });
+  const [allBrands, setAllBrands] = useState<CarBrand[]>([]);
 
   // Filter & Search States
   const [page, setPage] = useState(1);
@@ -758,7 +761,6 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [statusFilter, setStatusFilter] = useState<BookingStatus | ''>('');
-  // Replaced cityFilter with fuelTypeFilter
   const [fuelTypeFilter, setFuelTypeFilter] = useState('');
   const [brandFilter, setBrandFilter] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
@@ -778,15 +780,30 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
   
   const hasLoadedRef = useRef(false);
 
-  // Derived - Updated to use fuelTypeFilter instead of cityFilter
+  // Derived values
   const hasFilters = search || statusFilter || fuelTypeFilter || brandFilter || dateFilter !== 'all';
   const pageOffset = (page - 1) * limit;
   
-  // Count active filters for badge - Updated to use Fuel Type instead of City
+  // Build dropdown options from data
+  const fuelTypeOptions: DropdownOption[] = [
+    { value: '', label: 'All Fuel Types' },
+    ...(facets.fuelTypes || []).map(f => ({ value: f, label: f }))
+  ];
+
+  const brandOptions: DropdownOption[] = [
+    { value: '', label: 'All Brands' },
+    ...allBrands.map(b => ({ value: b._id, label: b.name }))
+  ];
+
+  // Count active filters for badge
   const activeFilters = [
     statusFilter && { label: 'Status', value: STATUS_OPTIONS.find(s => s.value === statusFilter)?.label || statusFilter, clear: () => setStatusFilter('') },
     fuelTypeFilter && { label: 'Fuel', value: fuelTypeFilter, clear: () => setFuelTypeFilter('') },
-    brandFilter && { label: 'Brand', value: brandFilter, clear: () => setBrandFilter('') },
+    brandFilter && { 
+      label: 'Brand', 
+      value: allBrands.find(b => b._id === brandFilter)?.name || brandFilter, 
+      clear: () => setBrandFilter('') 
+    },
     dateFilter !== 'all' && { 
       label: 'Date', 
       value: dateFilter === 'custom' && customRange.start && customRange.end 
@@ -796,7 +813,20 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
     },
   ].filter(Boolean) as { label: string; value: string; clear: () => void }[];
 
-  // Load data - Updated to use fuelType instead of city
+  // Fetch all brands on component mount
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const brands = await getAllBrands({ includeInactive: true });
+        setAllBrands(brands);
+      } catch (error) {
+        console.error('Failed to fetch brands', error);
+      }
+    };
+    fetchBrands();
+  }, []);
+
+  // Load data
   const loadBookings = useCallback(async (refresh = false) => {
     try {
       if (refresh) setIsRefreshing(true);
@@ -811,7 +841,7 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
         sortOrder,
         search: search.trim() || undefined,
         status: statusFilter || undefined,
-        fuelType: fuelTypeFilter || undefined, // Changed from city to fuelType
+        fuelType: fuelTypeFilter || undefined,
         brand: brandFilter || undefined,
       };
       
@@ -826,8 +856,6 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
       setTotalPages(res.totalPages || 1);
       
       if (res.facets) {
-        // Transform API response - handle both old (cities) and new (fuelTypes) format
-        // Ensure arrays are always valid even if undefined
         setFacets({
           fuelTypes: Array.isArray(res.facets.fuelTypes) ? res.facets.fuelTypes : [],
           brands: Array.isArray(res.facets.brands) ? res.facets.brands : []
@@ -871,13 +899,12 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
     } finally { setIsBulkUpdating(false); }
   };
   
-  // Updated export handler to use fuelType instead of city
   const handleExport = async () => {
     setIsExporting(true);
     try {
       const url = await exportBookings({
         status: statusFilter || undefined, 
-        fuelType: fuelTypeFilter || undefined, // Changed from city to fuelType
+        fuelType: fuelTypeFilter || undefined,
         brand: brandFilter || undefined,
         startDate: '',
         endDate: ''
@@ -904,12 +931,11 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
     sortBy === col ? setSortOrder(o => o === 'asc' ? 'desc' : 'asc') : (setSortBy(col), setSortOrder('desc')); 
   };
   
-  // Updated clearAllFilters to use fuelTypeFilter instead of cityFilter
   const clearAllFilters = () => { 
     setSearchInput(''); 
     setSearch(''); 
     setStatusFilter(''); 
-    setFuelTypeFilter(''); // Changed from setCityFilter
+    setFuelTypeFilter('');
     setBrandFilter('');
     setDateFilter('all'); 
     setCustomRange({ start: null, end: null }); 
@@ -953,7 +979,7 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background">
       {/* HEADER BAR */}
-      <div className="flex-shrink-0 border-b border-border bg-card">
+      <div className="flex-shrink-0 border-b border-border bg-card overflow-visible relative z-20">
         {/* Row 1: Search + Filter Toggle + Actions */}
         <div className="flex items-center gap-3 p-3 lg:px-4">
           {/* Search Input */}
@@ -976,35 +1002,33 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
             )}
           </div>
 
-          
-
           {/* Spacer */}
           <div className="flex-1" />
 
           {/* Actions */}
           <div className="flex items-center gap-1">
             {/* Filter Toggle Button */}
-          <button
-            onClick={() => setShowMoreFilters(!showMoreFilters)}
-            className={`
-              flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all
-              ${showMoreFilters || activeFilters.length > 0
-                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                : 'bg-secondary/50 text-foreground border-border hover:bg-secondary hover:border-border'
-              }
-            `}
-          >
-            <SlidersHorizontal size={16} />
-            <span>Filters</span>
-            {activeFilters.length > 0 && (
-              <span className={`
-                min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center
-                ${showMoreFilters ? 'bg-primary-foreground text-primary' : 'bg-primary-foreground text-primary'}
-              `}>
-                {activeFilters.length}
-              </span>
-            )}
-          </button>
+            <button
+              onClick={() => setShowMoreFilters(!showMoreFilters)}
+              className={`
+                flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all
+                ${showMoreFilters || activeFilters.length > 0
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-secondary/50 text-foreground border-border hover:bg-secondary hover:border-border'
+                }
+              `}
+            >
+              <SlidersHorizontal size={16} />
+              <span>Filters</span>
+              {activeFilters.length > 0 && (
+                <span className={`
+                  min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center
+                  ${showMoreFilters ? 'bg-primary-foreground text-primary' : 'bg-primary-foreground text-primary'}
+                `}>
+                  {activeFilters.length}
+                </span>
+              )}
+            </button>
             <button 
               onClick={() => loadBookings(true)} 
               disabled={isRefreshing} 
@@ -1050,56 +1074,68 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           {/* Status Filter */}
                           <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
-                            <select
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                             
+                              Status
+                            </label>
+                            <Dropdown
+                              options={STATUS_OPTIONS}
                               value={statusFilter}
-                              onChange={(e) => { setStatusFilter(e.target.value as BookingStatus | ''); setPage(1); }}
-                              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer appearance-none"
-                              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
-                            >
-                              {STATUS_OPTIONS.map(s => (
-                                <option key={s.value} value={s.value}>
-                                  {s.value === '' ? 'All Status' : s.label}
-                                </option>
-                              ))}
-                            </select>
+                              onChange={(val) => { setStatusFilter(val as BookingStatus | ''); setPage(1); }}
+                              placeholder="All Status"
+                              size="md"
+                              variant="default"
+                              fullWidth
+                            />
                           </div>
 
-                          {/* Fuel Type Filter - REPLACED City Filter */}
+                          {/* Fuel Type Filter */}
                           <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fuel Type</label>
-                            <select
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                              
+                              Fuel Type
+                            </label>
+                            <Dropdown
+                              options={fuelTypeOptions}
                               value={fuelTypeFilter}
-                              onChange={(e) => { setFuelTypeFilter(e.target.value); setPage(1); }}
-                              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer appearance-none"
-                              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
-                            >
-                              <option value="">All Fuel Types</option>
-                              {(facets.fuelTypes || []).map(f => <option key={f} value={f}>{f}</option>)}
-                            </select>
+                              onChange={(val) => { setFuelTypeFilter(val as string); setPage(1); }}
+                              placeholder="All Fuel Types"
+                              size="md"
+                              variant="default"
+                              fullWidth
+                            />
                           </div>
 
                           {/* Brand Filter */}
                           <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Brand</label>
-                            <select
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                             
+                              Brand
+                            </label>
+                            <Dropdown
+                              options={brandOptions}
                               value={brandFilter}
-                              onChange={(e) => { setBrandFilter(e.target.value); setPage(1); }}
-                              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer appearance-none"
-                              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
-                            >
-                              <option value="">All Brands</option>
-                              {(facets.brands || []).map(b => <option key={b} value={b}>{b}</option>)}
-                            </select>
+                              onChange={(val) => { setBrandFilter(val as string); setPage(1); }}
+                              placeholder="All Brands"
+                              size="md"
+                              variant="default"
+                              fullWidth
+                              searchable
+                              searchPlaceholder="Search brands..."
+                            />
                           </div>
 
                           {/* Date Range */}
                           <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date Range</label>
-                            <select
-                              value={dateFilter === 'custom' ? 'custom' : dateFilter}
-                              onChange={(e) => {
-                                const value = e.target.value as DateFilterType;
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                              
+                              Date Range
+                            </label>
+                            <Dropdown
+                              options={DATE_FILTER_OPTIONS}
+                              value={dateFilter}
+                              onChange={(val) => {
+                                const value = val as DateFilterType;
                                 if (value === 'custom') {
                                   setShowCustomDatePicker(true);
                                 } else {
@@ -1107,19 +1143,18 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
                                   setPage(1);
                                 }
                               }}
-                              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer appearance-none"
-                              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
-                            >
-                              <option value="all">All Dates</option>
-                              {DATE_FILTER_OPTIONS.map(opt => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.value === 'custom' && dateFilter === 'custom' && customRange.start && customRange.end
-                                    ? `${formatDateShort(customRange.start)} - ${formatDateShort(customRange.end)}`
-                                    : opt.label
-                                  }
-                                </option>
-                              ))}
-                            </select>
+                              placeholder="All Dates"
+                              size="md"
+                              variant="default"
+                              fullWidth
+                              renderValue={(selected) => {
+                                const opt = selected as DropdownOption;
+                                if (opt.value === 'custom' && customRange.start && customRange.end) {
+                                  return `${formatDateShort(customRange.start)} - ${formatDateShort(customRange.end)}`;
+                                }
+                                return opt.label;
+                              }}
+                            />
                           </div>
                         </div>
                       </motion.div>
@@ -1236,22 +1271,25 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden border-t border-primary/20"
+              className="border-t border-primary/20"
             >
-              <div className="flex flex-wrap items-center gap-3 p-3 lg:px-4 bg-primary/5">
+              <div className="flex flex-wrap items-center gap-3 p-3 lg:px-4 bg-primary/5 relative">
                 <div className="flex items-center gap-2">
                   <CheckSquare size={18} className="text-primary" />
                   <span className="text-sm font-semibold text-foreground">{selectedIds.size} selected</span>
                 </div>
                 <div className="flex-1" />
-                <select 
-                  value={bulkStatus} 
-                  onChange={(e) => setBulkStatus(e.target.value as BookingStatus)} 
-                  className="px-3 py-2 rounded-xl bg-background border border-border text-sm font-medium"
-                >
-                  <option value="">Change status to...</option>
-                  {STATUS_OPTIONS.filter(s => s.value).map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                </select>
+                <Dropdown
+                  options={[
+                    { value: '', label: 'Change status to...' },
+                    ...STATUS_OPTIONS_NO_ALL
+                  ]}
+                  value={bulkStatus}
+                  onChange={(val) => setBulkStatus(val as BookingStatus | '')}
+                  placeholder="Change status to..."
+                  size="sm"
+                  variant="default"
+                />
                 <button 
                   onClick={handleBulkUpdate} 
                   disabled={!bulkStatus || isBulkUpdating} 
@@ -1324,7 +1362,7 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
                     </th>
                     <th className="w-16 px-3 py-3 text-center text-xs font-bold text-muted-foreground uppercase tracking-wide">
                       <span className="flex items-center justify-center gap-1">
-                        <span className="w-5 h-5 rounded bg-secondary flex items-center justify-center text-[10px] font-bold">#</span>
+                        <Hash size={14} className="text-gray-500" />
                       </span>
                     </th>
                     <th className="px-4 py-3 text-left">
@@ -1417,12 +1455,18 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
       <div className="flex-shrink-0 px-3 py-2 lg:px-4 border-t border-border bg-card flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground hidden sm:inline">Show:</span>
-          <select 
-            value={limit} 
-            onChange={(e) => { setLimit(+e.target.value); setPage(1); }} 
-            className="px-2 py-1 rounded-lg bg-secondary border border-border text-sm font-medium cursor-pointer"
+          <select
+            value={limit}
+            onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+            className="px-3 py-1.5 rounded-lg bg-secondary/50 border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer appearance-none pr-8 bg-no-repeat bg-[length:16px_16px] bg-[right_8px_center]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`
+            }}
           >
-            {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
           </select>
         </div>
         <div className="flex items-center gap-2">

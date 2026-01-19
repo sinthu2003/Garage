@@ -1,10 +1,11 @@
 /**
  * ============================================
- * CONTACT INQUIRIES SCREEN - ENHANCED V2
+ * CONTACT INQUIRIES SCREEN - ENHANCED V4
  * ============================================
  * 
  * Modern contact inquiries with:
- * - Cleaner inbox-style layout (no redundant header)
+ * - Clean filter bar: Search, Filter icon, Refresh, Bell with count
+ * - Collapsible filter dropdown panel
  * - Enhanced detail panel with better UX
  * - Quick actions and status management
  * - Responsive design optimized
@@ -33,7 +34,6 @@ import {
   CheckCircle2,
   Tag,
   Sparkles,
-  ChevronDown,
   Copy,
   Eye,
   MailOpen,
@@ -41,6 +41,8 @@ import {
   X,
   Clock,
   MessageSquare,
+  Bell,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -54,6 +56,7 @@ import {
   formatPhone,
   getRelativeTime,
 } from '../../services/api/bookingsApi';
+import { Dropdown, type DropdownOption } from './shared/Dropdown';
 
 // ============================================
 // INTERFACES
@@ -67,14 +70,16 @@ interface ContactInquiriesProps {
 // CONSTANTS
 // ============================================
 
-const STATUS_OPTIONS: { value: InquiryStatus | ''; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: '', label: 'All', icon: <Inbox size={14} />, color: 'text-muted-foreground' },
-  { value: 'new', label: 'Unread', icon: <Circle size={14} />, color: 'text-blue-500' },
-  { value: 'read', label: 'Read', icon: <MailOpen size={14} />, color: 'text-gray-500' },
-  { value: 'replied', label: 'Replied', icon: <Reply size={14} />, color: 'text-green-500' },
-  { value: 'resolved', label: 'Resolved', icon: <CheckCircle2 size={14} />, color: 'text-emerald-500' },
-  { value: 'spam', label: 'Spam', icon: <AlertOctagon size={14} />, color: 'text-red-500' },
+const STATUS_OPTIONS: DropdownOption[] = [
+  { value: '', label: 'All Status', icon: <Inbox size={14} /> },
+  { value: 'new', label: 'Unread', icon: <Circle size={14} className="text-blue-500" /> },
+  { value: 'read', label: 'Read', icon: <MailOpen size={14} className="text-gray-500" /> },
+  { value: 'replied', label: 'Replied', icon: <Reply size={14} className="text-green-500" /> },
+  { value: 'resolved', label: 'Resolved', icon: <CheckCircle2 size={14} className="text-emerald-500" /> },
+  { value: 'spam', label: 'Spam', icon: <AlertOctagon size={14} className="text-red-500" /> },
 ];
+
+const STATUS_OPTIONS_NO_ALL: DropdownOption[] = STATUS_OPTIONS.filter(s => s.value !== '');
 
 const PAGE_SIZES = [10, 20, 50, 100];
 
@@ -375,21 +380,16 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({
         {/* Actions */}
         <div className="flex items-center gap-2">
           {/* Status Dropdown */}
-          <div className="relative">
-            <select
+          <div className="w-32">
+            <Dropdown
+              options={STATUS_OPTIONS_NO_ALL}
               value={inquiry.status}
-              onChange={(e) => handleStatusChange(e.target.value as InquiryStatus)}
+              onChange={(val) => handleStatusChange(val as InquiryStatus)}
               disabled={isUpdating}
-              className="appearance-none px-4 py-2 pr-9 rounded-xl bg-secondary border border-border 
-                text-foreground text-sm font-medium disabled:opacity-50 cursor-pointer 
-                focus:outline-none focus:ring-2 focus:ring-primary/50"
-            >
-              {STATUS_OPTIONS.filter(s => s.value).map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 
-              text-muted-foreground pointer-events-none" />
+              size="sm"
+              variant="default"
+              fullWidth
+            />
           </div>
 
           {/* More Actions */}
@@ -646,8 +646,13 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
   const [searchInput, setSearchInput] = useState('');
   const [statusFilter, setStatusFilter] = useState<InquiryStatus | ''>('');
   const [showMobileDetail, setShowMobileDetail] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const hasLoadedRef = useRef(false);
+
+  // Computed values
+  const unreadCount = (inquiries || []).filter(i => i.status === 'new').length;
+  const hasActiveFilter = statusFilter !== '';
 
   // Load inquiries
   const loadInquiries = useCallback(async (showRefresh = false) => {
@@ -718,7 +723,11 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
     setShowMobileDetail(false);
   };
 
-  const unreadCount = (inquiries || []).filter(i => i.status === 'new').length;
+  const clearFilters = () => {
+    setStatusFilter('');
+    setPage(1);
+    setShowFilters(false);
+  };
 
   // Loading state
   if (isLoading && !hasLoadedRef.current) {
@@ -771,14 +780,16 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
   return (
     <div className="flex h-full overflow-hidden bg-background">
       {/* ============================================ */}
-      {/* LIST PANEL - CLEANED UP (No redundant header) */}
+      {/* LIST PANEL */}
       {/* ============================================ */}
       <div className={`w-full md:w-[380px] lg:w-[420px] flex flex-col border-r border-border bg-card
         ${showMobileDetail ? 'hidden md:flex' : 'flex'}`}
       >
-        {/* Compact Filter Bar - Search + Filter + Refresh */}
-        <div className="flex-shrink-0 p-3 border-b border-border bg-secondary/20">
-          <div className="flex items-center gap-2">
+        {/* ============================================ */}
+        {/* NEW FILTER BAR: Search | Filter | Refresh | Bell */}
+        {/* ============================================ */}
+        <div className="flex-shrink-0 border-b border-border relative z-20">
+          <div className="flex items-center gap-2 p-3">
             {/* Search Input */}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -787,9 +798,10 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
                 placeholder="Search messages..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-background border border-border 
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-secondary/50 border border-border 
                   text-foreground text-sm placeholder:text-muted-foreground 
-                  focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                  focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 
+                  focus:bg-background transition-all"
               />
               {searchInput && (
                 <button 
@@ -801,48 +813,131 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
               )}
             </div>
 
-            {/* Status Filter Dropdown */}
-            <div className="relative">
-              <select
-                value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value as InquiryStatus | ''); setPage(1); }}
-                className="appearance-none px-3 py-2.5 pr-8 rounded-xl bg-background border border-border 
-                  text-foreground text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
-              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 
-                text-muted-foreground pointer-events-none" />
-            </div>
+            {/* Filter Button */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`relative p-2.5 rounded-xl border transition-all
+                ${showFilters || hasActiveFilter
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-secondary/50 text-muted-foreground border-border hover:bg-secondary hover:text-foreground'
+                }`}
+              title="Filters"
+            >
+              <SlidersHorizontal size={18} />
+              {hasActiveFilter && !showFilters && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-card" />
+              )}
+            </button>
 
             {/* Refresh Button */}
             <button
               onClick={() => loadInquiries(true)}
               disabled={isRefreshing}
-              className="p-2.5 rounded-xl hover:bg-secondary border border-transparent hover:border-border 
-                text-muted-foreground disabled:opacity-50 transition-all"
+              className="p-2.5 rounded-xl bg-secondary/50 border border-border text-muted-foreground 
+                hover:bg-secondary hover:text-foreground disabled:opacity-50 transition-all"
               title="Refresh"
             >
               <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />
             </button>
+
+            {/* Bell Button with Unread Count */}
+            <button
+              onClick={() => { setStatusFilter('new'); setPage(1); setShowFilters(false); }}
+              className={`relative p-2.5 rounded-xl border transition-all
+                ${statusFilter === 'new'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-secondary/50 text-muted-foreground border-border hover:bg-secondary hover:text-foreground'
+                }`}
+              title={`${unreadCount} unread messages`}
+            >
+              <Bell size={18} />
+              {unreadCount > 0 && (
+                <span className={`absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 
+                  rounded-full text-[11px] font-bold flex items-center justify-center
+                  ${statusFilter === 'new' 
+                    ? 'bg-primary-foreground text-primary' 
+                    : 'bg-primary text-primary-foreground'
+                  }`}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
           </div>
 
-          {/* Unread Count Badge (if any) */}
-          {unreadCount > 0 && (
-            <div className="mt-2 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 
-                text-primary text-xs font-semibold">
-                <Sparkles size={12} />
-                {unreadCount} unread message{unreadCount > 1 ? 's' : ''}
-              </span>
+          {/* Collapsible Filter Dropdown */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.15 }}
+                className="relative z-30"
+              >
+                <div className="px-3 pb-3">
+                  <div className="p-3 rounded-xl bg-secondary/30 border border-border space-y-3">
+                    {/* Status Filter */}
+                    <div className="relative z-40">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+                        Status
+                      </label>
+                      <Dropdown
+                        options={STATUS_OPTIONS}
+                        value={statusFilter}
+                        onChange={(val) => { setStatusFilter(val as InquiryStatus | ''); setPage(1); }}
+                        placeholder="All Status"
+                        size="md"
+                        variant="default"
+                        fullWidth
+                      />
+                    </div>
+
+                    {/* Clear & Apply Buttons */}
+                    {hasActiveFilter && (
+                      <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                        <button
+                          onClick={clearFilters}
+                          className="text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
+                        >
+                          Clear filters
+                        </button>
+                        <button
+                          onClick={() => setShowFilters(false)}
+                          className="px-4 py-1.5 text-sm font-medium bg-primary text-primary-foreground 
+                            rounded-lg hover:bg-primary/90 transition-colors"
+                        >
+                          Done
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Active Filter Indicator (when filter panel is closed) */}
+          {!showFilters && hasActiveFilter && (
+            <div className="px-3 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full 
+                  bg-primary/10 text-primary text-xs font-medium">
+                  {STATUS_OPTIONS.find(s => s.value === statusFilter)?.icon}
+                  {STATUS_OPTIONS.find(s => s.value === statusFilter)?.label}
+                  <button 
+                    onClick={clearFilters}
+                    className="ml-0.5 p-0.5 rounded-full hover:bg-primary/20"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              </div>
             </div>
           )}
         </div>
 
         {/* Messages List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto relative z-10">
           <AnimatePresence mode="popLayout">
             {inquiries.map((inquiry) => (
               <InquiryListItem
@@ -876,7 +971,7 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
           )}
         </div>
 
-        {/* Compact Pagination with Page Size Selector */}
+        {/* Compact Pagination - Native Select */}
         <div className="flex-shrink-0 px-3 py-2 border-t border-border bg-secondary/10 
           flex items-center justify-between gap-2">
           {/* Page Size Selector */}
@@ -885,8 +980,8 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
             <select 
               value={limit} 
               onChange={(e) => { setLimit(+e.target.value); setPage(1); }} 
-              className="px-2 py-1 rounded-lg bg-secondary border border-border text-sm font-medium cursor-pointer
-                focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="px-2 py-1.5 rounded-lg bg-background border border-border text-sm font-medium 
+                cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>

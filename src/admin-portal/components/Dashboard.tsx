@@ -1,18 +1,18 @@
 /**
  * ============================================
- * DASHBOARD - CLEAN MINIMAL VERSION
+ * DASHBOARD - PREMIUM REDESIGN
  * ============================================
- * * Simple dashboard with:
- * - KPI cards
- * - Today's Leads
- * - Pending Follow-ups
- * * @file src/admin-portal/screens/Dashboard.tsx
+ * Features:
+ * - No page scroll - viewport fit
+ * - 3 visible items in leads/follow-ups with internal scroll
+ * - Premium glassmorphism aesthetics
+ * 
+ * @file src/admin-portal/screens/Dashboard.tsx
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-  LayoutDashboard,
   TrendingUp,
   TrendingDown,
   Users,
@@ -22,27 +22,35 @@ import {
   MapPin,
   RefreshCw,
   AlertCircle,
-  Loader2,
   ArrowUpRight,
   Phone,
   Eye,
-  Bell,
   Sparkles,
   CalendarCheck,
   AlertTriangle,
   CheckCircle2,
   Car,
   ChevronRight,
-  ArrowRight,
 } from 'lucide-react';
 import {
-  getDashboardData, // <-- Single API Import
+  getDashboardData,
   type DashboardStats,
   type Booking,
   getBookingStatusColor,
   formatPhone,
   getRelativeTime,
 } from '../../services/api/bookingsApi';
+
+// ============================================
+// SHIMMER ANIMATION STYLE
+// ============================================
+
+const shimmerStyle = `
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+`;
 
 // ============================================
 // INTERFACES
@@ -61,17 +69,17 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.05, delayChildren: 0.1 },
   },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: 'spring' as const, stiffness: 400, damping: 30 },
+    transition: { type: 'spring' as const, stiffness: 400, damping: 28 },
   },
 };
 
@@ -87,32 +95,38 @@ const getGreeting = () => {
 };
 
 // ============================================
-// SPARKLINE COMPONENT
+// MINI TREND CHART
 // ============================================
 
-const SparkLine: React.FC<{ data: number[]; color?: string }> = ({ data, color = 'hsl(var(--primary))' }) => {
+const TrendChart: React.FC<{ data: number[]; color: string }> = ({ data, color }) => {
   if (!data.length) return null;
   const max = Math.max(...data, 1);
   const min = Math.min(...data, 0);
   const range = max - min || 1;
-  const width = 80;
-  const height = 24;
+  const width = 72;
+  const height = 28;
+
   const points = data.map((val, i) => {
     const x = (i / (data.length - 1 || 1)) * width;
-    const y = height - ((val - min) / range) * height;
-    return `${x},${y}`;
-  }).join(' ');
+    const y = height - 2 - ((val - min) / range) * (height - 4);
+    return { x, y };
+  });
+
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  const areaD = `${pathD} L ${width} ${height} L 0 ${height} Z`;
 
   return (
     <svg width={width} height={height} className="overflow-visible">
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <defs>
+        <linearGradient id={`chart-grad-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={areaD} fill={`url(#chart-grad-${color})`} />
+      <path d={pathD} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} r="4" fill={color} />
+      <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} r="6" fill={color} opacity="0.3" />
     </svg>
   );
 };
@@ -127,8 +141,9 @@ interface KPICardProps {
   icon: React.ReactNode;
   trend?: number;
   trendLabel?: string;
-  color: string;
-  bgColor: string;
+  iconBg: string;
+  iconColor: string;
+  chartColor?: string;
   onClick?: () => void;
   subtitle?: string;
   sparkData?: number[];
@@ -140,63 +155,61 @@ const KPICard: React.FC<KPICardProps> = ({
   icon,
   trend,
   trendLabel,
-  color,
-  bgColor,
+  iconBg,
+  iconColor,
+  chartColor,
   onClick,
   subtitle,
   sparkData,
 }) => (
   <motion.div
     variants={itemVariants}
-    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+    whileHover={{ y: -3, scale: 1.01 }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    className={`relative overflow-hidden rounded-2xl p-5 cursor-pointer transition-all
-      bg-card border border-border hover:border-primary/40 hover:shadow-xl group`}
+    className="relative overflow-hidden rounded-2xl cursor-pointer group"
   >
-    {/* Background Decoration */}
-    <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full ${bgColor} opacity-10 
-      group-hover:opacity-20 transition-opacity`} />
-    <div className={`absolute -right-2 -bottom-2 w-16 h-16 rounded-full ${bgColor} opacity-5`} />
+    {/* Glass background */}
+    <div className="absolute inset-0 bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl" />
+    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent" />
+    <div className="absolute inset-[1px] rounded-2xl border border-white/10" />
+    
+    {/* Glow effect on hover */}
+    <div className={`absolute -inset-1 ${iconBg} opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500`} />
 
-    <div className="relative z-10">
-      {/* Header Row */}
+    <div className="relative p-5">
+      {/* Top row: Icon + Chart */}
       <div className="flex items-start justify-between mb-4">
-        <div className={`p-3 rounded-xl ${bgColor}`}>
-          <div className={color}>{icon}</div>
+        <div className={`p-3 rounded-xl ${iconBg} shadow-lg`}>
+          <div className={iconColor}>{icon}</div>
         </div>
-        {sparkData && sparkData.length > 1 && (
-          <SparkLine data={sparkData} color={color.includes('green') ? 'hsl(142 65% 48%)' : 'hsl(var(--primary))'} />
+        {sparkData && sparkData.length > 1 && chartColor && (
+          <TrendChart data={sparkData} color={chartColor} />
         )}
       </div>
 
-      {/* Value */}
-      <div className="mb-2">
-        <p className="text-muted-foreground text-sm font-medium mb-1">{title}</p>
-        <div className="flex items-baseline gap-2">
-          <motion.span
-            className="text-foreground text-3xl font-bold"
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring' }}
-          >
-            {value.toLocaleString()}
-          </motion.span>
-          {trend !== undefined && (
-            <span className={`flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full
-              ${trend >= 0 ? 'text-green-600 bg-green-500/10' : 'text-red-500 bg-red-500/10'}`}>
-              {trend >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-              {Math.abs(trend)}%
-            </span>
-          )}
-        </div>
+      {/* Title */}
+      <p className="text-muted-foreground text-sm font-medium mb-1">{title}</p>
+      
+      {/* Value + Trend */}
+      <div className="flex items-baseline gap-3">
+        <span className="text-foreground text-3xl font-bold tracking-tight">
+          {value.toLocaleString()}
+        </span>
+        {trend !== undefined && (
+          <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full
+            ${trend >= 0 ? 'text-emerald-600 bg-emerald-500/15' : 'text-red-500 bg-red-500/15'}`}>
+            {trend >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+            {Math.abs(trend)}%
+          </span>
+        )}
       </div>
 
-      {/* Footer */}
+      {/* Subtitle */}
       {(subtitle || trendLabel) && (
-        <div className="flex items-center justify-between pt-2 border-t border-border/50">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40">
           <span className="text-xs text-muted-foreground">{subtitle || trendLabel}</span>
-          <ArrowRight size={14} className="text-muted-foreground group-hover:text-primary 
+          <ChevronRight size={14} className="text-muted-foreground/50 group-hover:text-primary 
             group-hover:translate-x-1 transition-all" />
         </div>
       )}
@@ -210,23 +223,24 @@ const KPICard: React.FC<KPICardProps> = ({
 
 const LeadCard: React.FC<{ lead: Booking; onClick?: () => void; index: number }> = ({ lead, onClick, index }) => (
   <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
+    initial={{ opacity: 0, x: -10 }}
+    animate={{ opacity: 1, x: 0 }}
     transition={{ delay: index * 0.05 }}
-    whileHover={{ x: 4 }}
+    whileHover={{ x: 4, backgroundColor: 'hsl(var(--secondary) / 0.8)' }}
     onClick={onClick}
-    className="flex items-center gap-4 p-4 rounded-xl bg-secondary/30 hover:bg-secondary/60 
-      border border-transparent hover:border-border cursor-pointer transition-all group"
+    className="flex items-center gap-4 p-4 rounded-xl bg-secondary/40 
+      border border-transparent hover:border-primary/20 cursor-pointer transition-all group"
   >
     {/* Avatar */}
-    <div className="relative">
-      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/60 
-        flex items-center justify-center text-primary-foreground font-semibold text-lg shadow-lg">
+    <div className="relative flex-shrink-0">
+      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary via-primary/80 to-primary/60 
+        flex items-center justify-center text-primary-foreground font-semibold text-lg shadow-lg
+        ring-2 ring-primary/20">
         {(lead.name?.[0] || lead.phone[0]).toUpperCase()}
       </div>
       {lead.status === 'new' && (
-        <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 
-          border-card animate-pulse" />
+        <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 
+          border-card shadow-lg shadow-emerald-500/30" />
       )}
     </div>
 
@@ -242,25 +256,25 @@ const LeadCard: React.FC<{ lead: Booking; onClick?: () => void; index: number }>
         </span>
       </div>
       <div className="flex items-center gap-3 text-sm text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <Car size={12} />
+        <span className="flex items-center gap-1.5">
+          <Car size={13} className="text-muted-foreground/70" />
           {lead.brandName}
         </span>
-        <span className="flex items-center gap-1">
-          <MapPin size={12} />
+        <span className="flex items-center gap-1.5">
+          <MapPin size={13} className="text-muted-foreground/70" />
           {lead.city}
         </span>
       </div>
     </div>
 
-    {/* Time & Action */}
+    {/* Time & Actions */}
     <div className="text-right flex-shrink-0">
-      <p className="text-xs text-muted-foreground mb-1">{getRelativeTime(lead.createdAt)}</p>
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button className="p-1.5 rounded-lg hover:bg-primary/10 text-primary">
+      <p className="text-xs text-muted-foreground mb-2">{getRelativeTime(lead.createdAt)}</p>
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+        <button className="p-1.5 rounded-lg hover:bg-primary/15 text-primary transition-colors">
           <Phone size={14} />
         </button>
-        <button className="p-1.5 rounded-lg hover:bg-primary/10 text-primary">
+        <button className="p-1.5 rounded-lg hover:bg-primary/15 text-primary transition-colors">
           <Eye size={14} />
         </button>
       </div>
@@ -277,17 +291,17 @@ const FollowUpCard: React.FC<{ booking: Booking; onClick?: () => void; index: nu
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}
       whileHover={{ x: 4 }}
       onClick={onClick}
       className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all group
         ${isOverdue
-          ? 'bg-red-500/5 border-red-500/20 hover:bg-red-500/10'
-          : 'bg-amber-500/5 border-amber-500/20 hover:bg-amber-500/10'}`}
+          ? 'bg-red-500/8 border-red-500/25 hover:bg-red-500/15 hover:border-red-500/40'
+          : 'bg-amber-500/8 border-amber-500/25 hover:bg-amber-500/15 hover:border-amber-500/40'}`}
     >
-      <div className={`p-2 rounded-lg ${isOverdue ? 'bg-red-500/10' : 'bg-amber-500/10'}`}>
+      <div className={`p-2.5 rounded-xl ${isOverdue ? 'bg-red-500/15' : 'bg-amber-500/15'}`}>
         {isOverdue ? (
           <AlertTriangle size={16} className="text-red-500" />
         ) : (
@@ -304,7 +318,8 @@ const FollowUpCard: React.FC<{ booking: Booking; onClick?: () => void; index: nu
         </p>
       </div>
 
-      <ChevronRight size={16} className="text-muted-foreground group-hover:text-foreground transition-colors" />
+      <ChevronRight size={16} className="text-muted-foreground/50 group-hover:text-foreground 
+        group-hover:translate-x-0.5 transition-all" />
     </motion.div>
   );
 };
@@ -332,7 +347,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       }
       setError(null);
 
-      // Single API Call
       const dashboardData = await getDashboardData();
 
       setStats(dashboardData.stats);
@@ -352,7 +366,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     loadDashboardData();
   }, [loadDashboardData]);
 
-  // Auto-refresh every 5 minutes
   useEffect(() => {
     const interval = setInterval(() => {
       loadDashboardData(true);
@@ -360,37 +373,129 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     return () => clearInterval(interval);
   }, [loadDashboardData]);
 
-  // Loading State
+  // Loading State - Skeleton Animation
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[500px]">
+      <>
+        <style>{shimmerStyle}</style>
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="h-full flex flex-col p-5 lg:p-6 overflow-hidden"
         >
-          <div className="relative">
-            <div className="w-20 h-20 border-4 border-primary/20 rounded-full animate-pulse" />
-            <Loader2 size={32} className="animate-spin text-primary absolute top-1/2 left-1/2 
-              -translate-x-1/2 -translate-y-1/2" />
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between mb-5 flex-shrink-0">
+          <div>
+            <div className="h-8 w-48 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+              rounded-lg animate-pulse" />
+            <div className="h-4 w-72 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+              rounded-md mt-2 animate-pulse" />
           </div>
-          <p className="text-muted-foreground mt-4 font-medium">Loading dashboard...</p>
-        </motion.div>
-      </div>
+          <div className="h-10 w-28 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+            rounded-xl animate-pulse" />
+        </div>
+
+        {/* KPI Cards Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5 flex-shrink-0">
+          {[...Array(4)].map((_, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="relative overflow-hidden rounded-2xl bg-card/60 border border-border/50 p-5"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                  animate-pulse" />
+                <div className="w-16 h-7 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                  rounded animate-pulse" />
+              </div>
+              <div className="h-4 w-24 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                rounded mb-2 animate-pulse" />
+              <div className="h-8 w-16 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                rounded animate-pulse" />
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40">
+                <div className="h-3 w-20 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                  rounded animate-pulse" />
+              </div>
+              {/* Shimmer overlay */}
+              <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] 
+                bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Activity Panels Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1 min-h-0">
+          {[...Array(2)].map((_, panelIndex) => (
+            <motion.div
+              key={panelIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + panelIndex * 0.1 }}
+              className="flex flex-col rounded-2xl bg-card/60 border border-border/50 overflow-hidden"
+            >
+              {/* Panel Header Skeleton */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                    animate-pulse" />
+                  <div className="h-5 w-28 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                    rounded animate-pulse" />
+                  <div className="h-6 w-16 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                    rounded-full animate-pulse" />
+                </div>
+                <div className="h-4 w-16 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                  rounded animate-pulse" />
+              </div>
+
+              {/* Panel Content Skeleton */}
+              <div className="flex-1 p-3 space-y-2">
+                {[...Array(3)].map((_, rowIndex) => (
+                  <motion.div
+                    key={rowIndex}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + panelIndex * 0.1 + rowIndex * 0.08 }}
+                    className="relative flex items-center gap-4 p-4 rounded-xl bg-secondary/30 overflow-hidden"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                      animate-pulse flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="h-5 w-36 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                        rounded mb-2 animate-pulse" />
+                      <div className="h-4 w-48 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                        rounded animate-pulse" />
+                    </div>
+                    <div className="h-4 w-16 bg-gradient-to-r from-secondary via-secondary/50 to-secondary 
+                      rounded animate-pulse" />
+                    {/* Shimmer overlay */}
+                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] 
+                      bg-gradient-to-r from-transparent via-white/5 to-transparent" 
+                      style={{ animationDelay: `${rowIndex * 0.2}s` }} />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+      </>
     );
   }
 
   // Error State
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[500px]">
+      <div className="flex items-center justify-center h-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center max-w-md"
         >
-          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-            <AlertCircle size={32} className="text-destructive" />
+          <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle size={28} className="text-destructive" />
           </div>
           <h3 className="text-foreground font-semibold text-lg mb-2">Something went wrong</h3>
           <p className="text-muted-foreground mb-6">{error}</p>
@@ -399,7 +504,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             whileTap={{ scale: 0.98 }}
             onClick={() => loadDashboardData()}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-xl 
-              hover:bg-primary/90 transition-colors flex items-center gap-2 mx-auto font-medium"
+              hover:bg-primary/90 transition-colors inline-flex items-center gap-2 font-medium"
           >
             <RefreshCw size={18} />
             Try Again
@@ -414,66 +519,46 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="p-4 md:p-6 space-y-6 h-full overflow-y-auto"
+      className="h-full flex flex-col p-5 lg:p-6 overflow-hidden"
     >
       {/* ============================================ */}
-      {/* HEADER SECTION */}
+      {/* HEADER */}
       {/* ============================================ */}
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <motion.div variants={itemVariants} className="flex items-center justify-between mb-5 flex-shrink-0">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <LayoutDashboard className="text-primary" size={24} />
-            </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
             {getGreeting()}!
           </h1>
-          <p className="text-muted-foreground mt-1 ml-12 md:ml-14">
+          <p className="text-muted-foreground text-sm mt-0.5">
             Here's what's happening with your business today.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 ml-12 md:ml-0">
-          {/* Notification Badge */}
-          {unreadCount > 0 && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onNavigate?.('inquiries')}
-              className="relative p-2.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-            >
-              <Bell size={20} />
-              <span className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center 
-                bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            </motion.button>
-          )}
-
-          {/* Refresh Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => loadDashboardData(true)}
-            disabled={isRefreshing}
-            className="flex items-center gap-2 px-4 py-2.5 bg-secondary text-foreground rounded-xl
-              hover:bg-secondary/80 transition-colors disabled:opacity-50 border border-border font-medium"
-          >
-            <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
-          </motion.button>
-        </div>
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => loadDashboardData(true)}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-4 py-2.5 bg-secondary/80 text-foreground rounded-xl
+            hover:bg-secondary transition-all border border-border/50 font-medium shadow-sm
+            disabled:opacity-50"
+        >
+          <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+          <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+        </motion.button>
       </motion.div>
 
       {/* ============================================ */}
       {/* KPI CARDS */}
       {/* ============================================ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5 flex-shrink-0">
         <KPICard
           title="Total Bookings"
           value={stats?.bookings.total || 0}
           icon={<Calendar size={22} />}
-          color="text-primary"
-          bgColor="bg-primary/10"
+          iconBg="bg-indigo-500/15"
+          iconColor="text-indigo-500"
+          chartColor="#6366f1"
           subtitle="All time bookings"
           onClick={() => onNavigate?.('bookings')}
           sparkData={[12, 19, 15, 25, 22, 30, 28]}
@@ -484,8 +569,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           icon={<Users size={22} />}
           trend={12}
           trendLabel="vs yesterday"
-          color="text-green-500"
-          bgColor="bg-green-500/10"
+          iconBg="bg-emerald-500/15"
+          iconColor="text-emerald-500"
+          chartColor="#10b981"
           onClick={() => onNavigate?.('bookings')}
           sparkData={[5, 8, 6, 10, 7, 12, stats?.todayLeads || 0]}
         />
@@ -493,8 +579,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           title="Pending Follow-ups"
           value={stats?.pendingFollowUps || 0}
           icon={<Clock size={22} />}
-          color="text-amber-500"
-          bgColor="bg-amber-500/10"
+          iconBg="bg-amber-500/15"
+          iconColor="text-amber-500"
           subtitle="Needs attention"
           onClick={() => onNavigate?.('bookings')}
         />
@@ -502,108 +588,124 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           title="Unread Messages"
           value={unreadCount}
           icon={<Mail size={22} />}
-          color="text-purple-500"
-          bgColor="bg-purple-500/10"
+          iconBg="bg-purple-500/15"
+          iconColor="text-purple-500"
           subtitle="New inquiries"
           onClick={() => onNavigate?.('inquiries')}
         />
       </div>
 
       {/* ============================================ */}
-      {/* ACTIVITY SECTION */}
+      {/* ACTIVITY PANELS */}
       {/* ============================================ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* Today's Leads */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1 min-h-0">
+        {/* Today's Leads Panel */}
         <motion.div
           variants={itemVariants}
-          className="p-5 md:p-6 rounded-2xl bg-card border border-border"
+          className="flex flex-col rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50 
+            overflow-hidden shadow-xl shadow-black/5"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-primary/10">
+          {/* Panel Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
                 <Sparkles size={18} className="text-primary" />
               </div>
               <h3 className="text-foreground font-semibold">Today's Leads</h3>
               {todayLeads.length > 0 && (
-                <span className="px-2.5 py-1 text-xs font-bold bg-green-500/10 text-green-600 rounded-full">
+                <span className="px-2.5 py-1 text-xs font-bold bg-emerald-500/15 text-emerald-600 rounded-full">
                   {todayLeads.length} new
                 </span>
               )}
             </div>
             <button
               onClick={() => onNavigate?.('bookings')}
-              className="text-primary text-sm font-medium hover:text-primary/80 flex items-center gap-1"
+              className="text-primary text-sm font-medium hover:text-primary/80 flex items-center gap-1
+                transition-colors"
             >
               View all
               <ArrowUpRight size={14} />
             </button>
           </div>
 
-          <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+          {/* Panel Content - Shows 3 items, scroll for more */}
+          <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
             {todayLeads.length > 0 ? (
-              todayLeads.slice(0, 5).map((lead, index) => (
-                <LeadCard
-                  key={lead._id}
-                  lead={lead}
-                  index={index}
-                  onClick={() => onNavigate?.('bookings')}
-                />
-              ))
+              <div className="space-y-2">
+                {todayLeads.map((lead, index) => (
+                  <LeadCard
+                    key={lead._id}
+                    lead={lead}
+                    index={index}
+                    onClick={() => onNavigate?.('bookings')}
+                  />
+                ))}
+              </div>
             ) : (
-              <div className="text-center py-10">
-                <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3">
-                  <Users size={24} className="text-muted-foreground/50" />
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center py-8">
+                  <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3">
+                    <Users size={24} className="text-muted-foreground/50" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">No leads today yet</p>
+                  <p className="text-muted-foreground/60 text-sm mt-1">New leads will appear here</p>
                 </div>
-                <p className="text-muted-foreground font-medium">No leads today yet</p>
-                <p className="text-muted-foreground/60 text-sm mt-1">New leads will appear here</p>
               </div>
             )}
           </div>
         </motion.div>
 
-        {/* Pending Follow-ups */}
+        {/* Pending Follow-ups Panel */}
         <motion.div
           variants={itemVariants}
-          className="p-5 md:p-6 rounded-2xl bg-card border border-border"
+          className="flex flex-col rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50 
+            overflow-hidden shadow-xl shadow-black/5"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-amber-500/10">
+          {/* Panel Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border/40 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5">
                 <CalendarCheck size={18} className="text-amber-500" />
               </div>
               <h3 className="text-foreground font-semibold">Pending Follow-ups</h3>
               {followUps.length > 0 && (
-                <span className="px-2.5 py-1 text-xs font-bold bg-amber-500/10 text-amber-600 rounded-full">
+                <span className="px-2.5 py-1 text-xs font-bold bg-amber-500/15 text-amber-600 rounded-full">
                   {followUps.length} pending
                 </span>
               )}
             </div>
             <button
               onClick={() => onNavigate?.('bookings')}
-              className="text-amber-600 text-sm font-medium hover:text-amber-500 flex items-center gap-1"
+              className="text-amber-600 text-sm font-medium hover:text-amber-500 flex items-center gap-1
+                transition-colors"
             >
               View all
               <ArrowUpRight size={14} />
             </button>
           </div>
 
-          <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+          {/* Panel Content - Shows 3 items, scroll for more */}
+          <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
             {followUps.length > 0 ? (
-              followUps.slice(0, 6).map((booking, index) => (
-                <FollowUpCard
-                  key={booking._id}
-                  booking={booking}
-                  index={index}
-                  onClick={() => onNavigate?.('bookings')}
-                />
-              ))
+              <div className="space-y-2">
+                {followUps.map((booking, index) => (
+                  <FollowUpCard
+                    key={booking._id}
+                    booking={booking}
+                    index={index}
+                    onClick={() => onNavigate?.('bookings')}
+                  />
+                ))}
+              </div>
             ) : (
-              <div className="text-center py-10">
-                <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-3">
-                  <CheckCircle2 size={24} className="text-green-500" />
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center py-8">
+                  <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle2 size={24} className="text-emerald-500" />
+                  </div>
+                  <p className="text-foreground font-medium">All caught up!</p>
+                  <p className="text-muted-foreground text-sm mt-1">No pending follow-ups</p>
                 </div>
-                <p className="text-foreground font-medium">All caught up!</p>
-                <p className="text-muted-foreground text-sm mt-1">No pending follow-ups</p>
               </div>
             )}
           </div>
