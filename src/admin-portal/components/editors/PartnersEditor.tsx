@@ -36,7 +36,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
   const content = usePartnersContent();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'trustBadges'])
-);
+  );
 
   // [LAZY LOADING] Show loading state - MUST be after all hooks
   if (content.isLoading) {
@@ -58,7 +58,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
   };
 
   // Theme-aware styling helpers using CSS variables
-  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
+  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
   const labelClass = `text-sm font-medium text-muted-foreground`;
 
@@ -73,7 +73,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 w-full">
       {/* Section Header Content */}
       <div className={sectionClass}>
         <button onClick={() => toggleSection('header')} className={sectionHeaderClass}>
@@ -213,21 +213,6 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
               {content.trustBadges?.length || 0}
             </span>
           </div>
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              const newBadge: PartnerTrustBadge = {
-                icon: 'Shield',
-                title: 'New Badge',
-                subtitle: 'Subtitle',
-              };
-              // Add at the beginning of the array
-              handleUpdate('trustBadges', [newBadge, ...(content.trustBadges || [])]);
-            }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-          >
-            <Plus className="w-4 h-4" />
-          </button> */}
         </div>
 
         <AnimatePresence>
@@ -338,6 +323,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
         </AnimatePresence>
       </div>
     </div>
-)};
+  );
+};
 
 export default PartnersEditor;

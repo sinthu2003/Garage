@@ -132,6 +132,7 @@ export interface BookingListOptions {
   limit?: number;
   status?: BookingStatus | '';
   city?: string;
+  fuelType?: string; // Added fuelType filter
   brand?: string;
   source?: string;
   service?: string;
@@ -178,8 +179,8 @@ export interface PaginatedResult<T> {
 
 // Specialized result for bookings to include Facets
 export interface BookingPaginatedResult extends PaginatedResult<Booking> {
-  facets?: {
-    cities: string[];
+  facets: {
+    fuelTypes: string[];
     brands: string[];
   };
 }
@@ -253,6 +254,7 @@ export const listBookings = async (
   if (options.search) params.append('search', options.search);
   if (options.status) params.append('status', options.status);
   if (options.city) params.append('city', options.city);
+  if (options.fuelType) params.append('fuelType', options.fuelType); // Added fuelType filter
   if (options.brand) params.append('brand', options.brand);
   if (options.source) params.append('source', options.source);
   if (options.service) params.append('service', options.service);
@@ -272,13 +274,21 @@ export const listBookings = async (
   // Handle both possible response structures (data in data or root)
   const items = Array.isArray(apiResponse.data) ? apiResponse.data : [];
   
+  // Transform facets - handle both old (cities) and new (fuelTypes) format from backend
+  const apiFacets = apiResponse.facets || {};
+  const transformedFacets = {
+    // If backend returns fuelTypes, use it; otherwise provide empty array
+    fuelTypes: Array.isArray(apiFacets.fuelTypes) ? apiFacets.fuelTypes : [],
+    brands: Array.isArray(apiFacets.brands) ? apiFacets.brands : []
+  };
+  
   return {
     items,
     total: apiResponse.meta?.total || 0,
     page: apiResponse.meta?.page || 1,
     limit: apiResponse.meta?.limit || 20,
     totalPages: apiResponse.meta?.totalPages || 1,
-    facets: apiResponse.facets || { cities: [], brands: [] } // <-- Facets from backend
+    facets: transformedFacets
   };
 };
 
@@ -332,6 +342,7 @@ export const exportBookings = async (
 
   if (options.status) params.append('status', options.status);
   if (options.city) params.append('city', options.city);
+  if (options.fuelType) params.append('fuelType', options.fuelType); // Added fuelType
   if (options.brand) params.append('brand', options.brand);
   if (options.source) params.append('source', options.source);
   if (options.dateFrom) params.append('dateFrom', options.dateFrom);
