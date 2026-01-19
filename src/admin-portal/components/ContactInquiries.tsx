@@ -1,12 +1,13 @@
 /**
  * ============================================
- * CONTACT INQUIRIES SCREEN - REDESIGNED
+ * CONTACT INQUIRIES SCREEN - ENHANCED V2
  * ============================================
  * 
  * Modern contact inquiries with:
- * - Inbox-style layout with preview
- * - Clean detail panel (Email, Phone, Message)
- * - Quick reply functionality
+ * - Cleaner inbox-style layout (no redundant header)
+ * - Enhanced detail panel with better UX
+ * - Quick actions and status management
+ * - Responsive design optimized
  * 
  * @file src/admin-portal/screens/ContactInquiries.tsx
  */
@@ -37,6 +38,9 @@ import {
   Eye,
   MailOpen,
   CheckCircle,
+  X,
+  Clock,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -64,13 +68,15 @@ interface ContactInquiriesProps {
 // ============================================
 
 const STATUS_OPTIONS: { value: InquiryStatus | ''; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: '', label: 'All Messages', icon: <Inbox size={14} />, color: 'text-muted-foreground' },
+  { value: '', label: 'All', icon: <Inbox size={14} />, color: 'text-muted-foreground' },
   { value: 'new', label: 'Unread', icon: <Circle size={14} />, color: 'text-blue-500' },
   { value: 'read', label: 'Read', icon: <MailOpen size={14} />, color: 'text-gray-500' },
   { value: 'replied', label: 'Replied', icon: <Reply size={14} />, color: 'text-green-500' },
   { value: 'resolved', label: 'Resolved', icon: <CheckCircle2 size={14} />, color: 'text-emerald-500' },
   { value: 'spam', label: 'Spam', icon: <AlertOctagon size={14} />, color: 'text-red-500' },
 ];
+
+const PAGE_SIZES = [10, 20, 50, 100];
 
 // ============================================
 // ANIMATION VARIANTS
@@ -92,20 +98,48 @@ const detailVariants = {
 // STATUS BADGE COMPONENT
 // ============================================
 
-const InquiryStatusBadge: React.FC<{ status: InquiryStatus }> = ({ status }) => {
-  const statusConfig: Record<InquiryStatus, { icon: React.ReactNode; bg: string; text: string }> = {
-    new: { icon: <Sparkles size={10} />, bg: 'bg-blue-500/10', text: 'text-blue-600' },
-    read: { icon: <Eye size={10} />, bg: 'bg-gray-500/10', text: 'text-gray-600' },
-    replied: { icon: <Reply size={10} />, bg: 'bg-green-500/10', text: 'text-green-600' },
-    resolved: { icon: <CheckCircle2 size={10} />, bg: 'bg-emerald-500/10', text: 'text-emerald-600' },
-    spam: { icon: <AlertOctagon size={10} />, bg: 'bg-red-500/10', text: 'text-red-600' },
+const InquiryStatusBadge: React.FC<{ status: InquiryStatus; size?: 'sm' | 'md' }> = ({ status, size = 'sm' }) => {
+  const statusConfig: Record<InquiryStatus, { icon: React.ReactNode; bg: string; text: string; border: string }> = {
+    new: { 
+      icon: <Sparkles size={size === 'sm' ? 10 : 12} />, 
+      bg: 'bg-blue-500/10', 
+      text: 'text-blue-600 dark:text-blue-400',
+      border: 'border-blue-500/20'
+    },
+    read: { 
+      icon: <Eye size={size === 'sm' ? 10 : 12} />, 
+      bg: 'bg-gray-500/10', 
+      text: 'text-gray-600 dark:text-gray-400',
+      border: 'border-gray-500/20'
+    },
+    replied: { 
+      icon: <Reply size={size === 'sm' ? 10 : 12} />, 
+      bg: 'bg-green-500/10', 
+      text: 'text-green-600 dark:text-green-400',
+      border: 'border-green-500/20'
+    },
+    resolved: { 
+      icon: <CheckCircle2 size={size === 'sm' ? 10 : 12} />, 
+      bg: 'bg-emerald-500/10', 
+      text: 'text-emerald-600 dark:text-emerald-400',
+      border: 'border-emerald-500/20'
+    },
+    spam: { 
+      icon: <AlertOctagon size={size === 'sm' ? 10 : 12} />, 
+      bg: 'bg-red-500/10', 
+      text: 'text-red-600 dark:text-red-400',
+      border: 'border-red-500/20'
+    },
   };
 
   const config = statusConfig[status] || statusConfig.new;
+  const sizeClasses = size === 'sm' 
+    ? 'px-2 py-0.5 text-[10px]' 
+    : 'px-2.5 py-1 text-xs';
 
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold 
-      uppercase tracking-wide ${config.bg} ${config.text}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full font-semibold 
+      uppercase tracking-wide border ${config.bg} ${config.text} ${config.border} ${sizeClasses}`}>
       {config.icon}
       {status}
     </span>
@@ -147,14 +181,14 @@ const InquiryListItem: React.FC<InquiryListItemProps> = ({ inquiry, isSelected, 
             {inquiry.name[0].toUpperCase()}
           </div>
           {isUnread && (
-            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-primary rounded-full 
-              border-2 border-card animate-pulse" />
+            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-primary rounded-full 
+              border-2 border-card" />
           )}
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-0.5">
             <p className={`truncate ${isUnread ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>
               {inquiry.name}
             </p>
@@ -162,13 +196,13 @@ const InquiryListItem: React.FC<InquiryListItemProps> = ({ inquiry, isSelected, 
           <p className="text-sm text-primary truncate font-medium mb-0.5">
             {inquiry.service || 'General Inquiry'}
           </p>
-          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+          <p className="text-xs text-muted-foreground line-clamp-1 leading-relaxed">
             {inquiry.message}
           </p>
         </div>
 
         {/* Meta */}
-        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
           <span className={`text-xs ${isUnread ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
             {getRelativeTime(inquiry.createdAt)}
           </span>
@@ -181,7 +215,8 @@ const InquiryListItem: React.FC<InquiryListItemProps> = ({ inquiry, isSelected, 
         transition-opacity flex items-center gap-1">
         <button
           onClick={(e) => { e.stopPropagation(); window.location.href = `mailto:${inquiry.email}`; }}
-          className="p-2 rounded-lg bg-card hover:bg-secondary border border-border shadow-sm"
+          className="p-2 rounded-lg bg-card hover:bg-primary/10 border border-border shadow-sm transition-colors"
+          title="Reply"
         >
           <Reply size={14} className="text-primary" />
         </button>
@@ -197,7 +232,8 @@ const InquiryListItem: React.FC<InquiryListItemProps> = ({ inquiry, isSelected, 
 const CopyButton: React.FC<{ text: string }> = ({ text }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -206,7 +242,7 @@ const CopyButton: React.FC<{ text: string }> = ({ text }) => {
   return (
     <button
       onClick={handleCopy}
-      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"
+      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
       title="Copy"
     >
       {copied ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} />}
@@ -215,7 +251,7 @@ const CopyButton: React.FC<{ text: string }> = ({ text }) => {
 };
 
 // ============================================
-// INQUIRY DETAIL PANEL - REDESIGNED
+// INQUIRY DETAIL PANEL - ENHANCED
 // ============================================
 
 interface InquiryDetailProps {
@@ -238,17 +274,25 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClick = () => setShowMoreMenu(false);
+    if (showMoreMenu) document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [showMoreMenu]);
 
   // Empty State
   if (!inquiry) {
     return (
-      <div className="flex-1 flex items-center justify-center text-muted-foreground bg-secondary/20">
+      <div className="flex-1 flex items-center justify-center text-muted-foreground bg-secondary/10">
         <div className="text-center p-8">
-          <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
-            <Inbox size={36} className="text-muted-foreground/40" />
+          <div className="w-24 h-24 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-5">
+            <MessageSquare size={40} className="text-muted-foreground/30" />
           </div>
-          <p className="font-medium text-foreground text-lg mb-1">Select a message</p>
-          <p className="text-sm">Choose an inquiry from the list to view details</p>
+          <p className="font-semibold text-foreground text-lg mb-2">Select a message</p>
+          <p className="text-sm text-muted-foreground">Choose an inquiry from the list to view details</p>
         </div>
       </div>
     );
@@ -257,7 +301,7 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({
   // Loading State
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center bg-card">
         <div className="text-center">
           <Loader2 size={36} className="animate-spin text-primary mx-auto mb-3" />
           <p className="text-muted-foreground">Loading message...</p>
@@ -302,26 +346,33 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({
       className="flex-1 flex flex-col bg-card border-l border-border overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-secondary/30">
+      <div className="flex items-center justify-between p-4 border-b border-border bg-secondary/20">
         <div className="flex items-center gap-3">
+          {/* Mobile Back Button */}
           <button
             onClick={onClose}
             className="md:hidden p-2 rounded-xl hover:bg-secondary text-muted-foreground"
           >
             <ChevronLeft size={20} />
           </button>
+          
+          {/* User Info */}
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/60 
-              flex items-center justify-center text-primary-foreground font-bold text-lg">
+              flex items-center justify-center text-primary-foreground font-bold text-lg shadow-lg">
               {inquiry.name[0].toUpperCase()}
             </div>
             <div>
-              <h3 className="font-semibold text-foreground text-lg">{inquiry.name}</h3>
-              <span className="text-sm text-muted-foreground">{getRelativeTime(inquiry.createdAt)}</span>
+              <h3 className="font-semibold text-foreground text-lg leading-tight">{inquiry.name}</h3>
+              <div className="flex items-center gap-2 mt-0.5">
+                <Clock size={12} className="text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{getRelativeTime(inquiry.createdAt)}</span>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Actions */}
         <div className="flex items-center gap-2">
           {/* Status Dropdown */}
           <div className="relative">
@@ -329,8 +380,9 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({
               value={inquiry.status}
               onChange={(e) => handleStatusChange(e.target.value as InquiryStatus)}
               disabled={isUpdating}
-              className="appearance-none px-4 py-2 pr-8 rounded-xl bg-secondary border border-border 
-                text-foreground text-sm font-medium disabled:opacity-50 cursor-pointer"
+              className="appearance-none px-4 py-2 pr-9 rounded-xl bg-secondary border border-border 
+                text-foreground text-sm font-medium disabled:opacity-50 cursor-pointer 
+                focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               {STATUS_OPTIONS.filter(s => s.value).map((s) => (
                 <option key={s.value} value={s.value}>{s.label}</option>
@@ -341,45 +393,64 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({
           </div>
 
           {/* More Actions */}
-          <div className="relative group">
-            <button className="p-2.5 rounded-xl hover:bg-secondary text-muted-foreground">
+          <div className="relative">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShowMoreMenu(!showMoreMenu); }}
+              className="p-2.5 rounded-xl hover:bg-secondary text-muted-foreground transition-colors"
+            >
               <MoreHorizontal size={18} />
             </button>
-            <div className="absolute right-0 top-full mt-1 w-48 py-1 bg-card rounded-xl border border-border 
-              shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-              <button
-                onClick={() => handleStatusChange('spam')}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-secondary flex items-center gap-2 text-muted-foreground"
-              >
-                <AlertOctagon size={14} />
-                Mark as Spam
-              </button>
-              <button
-                onClick={() => handleStatusChange('resolved')}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-secondary flex items-center gap-2 text-muted-foreground"
-              >
-                <CheckCircle2 size={14} />
-                Mark as Resolved
-              </button>
-              {isAdmin && (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-destructive/10 flex items-center gap-2 text-destructive"
+            
+            <AnimatePresence>
+              {showMoreMenu && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                  className="absolute right-0 top-full mt-2 w-52 py-2 bg-card rounded-xl border border-border 
+                    shadow-xl z-20"
                 >
-                  <Trash2 size={14} />
-                  Delete
-                </button>
+                  <button
+                    onClick={() => { handleStatusChange('spam'); setShowMoreMenu(false); }}
+                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-secondary flex items-center 
+                      gap-3 text-muted-foreground transition-colors"
+                  >
+                    <AlertOctagon size={16} />
+                    Mark as Spam
+                  </button>
+                  <button
+                    onClick={() => { handleStatusChange('resolved'); setShowMoreMenu(false); }}
+                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-secondary flex items-center 
+                      gap-3 text-muted-foreground transition-colors"
+                  >
+                    <CheckCircle2 size={16} />
+                    Mark as Resolved
+                  </button>
+                  {isAdmin && (
+                    <>
+                      <div className="my-2 border-t border-border" />
+                      <button
+                        onClick={() => { setShowDeleteConfirm(true); setShowMoreMenu(false); }}
+                        className="w-full px-4 py-2.5 text-left text-sm hover:bg-destructive/10 flex items-center 
+                          gap-3 text-destructive transition-colors"
+                      >
+                        <Trash2 size={16} />
+                        Delete Permanently
+                      </button>
+                    </>
+                  )}
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
 
-      {/* Content - Redesigned */}
-      <div className="flex-1 overflow-y-auto p-5">
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-5 space-y-5">
         {/* Service Tag */}
         {inquiry.service && (
-          <div className="mb-5">
+          <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 
               text-primary text-sm font-medium border border-primary/20">
               <Tag size={14} />
@@ -388,57 +459,84 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({
           </div>
         )}
 
-        {/* Contact Cards - Email & Phone */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+        {/* Contact Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Email Card */}
-          <div className="p-4 rounded-xl bg-secondary/40 border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Email</span>
+          <div className="p-4 rounded-xl bg-secondary/30 border border-border hover:border-primary/30 
+            transition-colors group">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                Email
+              </span>
               <CopyButton text={inquiry.email} />
             </div>
             <a 
               href={`mailto:${inquiry.email}`} 
-              className="flex items-center gap-2 text-foreground font-medium hover:text-primary transition-colors"
+              className="flex items-center gap-3 text-foreground font-medium hover:text-primary 
+                transition-colors group-hover:text-primary"
             >
-              <Mail size={18} className="text-primary flex-shrink-0" />
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center 
+                group-hover:bg-primary/20 transition-colors">
+                <Mail size={18} className="text-primary" />
+              </div>
               <span className="truncate">{inquiry.email}</span>
             </a>
           </div>
 
           {/* Phone Card */}
-          <div className="p-4 rounded-xl bg-secondary/40 border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Phone</span>
+          <div className="p-4 rounded-xl bg-secondary/30 border border-border hover:border-green-500/30 
+            transition-colors group">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+                Phone
+              </span>
               {inquiry.phone && <CopyButton text={inquiry.phone} />}
             </div>
             {inquiry.phone ? (
               <a 
                 href={`tel:${inquiry.phone}`} 
-                className="flex items-center gap-2 text-foreground font-medium hover:text-primary transition-colors"
+                className="flex items-center gap-3 text-foreground font-medium hover:text-green-600 
+                  transition-colors group-hover:text-green-600"
               >
-                <Phone size={18} className="text-green-500 flex-shrink-0" />
+                <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center 
+                  group-hover:bg-green-500/20 transition-colors">
+                  <Phone size={18} className="text-green-500" />
+                </div>
                 <span>{formatPhone(inquiry.phone, inquiry.countryCode)}</span>
               </a>
             ) : (
-              <span className="flex items-center gap-2 text-muted-foreground">
-                <Phone size={18} className="flex-shrink-0" />
-                <span>Not provided</span>
-              </span>
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                  <Phone size={18} />
+                </div>
+                <span className="italic">Not provided</span>
+              </div>
             )}
           </div>
         </div>
 
         {/* Message Section */}
-        <div className="mb-5">
-          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-3 block">
+        <div>
+          <span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-3 block">
             Message
           </span>
-          <div className="p-5 rounded-xl bg-secondary/30 border border-border">
-            <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+          <div className="p-5 rounded-xl bg-secondary/20 border border-border">
+            <p className="text-foreground leading-relaxed whitespace-pre-wrap text-[15px]">
               {inquiry.message}
             </p>
           </div>
         </div>
+
+        {/* Reply Info (if replied) */}
+        {inquiry.status === 'replied' && inquiry.repliedAt && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Reply size={14} className="text-green-500" />
+            <span>Replied {getRelativeTime(inquiry.repliedAt)}</span>
+            {inquiry.repliedBy && (
+              <span className="text-foreground font-medium">by {inquiry.repliedBy.name}</span>
+            )}
+          </div>
+        )}
 
         {/* Delete Confirmation */}
         <AnimatePresence>
@@ -449,24 +547,29 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({
               exit={{ opacity: 0, y: 10 }}
               className="p-5 rounded-xl bg-destructive/10 border border-destructive/30"
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-lg bg-destructive/20">
-                  <AlertCircle size={18} className="text-destructive" />
+              <div className="flex items-start gap-4 mb-4">
+                <div className="p-2.5 rounded-xl bg-destructive/20 flex-shrink-0">
+                  <AlertCircle size={20} className="text-destructive" />
                 </div>
-                <p className="text-destructive font-medium">Delete this inquiry permanently?</p>
+                <div>
+                  <p className="text-destructive font-semibold mb-1">Delete this inquiry?</p>
+                  <p className="text-sm text-muted-foreground">This action cannot be undone.</p>
+                </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="px-4 py-2.5 bg-secondary text-foreground rounded-xl font-medium text-sm"
+                  className="flex-1 px-4 py-2.5 bg-secondary text-foreground rounded-xl font-medium text-sm
+                    hover:bg-secondary/80 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="px-4 py-2.5 bg-destructive text-destructive-foreground rounded-xl font-medium 
-                    text-sm flex items-center gap-2 disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 bg-destructive text-destructive-foreground rounded-xl 
+                    font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50
+                    hover:bg-destructive/90 transition-colors"
                 >
                   {isDeleting && <Loader2 size={14} className="animate-spin" />}
                   Delete
@@ -478,21 +581,21 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({
       </div>
 
       {/* Footer Actions */}
-      <div className="p-4 border-t border-border bg-secondary/20 flex items-center gap-3">
+      <div className="p-4 border-t border-border bg-secondary/10 flex items-center gap-3">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleReply}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground 
-            rounded-xl font-medium text-sm hover:bg-primary/90"
+          className="flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground 
+            rounded-xl font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm"
         >
           <Reply size={16} />
           Reply
         </motion.button>
 
         <a
-          href={`tel:${inquiry.phone}`}
-          className={`flex items-center gap-2 px-4 py-2.5 bg-green-500/10 text-green-600 
+          href={inquiry.phone ? `tel:${inquiry.phone}` : '#'}
+          className={`flex items-center gap-2 px-5 py-2.5 bg-green-500/10 text-green-600 
             rounded-xl font-medium text-sm hover:bg-green-500/20 transition-colors
             ${!inquiry.phone ? 'opacity-50 pointer-events-none' : ''}`}
         >
@@ -506,7 +609,7 @@ const InquiryDetail: React.FC<InquiryDetailProps> = ({
           href={`mailto:${inquiry.email}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="p-2.5 rounded-xl hover:bg-secondary text-muted-foreground"
+          className="p-2.5 rounded-xl hover:bg-secondary text-muted-foreground transition-colors"
           title="Open in email client"
         >
           <ExternalLink size={18} />
@@ -538,7 +641,7 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
 
   // Filter states
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [statusFilter, setStatusFilter] = useState<InquiryStatus | ''>('');
@@ -573,7 +676,7 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
   useEffect(() => {
     loadInquiries(!hasLoadedRef.current ? false : true);
     hasLoadedRef.current = true;
-  }, [page, search, statusFilter]);
+  }, [page, limit, search, statusFilter]);
 
   // Search debounce
   useEffect(() => {
@@ -582,7 +685,7 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
         setSearch(searchInput);
         setPage(1);
       }
-    }, 500);
+    }, 400);
     return () => clearTimeout(timer);
   }, [searchInput]);
 
@@ -668,62 +771,74 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
   return (
     <div className="flex h-full overflow-hidden bg-background">
       {/* ============================================ */}
-      {/* LIST PANEL - UNCHANGED */}
+      {/* LIST PANEL - CLEANED UP (No redundant header) */}
       {/* ============================================ */}
       <div className={`w-full md:w-[380px] lg:w-[420px] flex flex-col border-r border-border bg-card
         ${showMobileDetail ? 'hidden md:flex' : 'flex'}`}
       >
-        {/* Header */}
-        <div className="flex-shrink-0 p-4 md:p-5 border-b border-border bg-secondary/30">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold text-foreground flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Mail className="text-primary" size={20} />
-              </div>
-              Messages
-              {unreadCount > 0 && (
-                <span className="px-2.5 py-1 text-xs font-bold bg-primary text-primary-foreground rounded-full">
-                  {unreadCount}
-                </span>
-              )}
-            </h1>
-            <button
-              onClick={() => loadInquiries(true)}
-              disabled={isRefreshing}
-              className="p-2.5 rounded-xl hover:bg-secondary text-muted-foreground disabled:opacity-50 transition-colors"
-            >
-              <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />
-            </button>
-          </div>
-
-          {/* Search & Filter */}
+        {/* Compact Filter Bar - Search + Filter + Refresh */}
+        <div className="flex-shrink-0 p-3 border-b border-border bg-secondary/20">
           <div className="flex items-center gap-2">
+            {/* Search Input */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search messages..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-secondary border border-border 
-                  text-foreground text-sm placeholder:text-muted-foreground focus:border-primary/50 transition-colors"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-background border border-border 
+                  text-foreground text-sm placeholder:text-muted-foreground 
+                  focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
               />
+              {searchInput && (
+                <button 
+                  onClick={() => { setSearchInput(''); setSearch(''); }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-secondary"
+                >
+                  <X size={14} className="text-muted-foreground" />
+                </button>
+              )}
             </div>
+
+            {/* Status Filter Dropdown */}
             <div className="relative">
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value as InquiryStatus | ''); setPage(1); }}
-                className="appearance-none px-4 py-2.5 pr-8 rounded-xl bg-secondary border border-border 
-                  text-foreground text-sm cursor-pointer"
+                className="appearance-none px-3 py-2.5 pr-8 rounded-xl bg-background border border-border 
+                  text-foreground text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
               >
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 
+              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 
                 text-muted-foreground pointer-events-none" />
             </div>
+
+            {/* Refresh Button */}
+            <button
+              onClick={() => loadInquiries(true)}
+              disabled={isRefreshing}
+              className="p-2.5 rounded-xl hover:bg-secondary border border-transparent hover:border-border 
+                text-muted-foreground disabled:opacity-50 transition-all"
+              title="Refresh"
+            >
+              <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />
+            </button>
           </div>
+
+          {/* Unread Count Badge (if any) */}
+          {unreadCount > 0 && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 
+                text-primary text-xs font-semibold">
+                <Sparkles size={12} />
+                {unreadCount} unread message{unreadCount > 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Messages List */}
@@ -739,45 +854,77 @@ export const ContactInquiries: React.FC<ContactInquiriesProps> = () => {
             ))}
           </AnimatePresence>
 
+          {/* Empty State */}
           {inquiries.length === 0 && (
             <div className="text-center py-16 px-6">
-              <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
-                <Inbox size={28} className="text-muted-foreground/40" />
+              <div className="w-20 h-20 rounded-full bg-secondary/50 flex items-center justify-center mx-auto mb-4">
+                <Inbox size={32} className="text-muted-foreground/40" />
               </div>
-              <p className="text-foreground font-medium">No messages found</p>
-              <p className="text-muted-foreground text-sm mt-1">
+              <p className="text-foreground font-semibold text-lg mb-1">No messages found</p>
+              <p className="text-muted-foreground text-sm">
                 {search || statusFilter ? 'Try adjusting your filters' : 'New inquiries will appear here'}
               </p>
+              {(search || statusFilter) && (
+                <button
+                  onClick={() => { setSearchInput(''); setSearch(''); setStatusFilter(''); }}
+                  className="mt-4 px-4 py-2 text-sm text-primary hover:underline"
+                >
+                  Clear filters
+                </button>
+              )}
             </div>
           )}
         </div>
 
-        {/* Pagination */}
-        <div className="flex-shrink-0 p-3 border-t border-border bg-secondary/20 
-          flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">{total} total</span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="p-1.5 rounded-lg hover:bg-secondary disabled:opacity-50"
+        {/* Compact Pagination with Page Size Selector */}
+        <div className="flex-shrink-0 px-3 py-2 border-t border-border bg-secondary/10 
+          flex items-center justify-between gap-2">
+          {/* Page Size Selector */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground hidden sm:inline">Show:</span>
+            <select 
+              value={limit} 
+              onChange={(e) => { setLimit(+e.target.value); setPage(1); }} 
+              className="px-2 py-1 rounded-lg bg-secondary border border-border text-sm font-medium cursor-pointer
+                focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
-              <ChevronLeft size={16} />
-            </button>
-            <span className="px-3 text-sm font-medium text-muted-foreground">{page}/{totalPages}</span>
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="p-1.5 rounded-lg hover:bg-secondary disabled:opacity-50"
-            >
-              <ChevronRight size={16} />
-            </button>
+              {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+
+          {/* Total & Pagination Controls */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{total}</span>
+              <span className="hidden sm:inline"> total</span>
+            </span>
+            <div className="flex items-center border border-border rounded-lg overflow-hidden">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-1.5 hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed 
+                  transition-colors border-r border-border"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="px-3 py-1 text-sm font-medium bg-secondary/30 min-w-[60px] text-center">
+                {page} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="p-1.5 hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed 
+                  transition-colors border-l border-border"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ============================================ */}
-      {/* DETAIL PANEL - REDESIGNED */}
+      {/* DETAIL PANEL */}
       {/* ============================================ */}
       <div className={`flex-1 ${showMobileDetail ? 'flex' : 'hidden md:flex'}`}>
         <AnimatePresence mode="wait">

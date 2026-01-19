@@ -75,6 +75,9 @@ import { Dashboard } from '../index';
 import { BookingsManagement } from '../index';
 import { ContactInquiries } from '../index';
 
+// Import company logo
+import Logo from '../../assets/Logo.jpg';
+
 // ============================================
 // TYPES & INTERFACES
 // ============================================
@@ -560,9 +563,11 @@ export const AdminPage: React.FC = () => {
           className="text-center"
         >
           <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/20 rounded-full" />
+            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg">
+              <img src={Logo} alt="Logo" className="w-full h-full object-cover" />
+            </div>
             <motion.div
-              className="absolute inset-0 w-16 h-16 border-4 border-primary border-t-transparent rounded-full"
+              className="absolute inset-0 w-16 h-16 border-4 border-primary border-t-transparent rounded-xl"
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             />
@@ -604,8 +609,8 @@ export const AdminPage: React.FC = () => {
               {/* Mobile Sidebar Header */}
               <div className="p-5 flex items-center justify-between border-b border-border bg-gradient-to-r from-primary/5 to-transparent">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25">
-                    <Sparkles className="w-5 h-5 text-primary-foreground" />
+                  <div className="w-11 h-11 rounded-xl overflow-hidden shadow-lg">
+                    <img src={Logo} alt="Logo" className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <h2 className="font-bold text-foreground text-lg">Admin Panel</h2>
@@ -744,8 +749,8 @@ export const AdminPage: React.FC = () => {
           {isSidebarExpanded ? (
             <>
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary to-primary/80 flex items-center justify-center shadow-md shadow-primary/20">
-                  <Sparkles className="w-4 h-4 text-primary-foreground" />
+                <div className="w-9 h-9 rounded-xl overflow-hidden shadow-md">
+                  <img src={Logo} alt="Logo" className="w-full h-full object-cover" />
                 </div>
                 <div className="overflow-hidden">
                   <span className="font-bold text-sm text-foreground block">Admin Panel</span>
@@ -766,10 +771,10 @@ export const AdminPage: React.FC = () => {
           ) : (
             <button
               onClick={() => setSidebarCollapsed(false)}
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary to-primary/80 flex items-center justify-center hover:shadow-lg hover:shadow-primary/30 transition-shadow"
+              className="w-9 h-9 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
               title="Expand Sidebar"
             >
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
+              <img src={Logo} alt="Logo" className="w-full h-full object-cover" />
             </button>
           )}
         </div>
@@ -1162,11 +1167,12 @@ export const AdminPage: React.FC = () => {
                 variants={pageTransition}
                 className="flex-1 flex overflow-hidden h-full"
               >
-                {/* Editor Panel */}
+                {/* Editor Panel - 30% width with flex-shrink-0 to prevent shrinking */}
                 <motion.div
                   animate={{ width: previewVisible && !isMobile ? `${editorPanelWidth}%` : '100%' }}
                   transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className={`flex flex-col overflow-hidden border-r ${themeClass('border-border bg-card/30', 'border-gray-200 bg-gray-50/50')}`}
+                  className={`flex flex-col overflow-hidden border-r flex-shrink-0 ${themeClass('border-border bg-card/30', 'border-gray-200 bg-gray-50/50')}`}
+                  style={{ minWidth: previewVisible && !isMobile ? `${editorPanelWidth}%` : undefined }}
                 >
                   {/* Mobile Preview Toggle */}
                   {isMobile && (
@@ -1182,7 +1188,7 @@ export const AdminPage: React.FC = () => {
                   )}
 
                   {/* Editor Content */}
-                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar w-full">
                     {renderEditorComponent()}
                   </div>
                 </motion.div>
@@ -1197,15 +1203,15 @@ export const AdminPage: React.FC = () => {
                   />
                 )}
 
-                {/* Preview Panel */}
+                {/* Preview Panel - 70% width */}
                 <AnimatePresence>
                   {previewVisible && (
                     <motion.div
                       initial={isMobile ? { x: '100%' } : { opacity: 0 }}
-                      animate={isMobile ? { x: 0 } : { opacity: 1 }}
+                      animate={isMobile ? { x: 0 } : { opacity: 1, width: `${100 - editorPanelWidth}%` }}
                       exit={isMobile ? { x: '100%' } : { opacity: 0 }}
                       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                      className={`flex flex-col ${isMobile ? 'fixed inset-0 z-30' : 'flex-1'} ${themeClass('bg-background', 'bg-gray-100')}`}
+                      className={`flex flex-col ${isMobile ? 'fixed inset-0 z-30' : ''} ${themeClass('bg-background', 'bg-gray-100')}`}
                     >
                       {/* Preview Header */}
                       <div className={`flex items-center justify-between px-4 py-2 border-b ${themeClass('border-border bg-card/50', 'border-gray-200 bg-white/50')}`}>
@@ -1297,7 +1303,9 @@ export const AdminPage: React.FC = () => {
           >
             <div className="flex items-center justify-between px-4 py-3 bg-gray-900 border-b border-gray-800">
               <div className="flex items-center gap-3">
-                <Eye className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 rounded-lg overflow-hidden">
+                  <img src={Logo} alt="Logo" className="w-full h-full object-cover" />
+                </div>
                 <span className="text-white font-medium">Fullscreen Preview</span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
                   Desktop

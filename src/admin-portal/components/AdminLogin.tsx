@@ -481,10 +481,10 @@ export default function AdminLogin() {
                   <p className="text-sm font-medium text-foreground mb-1">Test Account</p>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground font-mono">
-                      Email: admin@addax.com
+                      Email: admin@addaxautomotive.in
                     </p>
                     <p className="text-xs text-muted-foreground font-mono">
-                      Password: admin123
+                      Password: ChangeThisPassword123!
                     </p>
                   </div>
                 </div>

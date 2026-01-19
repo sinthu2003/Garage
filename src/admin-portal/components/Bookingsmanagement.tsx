@@ -1,14 +1,14 @@
 /**
  * ============================================
- * BOOKINGS MANAGEMENT - REDESIGNED V6
+ * BOOKINGS MANAGEMENT - REDESIGNED V7
  * ============================================
  * Features:
- * - Larger fonts for better visibility
- * - Collapsible filter panel triggered by Filter button
- * - Pill-style date buttons
- * - Removed Source column
- * - Compact pagination
- * - Modern, accessible design
+ * - User-centric inline filter bar
+ * - Status pills for quick filtering
+ * - Active filter chips with easy removal
+ * - Smart responsive design
+ * - Compact yet accessible
+ * - Fuel Type filter (replaced City filter)
  * 
  * @file src/admin-portal/components/Bookingsmanagement.tsx
  */
@@ -22,7 +22,6 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
-  MapPin,
   Wrench,
   AlertCircle,
   Loader2,
@@ -38,9 +37,13 @@ import {
   CheckCircle2,
   Copy,
   Save,
-  ChevronDown,
-  Filter,
-  ChevronUp,
+  SlidersHorizontal,
+  MapPin,
+  Car,
+  CarFront,
+  Fuel,
+  CircleDot,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -77,7 +80,7 @@ interface DateRange {
 // ============================================
 
 const STATUS_OPTIONS: { value: BookingStatus | ''; label: string }[] = [
-  { value: '', label: 'All Status' },
+  { value: '', label: 'All' },
   { value: 'new', label: 'New' },
   { value: 'contacted', label: 'Contacted' },
   { value: 'scheduled', label: 'Scheduled' },
@@ -86,46 +89,50 @@ const STATUS_OPTIONS: { value: BookingStatus | ''; label: string }[] = [
 ];
 
 const DATE_FILTER_OPTIONS: { value: DateFilterType; label: string }[] = [
-  { value: 'all', label: 'All' },
   { value: 'today', label: 'Today' },
   { value: 'yesterday', label: 'Yesterday' },
   { value: 'last7days', label: 'Last 7 Days' },
-  { value: 'custom', label: 'Custom' },
+  { value: 'custom', label: 'Custom Range' },
 ];
 
 const PAGE_SIZES = [10, 20, 50, 100];
 
 // Status colors mapping
-const STATUS_STYLES: Record<BookingStatus, { bg: string; text: string; dot: string; border: string }> = {
+const STATUS_STYLES: Record<BookingStatus, { bg: string; text: string; dot: string; border: string; activeBg: string }> = {
   new: { 
     bg: 'bg-blue-50 dark:bg-blue-500/15', 
     text: 'text-blue-700 dark:text-blue-400', 
     dot: 'bg-blue-500',
-    border: 'border-blue-200 dark:border-blue-500/30'
+    border: 'border-blue-200 dark:border-blue-500/30',
+    activeBg: 'bg-blue-500 text-white'
   },
   contacted: { 
     bg: 'bg-amber-50 dark:bg-amber-500/15', 
     text: 'text-amber-700 dark:text-amber-400', 
     dot: 'bg-amber-500',
-    border: 'border-amber-200 dark:border-amber-500/30'
+    border: 'border-amber-200 dark:border-amber-500/30',
+    activeBg: 'bg-amber-500 text-white'
   },
   scheduled: { 
     bg: 'bg-purple-50 dark:bg-purple-500/15', 
     text: 'text-purple-700 dark:text-purple-400', 
     dot: 'bg-purple-500',
-    border: 'border-purple-200 dark:border-purple-500/30'
+    border: 'border-purple-200 dark:border-purple-500/30',
+    activeBg: 'bg-purple-500 text-white'
   },
   completed: { 
     bg: 'bg-emerald-50 dark:bg-emerald-500/15', 
     text: 'text-emerald-700 dark:text-emerald-400', 
     dot: 'bg-emerald-500',
-    border: 'border-emerald-200 dark:border-emerald-500/30'
+    border: 'border-emerald-200 dark:border-emerald-500/30',
+    activeBg: 'bg-emerald-500 text-white'
   },
   cancelled: { 
     bg: 'bg-red-50 dark:bg-red-500/15', 
     text: 'text-red-700 dark:text-red-400', 
     dot: 'bg-red-500',
-    border: 'border-red-200 dark:border-red-500/30'
+    border: 'border-red-200 dark:border-red-500/30',
+    activeBg: 'bg-red-500 text-white'
   },
 };
 
@@ -186,6 +193,10 @@ const formatDateForInput = (date: Date | null): string => {
   return date.toISOString().split('T')[0];
 };
 
+const formatDateShort = (date: Date): string => {
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
 // ============================================
 // UTILITY COMPONENTS
 // ============================================
@@ -231,11 +242,25 @@ const CopyButton: React.FC<{ text: string; size?: number }> = ({ text, size = 16
   );
 };
 
+// Active Filter Chip
+const FilterChip: React.FC<{ label: string; value: string; onRemove: () => void }> = ({ label, value, onRemove }) => (
+  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+    <span className="text-muted-foreground">{label}:</span>
+    <span>{value}</span>
+    <button 
+      onClick={onRemove} 
+      className="ml-0.5 p-0.5 rounded-full hover:bg-primary/20 transition-colors"
+    >
+      <X size={12} />
+    </button>
+  </span>
+);
+
 // ============================================
-// MOBILE BOOKING ROW (Expandable)
+// BOOKING CARD (Mobile/Tablet View)
 // ============================================
 
-interface MobileBookingRowProps {
+interface BookingCardProps {
   booking: Booking;
   index: number;
   pageOffset: number;
@@ -244,7 +269,7 @@ interface MobileBookingRowProps {
   onView: () => void;
 }
 
-const MobileBookingRow: React.FC<MobileBookingRowProps> = ({ 
+const BookingCard: React.FC<BookingCardProps> = ({ 
   booking, 
   index, 
   pageOffset, 
@@ -252,122 +277,170 @@ const MobileBookingRow: React.FC<MobileBookingRowProps> = ({
   onToggleSelect, 
   onView 
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const serviceName = typeof booking.service === 'object' ? booking.service?.name : booking.service;
   const serialNo = pageOffset + index + 1;
 
   return (
-    <div className={`border-b border-border last:border-b-0 ${isSelected ? 'bg-primary/5' : ''}`}>
-      {/* Main Row */}
-      <div 
-        className="flex items-center gap-3 p-4 cursor-pointer active:bg-secondary/50"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}
-          className="text-muted-foreground hover:text-primary flex-shrink-0"
-        >
-          {isSelected ? <CheckSquare size={22} className="text-primary" /> : <Square size={22} />}
-        </button>
+    <div className={`bg-card border border-border rounded-xl p-3 ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
+      {/* Header Row: Checkbox, ID, Status */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <button onClick={onToggleSelect} className="text-muted-foreground hover:text-foreground transition-colors">
+            {isSelected ? <CheckSquare size={18} className="text-primary" /> : <Square size={18} />}
+          </button>
+          <span className="text-sm font-bold text-foreground">#{serialNo}</span>
+        </div>
+        <StatusBadge status={booking.status} size="sm" />
+      </div>
 
-        <span className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-sm font-bold text-muted-foreground flex-shrink-0">
-          {serialNo}
-        </span>
+      {/* Data Rows */}
+      <div className="space-y-1.5 text-sm mb-3">
+        {/* Vehicle - Full Width */}
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground">Vehicle:</span>
+          <span className="font-semibold text-foreground">{booking.brandName} {booking.carModel}</span>
+        </div>
 
-        <div className="flex-1 min-w-0">
+        {/* Phone & City - Two Columns */}
+        <div className="grid grid-cols-2 gap-x-4">
           <div className="flex items-center gap-2">
-            <Phone size={16} className="text-green-500 flex-shrink-0" />
-            <span className="text-base font-semibold text-foreground truncate">
-              {formatPhone(booking.phone, booking.countryCode)}
-            </span>
+            {/* <Phone size={12} className="text-green-500 flex-shrink-0" /> */}
+            <span className="text-muted-foreground">Phone:</span>
+            <span className="font-medium text-foreground truncate">{formatPhone(booking.phone, booking.countryCode)}</span>
           </div>
-          <div className="flex items-center gap-2 mt-1">
-            <MapPin size={14} className="text-muted-foreground flex-shrink-0" />
-            <span className="text-sm text-muted-foreground truncate">{booking.city}</span>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-sm text-muted-foreground">{booking.brandName}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">City:</span>
+            <span className="font-medium text-foreground">{booking.city}</span>
           </div>
         </div>
 
-        <StatusBadge status={booking.status} size="sm" />
-
-        <ChevronDown 
-          size={20} 
-          className={`text-muted-foreground transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} 
-        />
+        {/* Fuel & Date - Two Columns */}
+        <div className="grid grid-cols-2 gap-x-4">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Fuel:</span>
+            <span className="font-medium text-foreground">{booking.fuelType}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Date:</span>
+            <span className="text-muted-foreground">{getRelativeTime(booking.createdAt)}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Expanded Content */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="px-4 pb-4 pt-2 space-y-3 bg-secondary/20">
-              {/* Vehicle Details */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-card rounded-lg p-3 border border-border">
-                  <span className="text-xs text-muted-foreground block mb-1">Brand</span>
-                  <span className="text-sm font-semibold text-foreground">{booking.brandName}</span>
-                </div>
-                <div className="bg-card rounded-lg p-3 border border-border">
-                  <span className="text-xs text-muted-foreground block mb-1">Model</span>
-                  <span className="text-sm font-semibold text-foreground">{booking.carModel}</span>
-                </div>
-                <div className="bg-card rounded-lg p-3 border border-border">
-                  <span className="text-xs text-muted-foreground block mb-1">Fuel</span>
-                  <span className="text-sm font-semibold text-foreground">{booking.fuelType}</span>
-                </div>
-              </div>
-
-              {/* Service & Time */}
-              <div className="flex items-center justify-between text-sm">
-                {serviceName && (
-                  <div className="flex items-center gap-2">
-                    <Wrench size={14} className="text-primary" />
-                    <span className="font-medium text-foreground">{serviceName}</span>
-                  </div>
-                )}
-                <span className="text-muted-foreground">{getRelativeTime(booking.createdAt)}</span>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-3 pt-3 border-t border-border/50">
-                <a 
-                  href={`tel:${booking.phone}`} 
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 text-green-600 font-semibold text-sm hover:bg-green-500/20 transition-colors"
-                >
-                  <Phone size={16} />
-                  Call Now
-                </a>
-                <CopyButton text={booking.phone} size={18} />
-                {booking.email && (
-                  <a 
-                    href={`mailto:${booking.email}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="p-3 rounded-xl bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 transition-colors"
-                  >
-                    <Mail size={18} />
-                  </a>
-                )}
-                <button 
-                  onClick={(e) => { e.stopPropagation(); onView(); }}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
-                >
-                  <Eye size={16} />
-                  View Details
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2 pt-2 border-t border-border">
+        <a 
+          href={`tel:${booking.phone}`} 
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-green-50 dark:bg-green-500/10 text-green-600 text-sm font-medium hover:bg-green-100 dark:hover:bg-green-500/20 transition-colors"
+        >
+          <Phone size={14} />
+          Call
+        </a>
+        <button 
+          onClick={onView} 
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
+        >
+          <Eye size={14} />
+          View
+        </button>
+      </div>
     </div>
+  );
+};
+
+// ============================================
+// BOOKING TABLE ROW (Desktop View)
+// ============================================
+
+interface BookingRowProps {
+  booking: Booking;
+  index: number;
+  pageOffset: number;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  onView: () => void;
+}
+
+const BookingRow: React.FC<BookingRowProps> = ({ 
+  booking, 
+  index, 
+  pageOffset, 
+  isSelected, 
+  onToggleSelect, 
+  onView 
+}) => {
+  const serialNo = pageOffset + index + 1;
+
+  return (
+    <tr className={`border-b border-border last:border-0 hover:bg-secondary/30 transition-colors ${isSelected ? 'bg-primary/5' : ''}`}>
+      {/* Checkbox */}
+      <td className="px-4 py-3">
+        <button onClick={onToggleSelect} className="text-muted-foreground hover:text-foreground transition-colors">
+          {isSelected ? <CheckSquare size={20} className="text-primary" /> : <Square size={20} />}
+        </button>
+      </td>
+      
+      {/* S.No */}
+      <td className="px-3 py-3 text-center">
+        <span className="inline-flex w-8 h-8 rounded-lg bg-secondary items-center justify-center text-sm font-bold text-muted-foreground">
+          {serialNo}
+        </span>
+      </td>
+      
+      {/* Phone */}
+      <td className="px-4 py-3">
+        <span className="text-sm font-semibold text-foreground">{formatPhone(booking.phone, booking.countryCode)}</span>
+      </td>
+      
+      {/* City */}
+      <td className="px-4 py-3">
+        <span className="text-sm font-medium text-foreground">{booking.city}</span>
+      </td>
+      
+      {/* Brand */}
+      <td className="px-4 py-3">
+        <span className="text-sm font-medium text-foreground">{booking.brandName}</span>
+      </td>
+      
+      {/* Model */}
+      <td className="px-4 py-3">
+        <span className="text-sm font-medium text-foreground">{booking.carModel}</span>
+      </td>
+      
+      {/* Fuel */}
+      <td className="px-4 py-3">
+        <span className="text-sm font-medium text-foreground">{booking.fuelType}</span>
+      </td>
+      
+      {/* Status */}
+      <td className="px-4 py-3">
+        <StatusBadge status={booking.status} size="sm" />
+      </td>
+      
+      {/* Date */}
+      <td className="px-4 py-3">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">{getRelativeTime(booking.createdAt)}</span>
+      </td>
+      
+      {/* Actions */}
+      <td className="px-4 py-3">
+        <div className="flex items-center justify-center gap-1">
+          <a 
+            href={`tel:${booking.phone}`} 
+            className="p-2 rounded-lg hover:bg-green-500/10 text-green-600 transition-colors" 
+            title="Call"
+          >
+            <Phone size={16} />
+          </a>
+          <button 
+            onClick={onView} 
+            className="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors" 
+            title="View Details"
+          >
+            <Eye size={16} />
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 };
 
@@ -676,7 +749,8 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [facets, setFacets] = useState<{ cities: string[]; brands: string[] }>({ cities: [], brands: [] });
+  // Updated facets to include fuelTypes instead of cities
+  const [facets, setFacets] = useState<{ fuelTypes: string[]; brands: string[] }>({ fuelTypes: [], brands: [] });
 
   // Filter & Search States
   const [page, setPage] = useState(1);
@@ -684,13 +758,14 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [statusFilter, setStatusFilter] = useState<BookingStatus | ''>('');
-  const [cityFilter, setCityFilter] = useState('');
+  // Replaced cityFilter with fuelTypeFilter
+  const [fuelTypeFilter, setFuelTypeFilter] = useState('');
   const [brandFilter, setBrandFilter] = useState('');
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [dateFilter, setDateFilter] = useState<DateFilterType>('all');
   const [customRange, setCustomRange] = useState<DateRange>({ start: null, end: null });
-  const [showFilters, setShowFilters] = useState(false);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
 
   // Action States
@@ -703,12 +778,25 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
   
   const hasLoadedRef = useRef(false);
 
-  // Derived
-  const hasFilters = search || statusFilter || cityFilter || brandFilter || dateFilter !== 'all';
+  // Derived - Updated to use fuelTypeFilter instead of cityFilter
+  const hasFilters = search || statusFilter || fuelTypeFilter || brandFilter || dateFilter !== 'all';
   const pageOffset = (page - 1) * limit;
-  const activeFilterCount = [statusFilter, cityFilter, brandFilter, dateFilter !== 'all' ? dateFilter : ''].filter(Boolean).length;
+  
+  // Count active filters for badge - Updated to use Fuel Type instead of City
+  const activeFilters = [
+    statusFilter && { label: 'Status', value: STATUS_OPTIONS.find(s => s.value === statusFilter)?.label || statusFilter, clear: () => setStatusFilter('') },
+    fuelTypeFilter && { label: 'Fuel', value: fuelTypeFilter, clear: () => setFuelTypeFilter('') },
+    brandFilter && { label: 'Brand', value: brandFilter, clear: () => setBrandFilter('') },
+    dateFilter !== 'all' && { 
+      label: 'Date', 
+      value: dateFilter === 'custom' && customRange.start && customRange.end 
+        ? `${formatDateShort(customRange.start)} - ${formatDateShort(customRange.end)}`
+        : DATE_FILTER_OPTIONS.find(d => d.value === dateFilter)?.label || dateFilter, 
+      clear: () => { setDateFilter('all'); setCustomRange({ start: null, end: null }); }
+    },
+  ].filter(Boolean) as { label: string; value: string; clear: () => void }[];
 
-  // Load data
+  // Load data - Updated to use fuelType instead of city
   const loadBookings = useCallback(async (refresh = false) => {
     try {
       if (refresh) setIsRefreshing(true);
@@ -723,7 +811,7 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
         sortOrder,
         search: search.trim() || undefined,
         status: statusFilter || undefined,
-        city: cityFilter || undefined,
+        fuelType: fuelTypeFilter || undefined, // Changed from city to fuelType
         brand: brandFilter || undefined,
       };
       
@@ -738,7 +826,12 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
       setTotalPages(res.totalPages || 1);
       
       if (res.facets) {
-        setFacets(res.facets);
+        // Transform API response - handle both old (cities) and new (fuelTypes) format
+        // Ensure arrays are always valid even if undefined
+        setFacets({
+          fuelTypes: Array.isArray(res.facets.fuelTypes) ? res.facets.fuelTypes : [],
+          brands: Array.isArray(res.facets.brands) ? res.facets.brands : []
+        });
       }
     } catch {
       setError('Failed to load bookings');
@@ -746,12 +839,12 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [page, limit, search, statusFilter, cityFilter, brandFilter, sortBy, sortOrder, dateFilter, customRange]);
+  }, [page, limit, search, statusFilter, fuelTypeFilter, brandFilter, sortBy, sortOrder, dateFilter, customRange]);
 
   useEffect(() => {
     loadBookings(!hasLoadedRef.current ? false : true);
     hasLoadedRef.current = true;
-  }, [page, search, statusFilter, cityFilter, brandFilter, sortBy, sortOrder, dateFilter, customRange]);
+  }, [page, search, statusFilter, fuelTypeFilter, brandFilter, sortBy, sortOrder, dateFilter, customRange]);
 
   useEffect(() => {
     const t = setTimeout(() => { 
@@ -778,12 +871,13 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
     } finally { setIsBulkUpdating(false); }
   };
   
+  // Updated export handler to use fuelType instead of city
   const handleExport = async () => {
     setIsExporting(true);
     try {
       const url = await exportBookings({
         status: statusFilter || undefined, 
-        city: cityFilter || undefined,
+        fuelType: fuelTypeFilter || undefined, // Changed from city to fuelType
         brand: brandFilter || undefined,
         startDate: '',
         endDate: ''
@@ -810,30 +904,21 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
     sortBy === col ? setSortOrder(o => o === 'asc' ? 'desc' : 'asc') : (setSortBy(col), setSortOrder('desc')); 
   };
   
-  const clearFilters = () => { 
+  // Updated clearAllFilters to use fuelTypeFilter instead of cityFilter
+  const clearAllFilters = () => { 
     setSearchInput(''); 
     setSearch(''); 
     setStatusFilter(''); 
-    setCityFilter(''); 
+    setFuelTypeFilter(''); // Changed from setCityFilter
     setBrandFilter('');
     setDateFilter('all'); 
     setCustomRange({ start: null, end: null }); 
-    setPage(1); 
-    setShowFilters(false);
+    setPage(1);
+    setShowMoreFilters(false);
   };
   
   const openPanel = (b: Booking) => { setSelectedBooking(b); setIsPanelOpen(true); };
   const closePanel = () => { setIsPanelOpen(false); setSelectedBooking(null); };
-
-  const handleDateFilterSelect = (filter: DateFilterType) => {
-    setDateFilter(filter);
-    setPage(1);
-    if (filter === 'custom') {
-      setShowCustomDatePicker(true);
-    } else {
-      setShowCustomDatePicker(false);
-    }
-  };
 
   // Loading State
   if (isLoading && !hasLoadedRef.current) {
@@ -867,238 +952,302 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-background">
-      {/* TOP BAR - Search on left, Actions on right */}
-      <div className="flex-shrink-0 p-4 lg:px-6 lg:py-4 border-b border-border bg-card">
-        <div className="flex items-center gap-3">
+      {/* HEADER BAR */}
+      <div className="flex-shrink-0 border-b border-border bg-card">
+        {/* Row 1: Search + Filter Toggle + Actions */}
+        <div className="flex items-center gap-3 p-3 lg:px-4">
           {/* Search Input */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search bookings..."
+              placeholder="Search phone, city, brand..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl bg-secondary/50 border border-border text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+              className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-secondary/50 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
             />
-          </div>
-
-          {/* Spacer to push buttons to right */}
-          <div className="flex-1" />
-
-          {/* Right-aligned Actions */}
-          <div className="flex items-center gap-2">
-            {/* Clear Filters */}
-            {hasFilters && (
+            {searchInput && (
               <button 
-                onClick={clearFilters} 
-                className="p-3 text-destructive hover:bg-destructive/10 rounded-xl transition-colors"
-                title="Clear all filters"
+                onClick={() => { setSearchInput(''); setSearch(''); }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-secondary"
               >
-                <X size={20} />
+                <X size={14} className="text-muted-foreground" />
               </button>
             )}
+          </div>
 
-            {/* Filter Button */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-5 py-3 rounded-xl border text-base font-medium transition-all ${
-                showFilters || activeFilterCount > 0
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-secondary/50 text-foreground border-border hover:bg-secondary'
-              }`}
-            >
-              <Filter size={18} />
-              <span>Filters</span>
-              {activeFilterCount > 0 && (
-                <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
-                  showFilters ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
-                }`}>
-                  {activeFilterCount}
-                </span>
-              )}
-              {showFilters ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            </button>
+          
 
-            {/* Divider */}
-            <div className="w-px h-10 bg-border hidden sm:block" />
+          {/* Spacer */}
+          <div className="flex-1" />
 
-            {/* Refresh */}
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            {/* Filter Toggle Button */}
+          <button
+            onClick={() => setShowMoreFilters(!showMoreFilters)}
+            className={`
+              flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all
+              ${showMoreFilters || activeFilters.length > 0
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'bg-secondary/50 text-foreground border-border hover:bg-secondary hover:border-border'
+              }
+            `}
+          >
+            <SlidersHorizontal size={16} />
+            <span>Filters</span>
+            {activeFilters.length > 0 && (
+              <span className={`
+                min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center
+                ${showMoreFilters ? 'bg-primary-foreground text-primary' : 'bg-primary-foreground text-primary'}
+              `}>
+                {activeFilters.length}
+              </span>
+            )}
+          </button>
             <button 
               onClick={() => loadBookings(true)} 
               disabled={isRefreshing} 
-              className="p-3 rounded-xl bg-secondary/50 border border-border hover:bg-secondary disabled:opacity-50 transition-colors"
+              className="p-2.5 rounded-xl hover:bg-secondary border border-transparent hover:border-border disabled:opacity-50 transition-all"
               title="Refresh"
             >
-              <RefreshCw size={20} className={isRefreshing ? 'animate-spin' : ''} />
+              <RefreshCw size={18} className={`text-muted-foreground ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
-
-            {/* Export */}
             <button 
               onClick={handleExport} 
               disabled={isExporting} 
-              className="p-3 rounded-xl bg-secondary/50 border border-border hover:bg-secondary disabled:opacity-50 transition-colors"
-              title="Export"
+              className="p-2.5 rounded-xl hover:bg-secondary border border-transparent hover:border-border disabled:opacity-50 transition-all"
+              title="Export CSV"
             >
-              <Download size={20} />
+              <Download size={18} className="text-muted-foreground" />
             </button>
           </div>
         </div>
 
-        {/* Collapsible Filter Panel - All filters in single row */}
+        {/* Filter Panel (Collapsible) */}
         <AnimatePresence>
-          {showFilters && (
+          {showMoreFilters && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="overflow-hidden"
             >
-              <div className="pt-4 mt-4 border-t border-border">
-                {/* All Filters in Single Row */}
-                <div className="flex flex-wrap items-end gap-4">
-                  {/* Status */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</label>
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => { setStatusFilter(e.target.value as BookingStatus | ''); setPage(1); }}
-                      className="px-4 py-2.5 rounded-xl bg-secondary/50 border border-border text-base font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer min-w-[140px]"
-                    >
-                      {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                    </select>
-                  </div>
+              <div className="px-3 lg:px-4 pb-4 pt-1">
+                <div className="p-4 rounded-2xl bg-secondary/30 border border-border space-y-4">
                   
-                  {/* City */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">City</label>
-                    <select
-                      value={cityFilter}
-                      onChange={(e) => { setCityFilter(e.target.value); setPage(1); }}
-                      className="px-4 py-2.5 rounded-xl bg-secondary/50 border border-border text-base font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer min-w-[140px]"
-                    >
-                      <option value="">All Cities</option>
-                      {facets.cities.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
+                  {/* Show either Filters OR Custom Date Picker */}
+                  <AnimatePresence mode="wait">
+                    {!showCustomDatePicker ? (
+                      /* Regular Filters */
+                      <motion.div
+                        key="filters"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {/* Status Filter */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</label>
+                            <select
+                              value={statusFilter}
+                              onChange={(e) => { setStatusFilter(e.target.value as BookingStatus | ''); setPage(1); }}
+                              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer appearance-none"
+                              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+                            >
+                              {STATUS_OPTIONS.map(s => (
+                                <option key={s.value} value={s.value}>
+                                  {s.value === '' ? 'All Status' : s.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
 
-                  {/* Brand */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Brand</label>
-                    <select
-                      value={brandFilter}
-                      onChange={(e) => { setBrandFilter(e.target.value); setPage(1); }}
-                      className="px-4 py-2.5 rounded-xl bg-secondary/50 border border-border text-base font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer min-w-[140px]"
-                    >
-                      <option value="">All Brands</option>
-                      {facets.brands.map(b => <option key={b} value={b}>{b}</option>)}
-                    </select>
-                  </div>
+                          {/* Fuel Type Filter - REPLACED City Filter */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fuel Type</label>
+                            <select
+                              value={fuelTypeFilter}
+                              onChange={(e) => { setFuelTypeFilter(e.target.value); setPage(1); }}
+                              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer appearance-none"
+                              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+                            >
+                              <option value="">All Fuel Types</option>
+                              {(facets.fuelTypes || []).map(f => <option key={f} value={f}>{f}</option>)}
+                            </select>
+                          </div>
 
-                  {/* Date Filter Pills - inline with dropdowns */}
-                  <div className="relative flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Date Range</label>
-                    <div className="flex items-center gap-1.5">
-                      {DATE_FILTER_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.value}
-                          onClick={() => handleDateFilterSelect(opt.value)}
-                          className={`
-                            px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap
-                            ${dateFilter === opt.value
-                              ? 'bg-primary text-primary-foreground shadow-md'
-                              : 'bg-secondary/60 text-muted-foreground hover:bg-secondary hover:text-foreground'
-                            }
-                          `}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
+                          {/* Brand Filter */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Brand</label>
+                            <select
+                              value={brandFilter}
+                              onChange={(e) => { setBrandFilter(e.target.value); setPage(1); }}
+                              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer appearance-none"
+                              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+                            >
+                              <option value="">All Brands</option>
+                              {(facets.brands || []).map(b => <option key={b} value={b}>{b}</option>)}
+                            </select>
+                          </div>
 
-                    {/* Custom Date Range Popup */}
-                    <AnimatePresence>
-                      {showCustomDatePicker && dateFilter === 'custom' && (
-                        <>
-                          <div 
-                            className="fixed inset-0 z-40" 
-                            onClick={() => setShowCustomDatePicker(false)} 
-                          />
-                          <motion.div
-                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className="absolute top-full left-0 mt-2 p-4 rounded-xl bg-card border border-border shadow-xl z-50 min-w-[280px]"
+                          {/* Date Range */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date Range</label>
+                            <select
+                              value={dateFilter === 'custom' ? 'custom' : dateFilter}
+                              onChange={(e) => {
+                                const value = e.target.value as DateFilterType;
+                                if (value === 'custom') {
+                                  setShowCustomDatePicker(true);
+                                } else {
+                                  setDateFilter(value);
+                                  setPage(1);
+                                }
+                              }}
+                              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer appearance-none"
+                              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+                            >
+                              <option value="all">All Dates</option>
+                              {DATE_FILTER_OPTIONS.map(opt => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.value === 'custom' && dateFilter === 'custom' && customRange.start && customRange.end
+                                    ? `${formatDateShort(customRange.start)} - ${formatDateShort(customRange.end)}`
+                                    : opt.label
+                                  }
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      /* Custom Date Range Picker - Replaces Filters */
+                      <motion.div
+                        key="datepicker"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                          {/* From Date */}
+                          <div className="flex-1 space-y-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">From</label>
+                            <input
+                              type="date"
+                              value={formatDateForInput(customRange.start)}
+                              onChange={(e) => setCustomRange({
+                                ...customRange,
+                                start: e.target.value ? new Date(e.target.value) : null
+                              })}
+                              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            />
+                          </div>
+
+                          {/* To Date */}
+                          <div className="flex-1 space-y-1.5">
+                            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">To</label>
+                            <input
+                              type="date"
+                              value={formatDateForInput(customRange.end)}
+                              onChange={(e) => setCustomRange({
+                                ...customRange,
+                                end: e.target.value ? new Date(e.target.value) : null
+                              })}
+                              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            />
+                          </div>
+
+                          {/* Apply Button */}
+                          <button
+                            onClick={() => { 
+                              if (customRange.start && customRange.end) {
+                                setDateFilter('custom'); 
+                                setPage(1);
+                              }
+                              setShowCustomDatePicker(false); 
+                            }}
+                            disabled={!customRange.start || !customRange.end}
+                            className="px-8 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 transition-all hover:bg-primary/90 whitespace-nowrap"
                           >
-                            <div className="flex items-center justify-between mb-4">
-                              <h4 className="font-semibold text-foreground">Select Date Range</h4>
-                              <button 
-                                onClick={() => setShowCustomDatePicker(false)}
-                                className="p-1 rounded-lg hover:bg-secondary text-muted-foreground"
-                              >
-                                <X size={16} />
-                              </button>
-                            </div>
-                            <div className="space-y-4">
-                              <div>
-                                <label className="block text-sm font-medium text-muted-foreground mb-2">From</label>
-                                <input
-                                  type="date"
-                                  value={formatDateForInput(customRange.start)}
-                                  onChange={(e) => setCustomRange({
-                                    ...customRange,
-                                    start: e.target.value ? new Date(e.target.value) : null
-                                  })}
-                                  className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-muted-foreground mb-2">To</label>
-                                <input
-                                  type="date"
-                                  value={formatDateForInput(customRange.end)}
-                                  onChange={(e) => setCustomRange({
-                                    ...customRange,
-                                    end: e.target.value ? new Date(e.target.value) : null
-                                  })}
-                                  className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                                />
-                              </div>
-                              <button
-                                onClick={() => { setShowCustomDatePicker(false); setPage(1); }}
-                                disabled={!customRange.start || !customRange.end}
-                                className="w-full px-4 py-3 rounded-lg bg-primary text-primary-foreground font-semibold disabled:opacity-50 transition-all duration-200 hover:bg-primary/90"
-                              >
-                                Apply Range
-                              </button>
-                            </div>
-                          </motion.div>
-                        </>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                            Apply
+                          </button>
+
+                          {/* Cancel Button */}
+                          <button
+                            onClick={() => { 
+                              setShowCustomDatePicker(false);
+                              if (dateFilter === 'custom' && (!customRange.start || !customRange.end)) {
+                                setDateFilter('all');
+                              }
+                            }}
+                            className="px-6 py-2.5 rounded-xl bg-secondary border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all whitespace-nowrap"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Active Filters & Clear - Only show when not in custom date picker mode */}
+                  {!showCustomDatePicker && activeFilters.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border/50">
+                      <span className="text-xs font-medium text-muted-foreground">Active:</span>
+                      {activeFilters.map((filter, i) => (
+                        <FilterChip key={i} label={filter.label} value={filter.value} onRemove={filter.clear} />
+                      ))}
+                      <button 
+                        onClick={clearAllFilters} 
+                        className="ml-auto text-sm font-medium text-destructive hover:text-destructive/80 transition-colors"
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Bulk Actions */}
+        {/* Active Filters Preview (when panel is closed) */}
+        {!showMoreFilters && activeFilters.length > 0 && (
+          <div className="px-3 lg:px-4 pb-3 flex flex-wrap items-center gap-2">
+            {activeFilters.map((filter, i) => (
+              <FilterChip key={i} label={filter.label} value={filter.value} onRemove={filter.clear} />
+            ))}
+            <button 
+              onClick={clearAllFilters} 
+              className="text-xs font-medium text-muted-foreground hover:text-destructive transition-colors ml-1"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+
+        {/* Bulk Actions Bar */}
         <AnimatePresence>
           {selectedIds.size > 0 && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
+              className="overflow-hidden border-t border-primary/20"
             >
-              <div className="flex flex-wrap items-center gap-3 mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20">
-                <span className="text-base font-semibold text-foreground">{selectedIds.size} selected</span>
+              <div className="flex flex-wrap items-center gap-3 p-3 lg:px-4 bg-primary/5">
+                <div className="flex items-center gap-2">
+                  <CheckSquare size={18} className="text-primary" />
+                  <span className="text-sm font-semibold text-foreground">{selectedIds.size} selected</span>
+                </div>
                 <div className="flex-1" />
                 <select 
                   value={bulkStatus} 
                   onChange={(e) => setBulkStatus(e.target.value as BookingStatus)} 
-                  className="px-4 py-2 rounded-xl bg-secondary border border-border text-base font-medium"
+                  className="px-3 py-2 rounded-xl bg-background border border-border text-sm font-medium"
                 >
                   <option value="">Change status to...</option>
                   {STATUS_OPTIONS.filter(s => s.value).map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
@@ -1106,16 +1255,16 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
                 <button 
                   onClick={handleBulkUpdate} 
                   disabled={!bulkStatus || isBulkUpdating} 
-                  className="px-5 py-2 bg-primary text-primary-foreground text-base font-semibold rounded-xl disabled:opacity-50 flex items-center gap-2 hover:bg-primary/90 transition-colors"
+                  className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-xl disabled:opacity-50 flex items-center gap-2 hover:bg-primary/90 transition-colors"
                 >
-                  {isBulkUpdating && <Loader2 size={16} className="animate-spin" />}
+                  {isBulkUpdating && <Loader2 size={14} className="animate-spin" />}
                   Apply
                 </button>
                 <button 
                   onClick={() => setSelectedIds(new Set())} 
-                  className="px-4 py-2 text-base font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
                 >
-                  Cancel
+                  <X size={18} />
                 </button>
               </div>
             </motion.div>
@@ -1125,128 +1274,135 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
 
       {/* CONTENT */}
       <div className="flex-1 overflow-auto">
-        {/* Mobile View */}
-        <div className="block lg:hidden">
-          <div className="bg-card">
-            {bookings.map((b, i) => (
-              <MobileBookingRow 
-                key={b._id} 
-                booking={b} 
-                index={i}
-                pageOffset={pageOffset}
-                isSelected={selectedIds.has(b._id)} 
-                onToggleSelect={() => toggleSelect(b._id)} 
-                onView={() => openPanel(b)} 
-              />
-            ))}
-          </div>
+        {/* Mobile/Tablet View - Cards */}
+        <div className="block lg:hidden p-3 space-y-3">
+          {bookings.map((b, i) => (
+            <BookingCard 
+              key={b._id} 
+              booking={b} 
+              index={i}
+              pageOffset={pageOffset}
+              isSelected={selectedIds.has(b._id)} 
+              onToggleSelect={() => toggleSelect(b._id)} 
+              onView={() => openPanel(b)} 
+            />
+          ))}
+
+          {/* Mobile Empty State */}
+          {!bookings.length && (
+            <div className="text-center py-12">
+              <Calendar size={48} className="text-muted-foreground/30 mx-auto mb-4" />
+              <p className="text-lg font-semibold text-foreground">No bookings found</p>
+              <p className="text-sm text-muted-foreground mt-2">Try adjusting your search or filters</p>
+              {hasFilters && (
+                <button 
+                  onClick={clearAllFilters} 
+                  className="mt-4 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
+                >
+                  Clear All Filters
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Desktop Table */}
+        {/* Desktop View - Table */}
         <div className="hidden lg:block p-4">
           <div className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-secondary/50 border-b border-border">
                   <tr>
-                    <th className="w-14 px-4 py-3.5 text-left">
+                    <th className="w-14 px-4 py-3 text-left">
                       <button onClick={toggleAll} className="text-muted-foreground hover:text-foreground transition-colors">
                         {selectedIds.size === bookings.length && bookings.length > 0 ? (
-                          <CheckSquare size={22} className="text-primary" />
+                          <CheckSquare size={20} className="text-primary" />
                         ) : (
-                          <Square size={22} />
+                          <Square size={20} />
                         )}
                       </button>
                     </th>
-                    <th className="w-16 px-3 py-3.5 text-center text-sm font-bold text-muted-foreground uppercase tracking-wide">S.No</th>
-                    <th className="px-4 py-3.5 text-left">
-                      <button onClick={() => handleSort('phone')} className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors">
-                        Phone <ArrowUpDown size={14} />
+                    <th className="w-16 px-3 py-3 text-center text-xs font-bold text-muted-foreground uppercase tracking-wide">
+                      <span className="flex items-center justify-center gap-1">
+                        <span className="w-5 h-5 rounded bg-secondary flex items-center justify-center text-[10px] font-bold">#</span>
+                      </span>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <button onClick={() => handleSort('phone')} className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors">
+                        <Phone size={14} className="text-green-500" />
+                        Phone <ArrowUpDown size={12} />
                       </button>
                     </th>
-                    <th className="px-4 py-3.5 text-left">
-                      <button onClick={() => handleSort('city')} className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors">
-                        City <ArrowUpDown size={14} />
+                    <th className="px-4 py-3 text-left">
+                      <button onClick={() => handleSort('city')} className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors">
+                        <MapPin size={14} className="text-blue-500" />
+                        City <ArrowUpDown size={12} />
                       </button>
                     </th>
-                    <th className="px-4 py-3.5 text-left text-sm font-bold text-muted-foreground uppercase tracking-wide">Brand</th>
-                    <th className="px-4 py-3.5 text-left text-sm font-bold text-muted-foreground uppercase tracking-wide">Model</th>
-                    <th className="px-4 py-3.5 text-left text-sm font-bold text-muted-foreground uppercase tracking-wide">Fuel</th>
-                    <th className="px-4 py-3.5 text-left">
-                      <button onClick={() => handleSort('status')} className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors">
-                        Status <ArrowUpDown size={14} />
+                    <th className="px-4 py-3 text-left">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wide">
+                        <Car size={14} className="text-purple-500" />
+                        Brand
+                      </span>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wide">
+                        <CarFront size={14} className="text-indigo-500" />
+                        Model
+                      </span>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <span className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wide">
+                        <Fuel size={14} className="text-amber-500" />
+                        Fuel
+                      </span>
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      <button onClick={() => handleSort('status')} className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors">
+                        <CircleDot size={14} className="text-emerald-500" />
+                        Status <ArrowUpDown size={12} />
                       </button>
                     </th>
-                    <th className="px-4 py-3.5 text-left">
-                      <button onClick={() => handleSort('createdAt')} className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors">
-                        Date <ArrowUpDown size={14} />
+                    <th className="px-4 py-3 text-left">
+                      <button onClick={() => handleSort('createdAt')} className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors">
+                        <Calendar size={14} className="text-orange-500" />
+                        Date <ArrowUpDown size={12} />
                       </button>
                     </th>
-                    <th className="w-28 px-4 py-3.5 text-center text-sm font-bold text-muted-foreground uppercase tracking-wide">Actions</th>
+                    <th className="w-24 px-4 py-3 text-center text-xs font-bold text-muted-foreground uppercase tracking-wide">
+                      <span className="flex items-center justify-center gap-1.5">
+                        <Settings size={14} className="text-gray-500" />
+                        Actions
+                      </span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {bookings.map((b, i) => (
-                    <tr 
+                    <BookingRow 
                       key={b._id} 
-                      className={`border-b border-border last:border-0 hover:bg-secondary/30 transition-colors ${selectedIds.has(b._id) ? 'bg-primary/5' : ''}`}
-                    >
-                      <td className="px-4 py-3.5">
-                        <button onClick={() => toggleSelect(b._id)} className="text-muted-foreground hover:text-foreground transition-colors">
-                          {selectedIds.has(b._id) ? <CheckSquare size={22} className="text-primary" /> : <Square size={22} />}
-                        </button>
-                      </td>
-                      <td className="px-3 py-3.5 text-center">
-                        <span className="inline-flex w-9 h-9 rounded-lg bg-secondary items-center justify-center text-sm font-bold text-muted-foreground">
-                          {pageOffset + i + 1}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <Phone size={18} className="text-green-500 flex-shrink-0" />
-                          <span className="text-base font-semibold text-foreground">{formatPhone(b.phone, b.countryCode)}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 text-base font-medium text-foreground">{b.city}</td>
-                      <td className="px-4 py-3.5 text-base font-medium text-foreground">{b.brandName}</td>
-                      <td className="px-4 py-3.5 text-base font-medium text-foreground">{b.carModel}</td>
-                      <td className="px-4 py-3.5 text-base font-medium text-foreground">{b.fuelType}</td>
-                      <td className="px-4 py-3.5"><StatusBadge status={b.status} size="md" /></td>
-                      <td className="px-4 py-3.5 text-base text-muted-foreground whitespace-nowrap">{getRelativeTime(b.createdAt)}</td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center justify-center gap-2">
-                          <a 
-                            href={`tel:${b.phone}`} 
-                            className="p-2.5 rounded-xl hover:bg-green-500/10 text-green-600 transition-colors" 
-                            title="Call"
-                          >
-                            <Phone size={18} />
-                          </a>
-                          <button 
-                            onClick={() => openPanel(b)} 
-                            className="p-2.5 rounded-xl hover:bg-primary/10 text-primary transition-colors" 
-                            title="View Details"
-                          >
-                            <Eye size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                      booking={b} 
+                      index={i}
+                      pageOffset={pageOffset}
+                      isSelected={selectedIds.has(b._id)} 
+                      onToggleSelect={() => toggleSelect(b._id)} 
+                      onView={() => openPanel(b)} 
+                    />
                   ))}
                 </tbody>
               </table>
             </div>
 
-            {/* Empty State */}
+            {/* Desktop Empty State */}
             {!bookings.length && (
               <div className="text-center py-16">
-                <Calendar size={56} className="text-muted-foreground/30 mx-auto mb-4" />
-                <p className="text-xl font-semibold text-foreground">No bookings found</p>
-                <p className="text-base text-muted-foreground mt-2">Try adjusting your search or filters</p>
+                <Calendar size={48} className="text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-lg font-semibold text-foreground">No bookings found</p>
+                <p className="text-sm text-muted-foreground mt-2">Try adjusting your search or filters</p>
                 {hasFilters && (
                   <button 
-                    onClick={clearFilters} 
-                    className="mt-6 px-6 py-3 bg-primary text-primary-foreground rounded-xl text-base font-semibold hover:bg-primary/90 transition-colors"
+                    onClick={clearAllFilters} 
+                    className="mt-4 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
                   >
                     Clear All Filters
                   </button>
@@ -1255,29 +1411,12 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
             )}
           </div>
         </div>
-
-        {/* Mobile Empty State */}
-        {!bookings.length && (
-          <div className="lg:hidden text-center py-16 px-6">
-            <Calendar size={56} className="text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-xl font-semibold text-foreground">No bookings found</p>
-            <p className="text-base text-muted-foreground mt-2">Try adjusting your search or filters</p>
-            {hasFilters && (
-              <button 
-                onClick={clearFilters} 
-                className="mt-6 px-6 py-3 bg-primary text-primary-foreground rounded-xl text-base font-semibold"
-              >
-                Clear All Filters
-              </button>
-            )}
-          </div>
-        )}
       </div>
 
       {/* COMPACT PAGINATION */}
-      <div className="flex-shrink-0 px-4 py-1.5 lg:px-6 border-t border-border bg-card flex items-center justify-between gap-2">
+      <div className="flex-shrink-0 px-3 py-2 lg:px-4 border-t border-border bg-card flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground hidden sm:inline">Rows:</span>
+          <span className="text-sm text-muted-foreground hidden sm:inline">Show:</span>
           <select 
             value={limit} 
             onChange={(e) => { setLimit(+e.target.value); setPage(1); }} 
@@ -1286,28 +1425,28 @@ export const BookingsManagement: React.FC<BookingsManagementProps> = () => {
             {PAGE_SIZES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
-            <span className="hidden sm:inline">{(page - 1) * limit + 1}-{Math.min(page * limit, total)} of </span>
             <span className="font-semibold text-foreground">{total}</span>
+            <span className="hidden sm:inline"> total</span>
           </span>
-          <div className="flex items-center">
+          <div className="flex items-center border border-border rounded-lg overflow-hidden">
             <button 
               onClick={() => setPage(p => Math.max(1, p - 1))} 
               disabled={page === 1} 
-              className="p-1 rounded-lg hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors border-r border-border"
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={16} />
             </button>
-            <span className="px-2 text-sm font-medium min-w-[50px] text-center">
-              {page}/{totalPages}
+            <span className="px-3 py-1 text-sm font-medium bg-secondary/30 min-w-[60px] text-center">
+              {page} / {totalPages}
             </span>
             <button 
               onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
               disabled={page === totalPages} 
-              className="p-1 rounded-lg hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-1.5 hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors border-l border-border"
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={16} />
             </button>
           </div>
         </div>
