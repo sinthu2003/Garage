@@ -2,6 +2,7 @@
 // ADMIN PORTAL - MAIN EXPORTS
 // ============================================
 
+
 // Components
 export { AdminPanel } from './components/AdminPanel';
 
@@ -25,6 +26,9 @@ export {
   PagesEditor,
   editorConfig,
 } from './components/editors';
+export { Dashboard } from './components/Dashboard';
+export { BookingsManagement } from './components/Bookingsmanagement';
+export { ContactInquiries } from './components/ContactInquiries';
 
 // Context
 export { ContentProvider, useContent, ContentContext } from './context/ContentContext';

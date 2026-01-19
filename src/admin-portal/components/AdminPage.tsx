@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
-
   Undo2,
   Redo2,
   RotateCcw,
@@ -37,12 +36,17 @@ import {
   Search,
   Save,
   AlertCircle,
+  LayoutDashboard,
+  Calendar,
+  Mail,
+  PanelLeft,
+  ChevronDown,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useContent } from '../context/ContentContext';
-import { 
-  editorConfig, 
+import {
+  editorConfig,
   type EditorId,
   SectionPreviewWrapper,
   getPreviewUrl,
@@ -66,6 +70,16 @@ import {
   PagesEditor,
 } from './editors';
 
+// Import admin screens
+import { Dashboard } from '../index';
+import { BookingsManagement } from '../index';
+import { ContactInquiries } from '../index';
+
+// ============================================
+// TYPES & INTERFACES
+// ============================================
+type AdminView = 'dashboard' | 'bookings' | 'inquiries' | 'cms';
+
 // Icon mapping
 const iconMap: Record<string, React.FC<{ className?: string }>> = {
   Sparkles,
@@ -85,7 +99,7 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   FileText,
 };
 
-// Editor component mapping - Updated type to support onPageChange and onEditingIndexChange callbacks
+// Editor component mapping
 const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageChange?: (page: 'services' | 'notFound' | 'faqSection' | 'contactPage') => void; onEditingIndexChange?: (index: number | null) => void }>> = {
   HeroEditor,
   ServicesEditor,
@@ -105,15 +119,47 @@ const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageCha
   PagesEditor,
 };
 
-/**
- * AdminPage - Full Page Admin with Clean Two-Panel Layout
- * Left: Editor Fields (30%) | Right: Live Preview (70%)
- * Sidebar opens on hover
- * Now with dynamic Pages preview support and Apply Changes button
- */
+// Main navigation sections with enhanced styling
+const mainSections: { id: AdminView; label: string; icon: React.FC<{ className?: string }>; description: string }[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Overview & Analytics' },
+  { id: 'bookings', label: 'Bookings', icon: Calendar, description: 'Manage Appointments' },
+  { id: 'inquiries', label: 'Inquiries', icon: Mail, description: 'Customer Messages' },
+  { id: 'cms', label: 'CMS Editor', icon: PanelLeft, description: 'Content Management' },
+];
+
+// ============================================
+// ANIMATION VARIANTS
+// ============================================
+const pageTransition = {
+  initial: { opacity: 0, y: 8, scale: 0.99 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.4,
+      ease: [0.25, 0.46, 0.45, 0.94] as const,
+    }
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    scale: 0.99,
+    transition: { duration: 0.25 }
+  }
+};
+
+const sidebarItemVariants = {
+  hover: { x: 4, transition: { duration: 0.2 } },
+  tap: { scale: 0.98 }
+};
+
+// ============================================
+// ADMIN PAGE COMPONENT
+// ============================================
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isLoading, logout } = useAuth(); // NEW: Auth hook
+  const { user, isLoading, logout } = useAuth();
   const {
     content,
     undo,
@@ -124,17 +170,16 @@ export const AdminPage: React.FC = () => {
     hasUnsavedChanges,
     applyChanges,
     discardChanges,
-    // [NEW] Lazy loading functions
     loadSection,
     loadServices,
     loadCarBrands,
   } = useContent();
 
-  // [NEW] Editor ID to section name mapping for lazy loading
+  // Editor ID to section name mapping
   const editorToSectionMap: Record<string, keyof typeof content | 'services-api' | 'carBrands-api' | 'bookingWidget+carBrands'> = {
     hero: 'hero',
     services: 'services',
-    serviceDetail: 'services-api',  // Uses services API
+    serviceDetail: 'services-api',
     pricing: 'pricing',
     testimonials: 'testimonials',
     faq: 'faq',
@@ -143,15 +188,16 @@ export const AdminPage: React.FC = () => {
     partners: 'partners',
     gallery: 'gallery',
     beforeAfter: 'beforeAfter',
-    navbar: 'global',  // [FIX] Navbar content is inside global (brand, navbar)
+    navbar: 'global',
     footer: 'footer',
     global: 'global',
-    bookingWidget: 'bookingWidget+carBrands',  // [FIX] Load both section content AND car brands
+    bookingWidget: 'bookingWidget+carBrands',
     pages: 'pages',
   };
 
   // Core states
   const [isDarkMode] = useState(true);
+  const [activeView, setActiveView] = useState<AdminView>('dashboard');
   const [activeEditor, setActiveEditor] = useState<EditorId>('hero');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [sidebarHovered, setSidebarHovered] = useState(false);
@@ -162,34 +208,32 @@ export const AdminPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isApplying, setIsApplying] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Two-panel layout states
   const [previewVisible, setPreviewVisible] = useState(true);
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
-  const [editorPanelWidth, setEditorPanelWidth] = useState(30); // 30% for editor
+  const [editorPanelWidth, setEditorPanelWidth] = useState(30);
   const [isResizing, setIsResizing] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
 
-  // Pages preview state - tracks which page tab is selected
+  // Pages preview state
   const [pagesPreviewId, setPagesPreviewId] = useState<'servicesPage' | 'notFoundPage'>('servicesPage');
-
-  // NEW: FAQ preview state - tracks which FAQ tab is selected
   const [faqPreviewId, setFaqPreviewId] = useState<'faqSection' | 'contactPage'>('faqSection');
-
-  // ServiceDetail editing index state - tracks which service is being edited
   const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null);
 
   const resizeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sidebarTimeoutRef = useRef<number | null>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Handler for pages tab change
   const handlePagesTabChange = useCallback((page: 'services' | 'notFound') => {
     setPagesPreviewId(page === 'services' ? 'servicesPage' : 'notFoundPage');
   }, []);
 
-  // NEW: Handler for FAQ tab change
+  // Handler for FAQ tab change
   const handleFAQTabChange = useCallback((tab: 'faqSection' | 'contactPage') => {
     setFaqPreviewId(tab);
   }, []);
@@ -199,7 +243,7 @@ export const AdminPage: React.FC = () => {
     setEditingServiceIndex(index);
   }, []);
 
-  // Calculate effective preview ID - uses pagesPreviewId when editing pages, faqPreviewId when editing FAQ
+  // Calculate effective preview ID
   const effectivePreviewId = (() => {
     if (activeEditor === 'pages') return pagesPreviewId;
     if (activeEditor === 'faq') return faqPreviewId;
@@ -213,43 +257,41 @@ export const AdminPage: React.FC = () => {
       editor.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // NEW: Auth check - redirect to login if not authenticated
+  // Auth check
   useEffect(() => {
     if (!isLoading && !user) {
       navigate('/admin/login');
     }
   }, [user, isLoading, navigate]);
 
-  // [NEW] Lazy load section data when tab changes
+  // Lazy load section data when tab changes
   useEffect(() => {
+    if (activeView !== 'cms') return;
+
     const sectionKey = editorToSectionMap[activeEditor];
     if (!sectionKey) return;
 
     if (sectionKey === 'services-api') {
-      // Load services from separate API
       loadServices?.();
     } else if (sectionKey === 'carBrands-api') {
-      // Load car brands from separate API
-      loadCarBrands?.(true); // true = include models
+      loadCarBrands?.(true);
     } else if (sectionKey === 'bookingWidget+carBrands') {
-      // [FIX] BookingWidget needs BOTH: section content (labels, cities, etc.) AND car brands
       loadSection?.('bookingWidget');
-      loadCarBrands?.(true); // true = include models
+      loadCarBrands?.(true);
     } else {
-      // Load section from content API
       loadSection?.(sectionKey as keyof typeof content);
     }
-  }, [activeEditor, loadSection, loadServices, loadCarBrands]);
+  }, [activeView, activeEditor, loadSection, loadServices, loadCarBrands]);
 
-    // Check for mobile/tablet viewport
+  // Viewport check
   useEffect(() => {
     const checkViewport = () => {
       const width = window.innerWidth;
       const mobile = width < 768;
       const tablet = width >= 768 && width < 1024;
-      
+
       setIsMobile(mobile);
-      
+
       if (mobile) {
         setSidebarCollapsed(true);
         setPreviewVisible(false);
@@ -260,33 +302,37 @@ export const AdminPage: React.FC = () => {
         setEditorPanelWidth(30);
       }
     };
-    
+
     checkViewport();
     window.addEventListener('resize', checkViewport);
     return () => window.removeEventListener('resize', checkViewport);
   }, []);
 
-  // Refresh preview when content changes (debounced)
+  // Refresh preview when content changes
   useEffect(() => {
+    if (activeView !== 'cms') return;
     const timer = setTimeout(() => {
       setPreviewKey(k => k + 1);
     }, 300);
     return () => clearTimeout(timer);
-  }, [content]);
+  }, [content, activeView]);
 
-  // Reset editingServiceIndex when switching away from serviceDetail editor
+  // Reset states when switching editors
   useEffect(() => {
-    if (activeEditor !== 'serviceDetail') {
-      setEditingServiceIndex(null);
-    }
+    if (activeEditor !== 'serviceDetail') setEditingServiceIndex(null);
+    if (activeEditor !== 'faq') setFaqPreviewId('faqSection');
   }, [activeEditor]);
 
-  // NEW: Reset faqPreviewId when switching away from FAQ editor
+  // Close user menu on outside click
   useEffect(() => {
-    if (activeEditor !== 'faq') {
-      setFaqPreviewId('faqSection');
-    }
-  }, [activeEditor]);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Show notification
   const showNotification = (type: 'success' | 'error', message: string) => {
@@ -297,7 +343,7 @@ export const AdminPage: React.FC = () => {
   // Handle Apply Changes
   const handleApplyChanges = async () => {
     if (!hasUnsavedChanges) return;
-    
+
     setIsApplying(true);
     try {
       await applyChanges();
@@ -310,7 +356,7 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  // NEW: Handle logout
+  // Handle logout
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
@@ -337,17 +383,19 @@ export const AdminPage: React.FC = () => {
     setActiveEditor(editorId);
     setSidebarCollapsed(true);
     setSidebarHovered(false);
-    if (isMobile) {
-      setMobileSidebarOpen(false);
-    }
+    if (isMobile) setMobileSidebarOpen(false);
     setPreviewKey(k => k + 1);
+  };
+
+  // Handle view selection
+  const handleViewSelect = (view: AdminView) => {
+    setActiveView(view);
+    if (isMobile) setMobileSidebarOpen(false);
   };
 
   // Handle sidebar hover
   const handleSidebarMouseEnter = () => {
-    if (sidebarTimeoutRef.current) {
-      clearTimeout(sidebarTimeoutRef.current);
-    }
+    if (sidebarTimeoutRef.current) clearTimeout(sidebarTimeoutRef.current);
     setSidebarHovered(true);
   };
 
@@ -360,9 +408,7 @@ export const AdminPage: React.FC = () => {
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (sidebarTimeoutRef.current) {
-        clearTimeout(sidebarTimeoutRef.current);
-      }
+      if (sidebarTimeoutRef.current) clearTimeout(sidebarTimeoutRef.current);
     };
   }, []);
 
@@ -375,20 +421,18 @@ export const AdminPage: React.FC = () => {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !containerRef.current) return;
-      
+
       const container = containerRef.current;
       const containerRect = container.getBoundingClientRect();
-      const sidebarWidth = (sidebarCollapsed && !sidebarHovered) ? 56 : 220;
+      const sidebarWidth = (sidebarCollapsed && !sidebarHovered) ? 64 : 240;
       const availableWidth = containerRect.width - sidebarWidth;
       const mouseX = e.clientX - containerRect.left - sidebarWidth;
       const newWidth = (mouseX / availableWidth) * 100;
-      
+
       setEditorPanelWidth(Math.min(Math.max(newWidth, 25), 50));
     };
 
-    const handleMouseUp = () => {
-      setIsResizing(false);
-    };
+    const handleMouseUp = () => setIsResizing(false);
 
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -405,9 +449,9 @@ export const AdminPage: React.FC = () => {
     };
   }, [isResizing, sidebarCollapsed, sidebarHovered]);
 
-  // Preview actions - UPDATED to use effectivePreviewId
+  // Preview actions
   const refreshPreview = () => setPreviewKey((k) => k + 1);
-  
+
   const copyPreviewUrl = () => {
     const url = window.location.origin + getPreviewUrl(effectivePreviewId);
     navigator.clipboard.writeText(url);
@@ -424,7 +468,7 @@ export const AdminPage: React.FC = () => {
   const activeEditorConfig = editorConfig.find((e) => e.id === activeEditor);
   const EditorComponent = activeEditorConfig ? editorComponents[activeEditorConfig.component] : null;
 
-  // Render the editor component with special handling for PagesEditor, FAQEditor, and ServiceDetailEditor
+  // Render the editor component with special handling
   const renderEditorComponent = () => {
     if (!EditorComponent) {
       return (
@@ -434,37 +478,18 @@ export const AdminPage: React.FC = () => {
       );
     }
 
-    // Special handling for PagesEditor to pass the callback
     if (activeEditor === 'pages') {
-      return (
-        <PagesEditor 
-          isDarkMode={isDarkMode} 
-          onPageChange={handlePagesTabChange}
-        />
-      );
+      return <PagesEditor isDarkMode={isDarkMode} onPageChange={handlePagesTabChange} />;
     }
 
-    // NEW: Special handling for FAQEditor to pass the callback
     if (activeEditor === 'faq') {
-      return (
-        <FAQEditor 
-          isDarkMode={isDarkMode} 
-          onPageChange={handleFAQTabChange}
-        />
-      );
+      return <FAQEditor isDarkMode={isDarkMode} onPageChange={handleFAQTabChange} />;
     }
 
-    // Special handling for ServiceDetailEditor to pass the editing index callback
     if (activeEditor === 'serviceDetail') {
-      return (
-        <ServiceDetailEditor 
-          isDarkMode={isDarkMode} 
-          onEditingIndexChange={handleServiceEditingIndexChange}
-        />
-      );
+      return <ServiceDetailEditor isDarkMode={isDarkMode} onEditingIndexChange={handleServiceEditingIndexChange} />;
     }
 
-    // All other editors
     return <EditorComponent isDarkMode={isDarkMode} />;
   };
 
@@ -505,32 +530,60 @@ export const AdminPage: React.FC = () => {
   // Theme class helper
   const themeClass = (dark: string, light: string) => isDarkMode ? dark : light;
 
-  // Determine if sidebar should be expanded (hovered or explicitly expanded)
+  // Determine if sidebar should be expanded
   const isSidebarExpanded = !sidebarCollapsed || sidebarHovered;
 
-  // NEW: Show loading while checking auth
+  // Get current view title and description
+  const getCurrentViewInfo = () => {
+    const section = mainSections.find(s => s.id === activeView);
+    if (activeView === 'cms') {
+      return {
+        title: activeEditorConfig?.label || 'CMS Editor',
+        description: 'Edit website content'
+      };
+    }
+    return {
+      title: section?.label || 'Admin',
+      description: section?.description || ''
+    };
+  };
+
+  const viewInfo = getCurrentViewInfo();
+
+  // Loading state
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-primary/20 rounded-full" />
+            <motion.div
+              className="absolute inset-0 w-16 h-16 border-4 border-primary border-t-transparent rounded-full"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            />
+          </div>
+          <p className="text-muted-foreground mt-4 font-medium">Loading admin panel...</p>
+        </motion.div>
       </div>
     );
   }
 
-  // NEW: Don't render if not authenticated
-  if (!user) {
-    return null;
-  }
+  // Don't render if not authenticated
+  if (!user) return null;
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`h-screen flex overflow-hidden ${themeClass('bg-background text-foreground', 'bg-gray-50 text-gray-900')}`}
     >
-      {/* Mobile Sidebar Overlay */}
+      {/* ============================================ */}
+      {/* MOBILE SIDEBAR OVERLAY */}
+      {/* ============================================ */}
       <AnimatePresence>
         {mobileSidebarOpen && isMobile && (
           <>
@@ -538,89 +591,137 @@ export const AdminPage: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
               onClick={() => setMobileSidebarOpen(false)}
             />
             <motion.div
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className={`fixed left-0 top-0 bottom-0 z-50 w-[280px] flex flex-col ${themeClass('bg-card border-border', 'bg-white border-gray-200')} border-r shadow-xl`}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className={`fixed left-0 top-0 bottom-0 z-50 w-[300px] flex flex-col ${themeClass('bg-card border-border', 'bg-white border-gray-200')} border-r shadow-2xl`}
             >
               {/* Mobile Sidebar Header */}
-              <div className="p-4 flex items-center justify-between border-b border-border">
+              <div className="p-5 flex items-center justify-between border-b border-border bg-gradient-to-r from-primary/5 to-transparent">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/25">
                     <Sparkles className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-foreground">CMS Editor</h2>
-                    <p className="text-xs text-muted-foreground">Content Manager</p>
+                    <h2 className="font-bold text-foreground text-lg">Admin Panel</h2>
+                    <p className="text-xs text-muted-foreground">{user?.name || 'Administrator'}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setMobileSidebarOpen(false)}
-                  className="p-2 rounded-xl hover:bg-secondary text-muted-foreground"
+                  className="p-2 rounded-xl hover:bg-secondary text-muted-foreground transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Mobile Search */}
-              <div className="p-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Search sections..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm ${themeClass('bg-secondary text-foreground', 'bg-gray-100 text-gray-900')} focus:outline-none`}
-                  />
+              {/* Mobile Main Navigation */}
+              <div className="p-4">
+                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-3 px-1">Navigation</p>
+                <div className="space-y-1">
+                  {mainSections.map((section) => {
+                    const Icon = section.icon;
+                    const isActive = activeView === section.id;
+
+                    return (
+                      <motion.button
+                        key={section.id}
+                        onClick={() => handleViewSelect(section.id)}
+                        variants={sidebarItemVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
+                            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                            : 'hover:bg-secondary/70 text-foreground'
+                          }`}
+                      >
+                        <Icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                        <div className="text-left">
+                          <span className="text-sm font-semibold block">{section.label}</span>
+                          <span className={`text-[10px] ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                            {section.description}
+                          </span>
+                        </div>
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Mobile Section List */}
-              <div className="flex-1 overflow-y-auto py-2">
-                {filteredEditors.map((editor) => {
-                  const Icon = iconMap[editor.icon] || Sparkles;
-                  const isActive = activeEditor === editor.id;
+              {/* Mobile CMS Search - Only show when CMS is active */}
+              {activeView === 'cms' && (
+                <>
+                  <div className="px-4 pb-2">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Search sections..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm ${themeClass('bg-secondary text-foreground', 'bg-gray-100 text-gray-900')} border border-border focus:border-primary/50 focus:outline-none transition-colors`}
+                      />
+                    </div>
+                  </div>
 
-                  return (
-                    <button
-                      key={editor.id}
-                      onClick={() => handleEditorSelect(editor.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 transition-all ${
-                        isActive
-                          ? 'bg-primary/10 border-r-2 border-primary'
-                          : 'hover:bg-secondary/50'
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                      <span className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>
-                        {editor.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                  {/* Mobile Section List */}
+                  <div className="flex-1 overflow-y-auto px-4 py-2">
+                    <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 px-1">Content Sections</p>
+                    <div className="space-y-1">
+                      {filteredEditors.map((editor) => {
+                        const Icon = iconMap[editor.icon] || Sparkles;
+                        const isActive = activeEditor === editor.id;
+
+                        return (
+                          <button
+                            key={editor.id}
+                            onClick={() => handleEditorSelect(editor.id)}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${isActive
+                                ? 'bg-primary/10 text-primary border border-primary/20'
+                                : 'hover:bg-secondary/50 text-foreground'
+                              }`}
+                          >
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                            <span className={`text-sm font-medium ${isActive ? 'text-primary' : ''}`}>
+                              {editor.label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Mobile Footer */}
-              <div className="p-4 border-t border-border space-y-2">
-                <button 
-                  onClick={() => setShowResetConfirm(true)} 
-                  className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl text-sm font-medium bg-destructive/10 text-destructive hover:bg-destructive/20"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Reset
-                </button>
-                <button 
-                  onClick={() => navigate('/')} 
-                  className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl text-sm font-medium bg-primary text-primary-foreground"
+              <div className="mt-auto p-4 border-t border-border space-y-2">
+                {activeView === 'cms' && (
+                  <button
+                    onClick={() => setShowResetConfirm(true)}
+                    className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Reset Content
+                  </button>
+                )}
+                <button
+                  onClick={() => navigate('/')}
+                  className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-lg shadow-primary/25"
                 >
                   <Home className="w-4 h-4" />
-                  View Site
+                  View Website
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
                 </button>
               </div>
             </motion.div>
@@ -628,30 +729,35 @@ export const AdminPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Desktop Sidebar - Hover to Expand */}
+      {/* ============================================ */}
+      {/* DESKTOP SIDEBAR */}
+      {/* ============================================ */}
       <motion.aside
-        animate={{ width: isSidebarExpanded ? 220 : 56 }}
-        transition={{ duration: 0.2 }}
+        animate={{ width: isSidebarExpanded ? 240 : 64 }}
+        transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
         onMouseEnter={handleSidebarMouseEnter}
         onMouseLeave={handleSidebarMouseLeave}
-        className={`hidden md:flex flex-shrink-0 flex-col border-r ${themeClass('bg-card border-border', 'bg-white border-gray-200')} relative z-10`}
+        className={`hidden md:flex flex-shrink-0 flex-col border-r ${themeClass('bg-card/50 border-border backdrop-blur-xl', 'bg-white/80 border-gray-200 backdrop-blur-xl')} relative z-10`}
       >
         {/* Sidebar Header */}
         <div className={`p-3 border-b ${themeClass('border-border', 'border-gray-200')} flex items-center ${isSidebarExpanded ? 'justify-between' : 'justify-center'}`}>
           {isSidebarExpanded ? (
             <>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary to-primary/80 flex items-center justify-center shadow-md shadow-primary/20">
                   <Sparkles className="w-4 h-4 text-primary-foreground" />
                 </div>
-                <span className="font-semibold text-sm text-foreground">CMS Editor</span>
+                <div className="overflow-hidden">
+                  <span className="font-bold text-sm text-foreground block">Admin Panel</span>
+                  <p className="text-[10px] text-muted-foreground truncate">{user?.name}</p>
+                </div>
               </div>
               <button
                 onClick={() => {
                   setSidebarCollapsed(true);
                   setSidebarHovered(false);
                 }}
-                className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
+                className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors"
                 title="Collapse Sidebar"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -660,7 +766,7 @@ export const AdminPage: React.FC = () => {
           ) : (
             <button
               onClick={() => setSidebarCollapsed(false)}
-              className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center hover:opacity-90 transition-opacity"
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary to-primary/80 flex items-center justify-center hover:shadow-lg hover:shadow-primary/30 transition-shadow"
               title="Expand Sidebar"
             >
               <Sparkles className="w-4 h-4 text-primary-foreground" />
@@ -668,386 +774,519 @@ export const AdminPage: React.FC = () => {
           )}
         </div>
 
-        {/* Search - Only when expanded */}
-        {isSidebarExpanded && (
-          <div className="p-3 border-b border-border">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full pl-9 pr-3 py-2 rounded-lg text-sm ${themeClass('bg-secondary border-border text-foreground', 'bg-gray-100 border-gray-200 text-gray-900')} border focus:outline-none focus:ring-2 focus:ring-primary/20`}
-              />
-            </div>
+        {/* Main Navigation Section */}
+        <div className={`py-3 border-b ${themeClass('border-border', 'border-gray-200')}`}>
+          {isSidebarExpanded && (
+            <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider px-4 mb-2">Navigation</p>
+          )}
+          <div className={`space-y-1 ${isSidebarExpanded ? 'px-2' : 'px-1'}`}>
+            {mainSections.map((section) => {
+              const Icon = section.icon;
+              const isActive = activeView === section.id;
+
+              return (
+                <motion.button
+                  key={section.id}
+                  onClick={() => handleViewSelect(section.id)}
+                  title={!isSidebarExpanded ? section.label : undefined}
+                  variants={sidebarItemVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  className={`w-full flex items-center gap-2.5 py-2.5 rounded-xl transition-all ${isActive
+                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                      : 'hover:bg-secondary/70 text-foreground'
+                    } ${isSidebarExpanded ? 'px-3' : 'justify-center px-2'}`}
+                >
+                  <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                  {isSidebarExpanded && (
+                    <span className={`text-sm font-medium truncate ${isActive ? '' : ''}`}>
+                      {section.label}
+                    </span>
+                  )}
+                </motion.button>
+              );
+            })}
           </div>
-        )}
-
-        {/* Section List */}
-        <div className="flex-1 overflow-y-auto py-1">
-          {filteredEditors.map((editor) => {
-            const Icon = iconMap[editor.icon] || Sparkles;
-            const isActive = activeEditor === editor.id;
-
-            return (
-              <button
-                key={editor.id}
-                onClick={() => handleEditorSelect(editor.id)}
-                title={!isSidebarExpanded ? editor.label : undefined}
-                className={`w-full flex items-center gap-2.5 py-2.5 transition-all ${
-                  isActive
-                    ? 'bg-primary/10 border-r-2 border-primary'
-                    : 'hover:bg-secondary/50'
-                } ${isSidebarExpanded ? 'px-3' : 'justify-center px-2'}`}
-              >
-                <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                {isSidebarExpanded && (
-                  <span className={`text-sm font-medium truncate ${isActive ? 'text-primary' : 'text-foreground'}`}>
-                    {editor.label}
-                  </span>
-                )}
-              </button>
-            );
-          })}
         </div>
 
+        {/* CMS Section List - Only show when CMS is active */}
+        {activeView === 'cms' && (
+          <>
+            {/* Search - Only when expanded */}
+            {isSidebarExpanded && (
+              <div className="p-3 border-b border-border">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={`w-full pl-9 pr-3 py-2 rounded-lg text-sm ${themeClass('bg-secondary border-border text-foreground', 'bg-gray-100 border-gray-200 text-gray-900')} border focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Section List */}
+            <div className="flex-1 overflow-y-auto py-2 custom-scrollbar">
+              {isSidebarExpanded && (
+                <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider px-4 mb-2">Content</p>
+              )}
+              <div className={`space-y-0.5 ${isSidebarExpanded ? 'px-2' : 'px-1'}`}>
+                {filteredEditors.map((editor) => {
+                  const Icon = iconMap[editor.icon] || Sparkles;
+                  const isActive = activeEditor === editor.id;
+
+                  return (
+                    <motion.button
+                      key={editor.id}
+                      onClick={() => handleEditorSelect(editor.id)}
+                      title={!isSidebarExpanded ? editor.label : undefined}
+                      variants={sidebarItemVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                      className={`w-full flex items-center gap-2.5 py-2 rounded-lg transition-all ${isActive
+                          ? 'bg-primary/10 text-primary'
+                          : 'hover:bg-secondary/50 text-foreground'
+                        } ${isSidebarExpanded ? 'px-3' : 'justify-center px-2'}`}
+                    >
+                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                      {isSidebarExpanded && (
+                        <span className={`text-[13px] font-medium truncate ${isActive ? 'text-primary' : ''}`}>
+                          {editor.label}
+                        </span>
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Sidebar Footer */}
-        <div className={`p-2 border-t ${themeClass('border-border', 'border-gray-200')}`}>
+        <div className={`p-2 border-t ${themeClass('border-border', 'border-gray-200')} mt-auto`}>
           {isSidebarExpanded ? (
             <div className="space-y-1">
-              <button 
-                onClick={() => setShowResetConfirm(true)} 
-                className="w-full flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs bg-destructive/10 text-destructive hover:bg-destructive/20"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Reset
-              </button>
-              <button 
-                onClick={() => navigate('/')} 
-                className="w-full flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs bg-primary text-primary-foreground hover:bg-primary/90"
+              {activeView === 'cms' && (
+                <button
+                  onClick={() => setShowResetConfirm(true)}
+                  className="w-full flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Reset
+                </button>
+              )}
+              <button
+                onClick={() => navigate('/')}
+                className="w-full flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 <Home className="w-3.5 h-3.5" />
                 View Site
               </button>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Logout
+              </button>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-1">
-              <button 
-                onClick={() => setShowResetConfirm(true)} 
-                className="p-2 rounded-lg hover:bg-destructive/10 text-destructive" 
-                title="Reset"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-              <button 
-                onClick={() => navigate('/')} 
-                className="p-2 rounded-lg bg-primary text-primary-foreground" 
+              {activeView === 'cms' && (
+                <button
+                  onClick={() => setShowResetConfirm(true)}
+                  className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
+                  title="Reset"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                onClick={() => navigate('/')}
+                className="p-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                 title="View Site"
               >
                 <Home className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
               </button>
             </div>
           )}
         </div>
       </motion.aside>
 
-      {/* Main Content Area */}
+      {/* ============================================ */}
+      {/* MAIN CONTENT AREA */}
+      {/* ============================================ */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {/* Top Header Bar */}
-        <header className={`flex items-center justify-between px-3 py-2 border-b ${themeClass('bg-card border-border', 'bg-white border-gray-200')}`}>
-          <div className="flex items-center gap-2">
+        {/* ============================================ */}
+        {/* UNIFIED HEADER - STABLE FOR ALL SCREENS */}
+        {/* ============================================ */}
+        <header className={`flex-shrink-0 flex items-center justify-between h-14 px-4 border-b ${themeClass('bg-card/80 border-border backdrop-blur-xl', 'bg-white/80 border-gray-200 backdrop-blur-xl')} z-20`}>
+          <div className="flex items-center gap-3">
             {/* Mobile Menu Button */}
-            <button 
-              onClick={() => setMobileSidebarOpen(true)} 
-              className="md:hidden p-2 rounded-lg hover:bg-secondary text-foreground"
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden p-2 rounded-xl hover:bg-secondary text-foreground transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Section Title */}
-            <h2 className="font-semibold text-foreground text-sm sm:text-base">
-              {activeEditorConfig?.label || 'Editor'}
-            </h2>
-
-            {/* Unsaved Changes Indicator */}
-            <AnimatePresence>
-              {hasUnsavedChanges && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500/10"
-                >
-                  <AlertCircle className="w-3 h-3 text-amber-500" />
-                  <span className="text-xs font-medium text-amber-500">Unsaved changes</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <div className="flex items-center gap-1">
-            {/* Undo/Redo */}
-            <div className="hidden sm:flex items-center gap-0.5 mr-1">
-              <button 
-                onClick={undo} 
-                disabled={!canUndo} 
-                className={`p-1.5 rounded-lg ${canUndo ? 'hover:bg-secondary text-foreground' : 'opacity-30 cursor-not-allowed'}`} 
-                title="Undo"
-              >
-                <Undo2 className="w-4 h-4" />
-              </button>
-              <button 
-                onClick={redo} 
-                disabled={!canRedo} 
-                className={`p-1.5 rounded-lg ${canRedo ? 'hover:bg-secondary text-foreground' : 'opacity-30 cursor-not-allowed'}`} 
-                title="Redo"
-              >
-                <Redo2 className="w-4 h-4" />
-              </button>
+            {/* View Title with Icon */}
+            <div className="flex items-center gap-3">
+              {(() => {
+                const currentSection = mainSections.find(s => s.id === activeView);
+                const Icon = currentSection?.icon || LayoutDashboard;
+                return (
+                  <div className={`p-2 rounded-xl ${activeView === 'cms' ? 'bg-primary/10' : 'bg-secondary'}`}>
+                    <Icon className={`w-4 h-4 ${activeView === 'cms' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </div>
+                );
+              })()}
+              <div>
+                <h2 className="font-bold text-foreground text-sm leading-none">
+                  {viewInfo.title}
+                </h2>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{viewInfo.description}</p>
+              </div>
             </div>
 
-            {/* Discard Changes Button */}
-            {hasUnsavedChanges && (
-              <button
-                onClick={() => setShowDiscardConfirm(true)}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
-                title="Discard Changes"
-              >
-                <X className="w-4 h-4" />
-                <span className="hidden lg:inline">Discard</span>
-              </button>
+            {/* Unsaved Changes Indicator (CMS only) */}
+            {activeView === 'cms' && (
+              <AnimatePresence>
+                {hasUnsavedChanges && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8, x: -10 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, x: -10 }}
+                    className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20"
+                  >
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                    </span>
+                    <span className="text-xs font-medium text-amber-600">Unsaved</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            )}
+          </div>
+
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-2">
+            {/* CMS-specific controls */}
+            {activeView === 'cms' && (
+              <>
+                {/* Undo/Redo */}
+                <div className="hidden sm:flex items-center gap-0.5 mr-1">
+                  <button
+                    onClick={undo}
+                    disabled={!canUndo}
+                    className={`p-2 rounded-lg transition-colors ${canUndo ? 'hover:bg-secondary text-foreground' : 'opacity-30 cursor-not-allowed'}`}
+                    title="Undo (Ctrl+Z)"
+                  >
+                    <Undo2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={redo}
+                    disabled={!canRedo}
+                    className={`p-2 rounded-lg transition-colors ${canRedo ? 'hover:bg-secondary text-foreground' : 'opacity-30 cursor-not-allowed'}`}
+                    title="Redo (Ctrl+Y)"
+                  >
+                    <Redo2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Discard Changes Button */}
+                {hasUnsavedChanges && (
+                  <button
+                    onClick={() => setShowDiscardConfirm(true)}
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary transition-colors"
+                    title="Discard Changes"
+                  >
+                    <X className="w-4 h-4" />
+                    <span className="hidden lg:inline">Discard</span>
+                  </button>
+                )}
+
+                {/* Apply Changes Button */}
+                <motion.button
+                  onClick={handleApplyChanges}
+                  disabled={!hasUnsavedChanges || isApplying}
+                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${hasUnsavedChanges && !isApplying
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20'
+                      : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
+                    }`}
+                  title="Apply Changes (Ctrl+S)"
+                  whileTap={hasUnsavedChanges && !isApplying ? { scale: 0.95 } : {}}
+                >
+                  {isApplying ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </motion.div>
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  <span className="hidden sm:inline">{isApplying ? 'Saving...' : 'Save'}</span>
+                </motion.button>
+
+                <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
+
+                {/* Preview Toggle */}
+                <button
+                  onClick={() => setPreviewVisible(!previewVisible)}
+                  className={`p-2 rounded-lg transition-colors ${previewVisible ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary text-muted-foreground'}`}
+                  title={`${previewVisible ? 'Hide' : 'Show'} Preview (Ctrl+P)`}
+                >
+                  {previewVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                </button>
+              </>
             )}
 
-            {/* Apply Changes Button */}
-            <motion.button
-              onClick={handleApplyChanges}
-              disabled={!hasUnsavedChanges || isApplying}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                hasUnsavedChanges && !isApplying
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
-                  : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
-              }`}
-              title="Apply Changes (Ctrl+S)"
-              whileTap={hasUnsavedChanges && !isApplying ? { scale: 0.95 } : {}}
-            >
-              {isApplying ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </motion.div>
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              <span className="hidden sm:inline">{isApplying ? 'Applying...' : 'Apply Changes'}</span>
-            </motion.button>
+            {/* User Menu */}
+            <div className="relative ml-2" ref={userMenuRef}>
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-secondary transition-colors"
+              >
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-bold text-sm shadow-sm">
+                  {user?.name?.[0]?.toUpperCase() || 'A'}
+                </div>
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform hidden sm:block ${showUserMenu ? 'rotate-180' : ''}`} />
+              </button>
 
-            <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
-
-            {/* Preview Toggle */}
-            <button
-              onClick={() => setPreviewVisible(!previewVisible)}
-              className={`p-1.5 rounded-lg ${previewVisible ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary text-muted-foreground'}`}
-              title={`${previewVisible ? 'Hide' : 'Show'} Preview`}
-            >
-              {previewVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-            </button>
-
-            {/* Dark Mode Toggle */}
-            {/* <button 
-              onClick={() => setIsDarkMode(!isDarkMode)} 
-              className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
-              title={isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            >
-              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button> */}
-
-            {/* NEW: Logout Button */}
-            <button 
-              onClick={handleLogout} 
-              className="hidden sm:flex p-1.5 rounded-lg hover:bg-destructive/10 text-destructive hover:text-destructive" 
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+              <AnimatePresence>
+                {showUserMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className={`absolute right-0 top-full mt-2 w-56 rounded-xl ${themeClass('bg-card border-border', 'bg-white border-gray-200')} border shadow-xl z-50 overflow-hidden`}
+                  >
+                    <div className="p-3 border-b border-border bg-secondary/30">
+                      <p className="font-semibold text-foreground text-sm">{user?.name}</p>
+                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    </div>
+                    <div className="p-1.5">
+                      <button
+                        onClick={() => navigate('/')}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary transition-colors"
+                      >
+                        <Home className="w-4 h-4 text-muted-foreground" />
+                        View Website
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </header>
 
-        {/* Two Panel Content Area */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Editor Panel - 30% */}
-          <motion.div
-            animate={{ 
-              width: isMobile ? '100%' : (previewVisible ? `${editorPanelWidth}%` : '100%'),
-              display: (isMobile && previewVisible) ? 'none' : 'flex'
-            }}
-            transition={{ duration: 0.2 }}
-            className="flex-shrink-0 flex flex-col overflow-hidden"
-          >
-            <div className={`flex-1 overflow-y-auto p-3 sm:p-4 ${themeClass('bg-background', 'bg-gray-50')}`}>
-              {renderEditorComponent()}
-            </div>
-
-            {/* Mobile Apply Changes Bar */}
-            {isMobile && hasUnsavedChanges && (
-              <div className={`p-3 border-t ${themeClass('border-border bg-card', 'border-gray-200 bg-white')}`}>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowDiscardConfirm(true)}
-                    className="flex-1 py-2.5 rounded-xl font-medium bg-secondary text-foreground"
-                  >
-                    Discard
-                  </button>
-                  <button
-                    onClick={handleApplyChanges}
-                    disabled={isApplying}
-                    className="flex-1 py-2.5 rounded-xl font-medium bg-primary text-primary-foreground flex items-center justify-center gap-2"
-                  >
-                    {isApplying ? (
-                      <>
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                        </motion.div>
-                        Applying...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4" />
-                        Apply Changes
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-          </motion.div>
-
-          {/* Resize Handle */}
-          {previewVisible && !isMobile && (
-            <div
-              ref={resizeRef}
-              onMouseDown={handleMouseDown}
-              className={`hidden md:flex w-1 hover:w-1.5 cursor-col-resize items-center justify-center transition-all ${
-                isResizing ? 'w-1.5 bg-primary' : themeClass('bg-border hover:bg-primary/50', 'bg-gray-200 hover:bg-primary/50')
-              }`}
-            >
-              <div className={`w-0.5 h-10 rounded-full ${isResizing ? 'bg-primary-foreground' : 'bg-muted-foreground/20'}`} />
-            </div>
-          )}
-
-          {/* Preview Panel - 70% - Desktop Only View */}
-          <AnimatePresence>
-            {previewVisible && (
+        {/* ============================================ */}
+        {/* MAIN CONTENT WITH VIEW TRANSITIONS */}
+        {/* ============================================ */}
+        <div className="flex-1 overflow-hidden">
+          <AnimatePresence mode="wait">
+            {/* Dashboard View */}
+            {activeView === 'dashboard' && (
               <motion.div
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: isMobile ? '100%' : `${100 - editorPanelWidth}%` }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.2 }}
-                className={`flex flex-col overflow-hidden ${themeClass('bg-secondary/30', 'bg-gray-100')}`}
+                key="dashboard"
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageTransition}
+                className="h-full"
               >
-                {/* Preview Header - Desktop Only (No device toggles) */}
-                <div className={`flex items-center justify-between px-3 py-2 border-b ${themeClass('bg-card border-border', 'bg-white border-gray-200')}`}>
-                  <div className="flex items-center gap-2">
-                    <Eye className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-foreground">Live Preview</span>
-                    <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-500">Real-time</span>
-                  </div>
+                <Dashboard
+                  isDarkMode={isDarkMode}
+                  onNavigate={(screen: 'bookings' | 'inquiries') => setActiveView(screen)}
+                />
+              </motion.div>
+            )}
 
-                  <div className="flex items-center gap-1">
-                    <button 
-                      onClick={refreshPreview} 
-                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
-                      title="Refresh"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                    </button>
-                    <button 
-                      onClick={copyPreviewUrl} 
-                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
-                      title="Copy URL"
-                    >
-                      {copiedUrl ? <CheckCircle className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                    <button 
-                      onClick={openInNewTab} 
-                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
-                      title="Open in New Tab"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </button>
-                    <button 
-                      onClick={() => setPreviewFullscreen(true)} 
-                      className="hidden md:flex p-1.5 rounded-lg hover:bg-secondary text-muted-foreground" 
-                      title="Fullscreen"
-                    >
-                      <Maximize2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
+            {/* Bookings View */}
+            {activeView === 'bookings' && (
+              <motion.div
+                key="bookings"
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageTransition}
+                className="h-full"
+              >
+                <BookingsManagement isDarkMode={isDarkMode} />
+              </motion.div>
+            )}
 
-                {/* Browser URL Bar - UPDATED to use effectivePreviewId */}
-                <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${themeClass('bg-secondary/50 border-border', 'bg-gray-100 border-gray-200')}`}>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                  </div>
-                  <div className={`flex-1 flex items-center gap-2 px-2 py-1 rounded-md ${themeClass('bg-background', 'bg-white')} border ${themeClass('border-border', 'border-gray-200')}`}>
-                    <div className="w-3 h-3 rounded bg-green-500/20 flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+            {/* Inquiries View */}
+            {activeView === 'inquiries' && (
+              <motion.div
+                key="inquiries"
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageTransition}
+                className="h-full"
+              >
+                <ContactInquiries isDarkMode={isDarkMode} />
+              </motion.div>
+            )}
+
+            {/* CMS View */}
+            {activeView === 'cms' && (
+              <motion.div
+                key="cms"
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageTransition}
+                className="flex-1 flex overflow-hidden h-full"
+              >
+                {/* Editor Panel */}
+                <motion.div
+                  animate={{ width: previewVisible && !isMobile ? `${editorPanelWidth}%` : '100%' }}
+                  transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className={`flex flex-col overflow-hidden border-r ${themeClass('border-border bg-card/30', 'border-gray-200 bg-gray-50/50')}`}
+                >
+                  {/* Mobile Preview Toggle */}
+                  {isMobile && (
+                    <div className="p-3 border-b border-border">
+                      <button
+                        onClick={() => setPreviewVisible(true)}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Preview Changes
+                      </button>
                     </div>
-                    <span className="text-xs text-muted-foreground truncate">
-                      {window.location.origin}{getPreviewUrl(effectivePreviewId)}
-                    </span>
-                  </div>
-                </div>
+                  )}
 
-                {/* Preview Content - Desktop Only View */}
-                <div className="flex-1 overflow-auto p-2 sm:p-3">
-                  <motion.div
-                    animate={{ width: '100%' }}
-                    transition={{ duration: 0.3 }}
-                    className="relative rounded-lg overflow-hidden shadow-xl bg-white"
-                    style={{ 
-                      minHeight: '400px',
-                      maxWidth: '100%',
-                    }}
-                  >
-                    <div className="h-full w-full overflow-auto">
-                      <SectionPreviewWrapper
-                        sectionId={effectivePreviewId}
-                        device="desktop"
-                        refreshKey={previewKey}
-                        className="h-full"
-                        editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
-                      />
-                    </div>
-                  </motion.div>
-                </div>
-
-                {/* Mobile Back Button */}
-                {isMobile && (
-                  <div className="p-3 border-t border-border">
-                    <button 
-                      onClick={() => setPreviewVisible(false)} 
-                      className="w-full py-2.5 rounded-xl bg-secondary text-foreground font-medium"
-                    >
-                      Back to Editor
-                    </button>
+                  {/* Editor Content */}
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                    {renderEditorComponent()}
                   </div>
+                </motion.div>
+
+                {/* Resize Handle */}
+                {!isMobile && previewVisible && (
+                  <div
+                    ref={resizeRef}
+                    onMouseDown={handleMouseDown}
+                    className={`w-1 hover:w-1.5 cursor-col-resize transition-all flex-shrink-0 ${isResizing ? 'bg-primary' : 'bg-border hover:bg-primary/50'
+                      }`}
+                  />
                 )}
+
+                {/* Preview Panel */}
+                <AnimatePresence>
+                  {previewVisible && (
+                    <motion.div
+                      initial={isMobile ? { x: '100%' } : { opacity: 0 }}
+                      animate={isMobile ? { x: 0 } : { opacity: 1 }}
+                      exit={isMobile ? { x: '100%' } : { opacity: 0 }}
+                      transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                      className={`flex flex-col ${isMobile ? 'fixed inset-0 z-30' : 'flex-1'} ${themeClass('bg-background', 'bg-gray-100')}`}
+                    >
+                      {/* Preview Header */}
+                      <div className={`flex items-center justify-between px-4 py-2 border-b ${themeClass('border-border bg-card/50', 'border-gray-200 bg-white/50')}`}>
+                        <div className="flex items-center gap-3">
+                          <Eye className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-medium text-sm text-foreground">Live Preview</span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <button onClick={refreshPreview} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors" title="Refresh">
+                            <RefreshCw className="w-4 h-4" />
+                          </button>
+                          <button onClick={copyPreviewUrl} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors" title="Copy URL">
+                            {copiedUrl ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                          <button onClick={openInNewTab} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors" title="Open in Tab">
+                            <ExternalLink className="w-4 h-4" />
+                          </button>
+                          {!isMobile && (
+                            <button onClick={() => setPreviewFullscreen(true)} className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground transition-colors" title="Fullscreen">
+                              <Maximize2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* URL Bar */}
+                      <div className="px-3 py-2 border-b border-border">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary text-sm">
+                          <div className="w-3 h-3 rounded bg-green-500/20 flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                          </div>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {window.location.origin}{getPreviewUrl(effectivePreviewId)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Preview Content */}
+                      <div className="flex-1 overflow-auto p-3">
+                        <motion.div
+                          animate={{ width: '100%' }}
+                          transition={{ duration: 0.3 }}
+                          className="relative rounded-xl overflow-hidden shadow-xl bg-white"
+                          style={{ minHeight: '400px', maxWidth: '100%' }}
+                        >
+                          <div className="h-full w-full overflow-auto">
+                            <SectionPreviewWrapper
+                              sectionId={effectivePreviewId}
+                              device="desktop"
+                              refreshKey={previewKey}
+                              className="h-full"
+                              editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
+                            />
+                          </div>
+                        </motion.div>
+                      </div>
+
+                      {/* Mobile Back Button */}
+                      {isMobile && (
+                        <div className="p-3 border-t border-border">
+                          <button
+                            onClick={() => setPreviewVisible(false)}
+                            className="w-full py-2.5 rounded-xl bg-secondary text-foreground font-medium"
+                          >
+                            Back to Editor
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Fullscreen Preview Modal - Desktop Only View */}
+      {/* ============================================ */}
+      {/* FULLSCREEN PREVIEW MODAL */}
+      {/* ============================================ */}
       <AnimatePresence>
         {previewFullscreen && (
           <motion.div
@@ -1065,13 +1304,13 @@ export const AdminPage: React.FC = () => {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={refreshPreview} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400">
+                <button onClick={refreshPreview} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 transition-colors">
                   <RefreshCw className="w-5 h-5" />
                 </button>
-                <button onClick={openInNewTab} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400">
+                <button onClick={openInNewTab} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 transition-colors">
                   <ExternalLink className="w-5 h-5" />
                 </button>
-                <button onClick={() => setPreviewFullscreen(false)} className="p-2 rounded-lg hover:bg-gray-800 text-white">
+                <button onClick={() => setPreviewFullscreen(false)} className="p-2 rounded-lg hover:bg-gray-800 text-white transition-colors">
                   <Minimize2 className="w-5 h-5" />
                 </button>
               </div>
@@ -1082,9 +1321,9 @@ export const AdminPage: React.FC = () => {
                 animate={{ width: '100%' }}
                 className="h-full rounded-xl overflow-hidden shadow-2xl bg-white"
               >
-                <SectionPreviewWrapper 
-                  sectionId={effectivePreviewId} 
-                  device="desktop" 
+                <SectionPreviewWrapper
+                  sectionId={effectivePreviewId}
+                  device="desktop"
                   refreshKey={previewKey}
                   editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
                 />
@@ -1094,47 +1333,49 @@ export const AdminPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Reset Confirmation Modal */}
+      {/* ============================================ */}
+      {/* RESET CONFIRMATION MODAL */}
+      {/* ============================================ */}
       <AnimatePresence>
         {showResetConfirm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setShowResetConfirm(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className={`max-w-md w-full p-6 rounded-2xl shadow-xl ${themeClass('bg-card', 'bg-white')}`}
+              className={`max-w-md w-full p-6 rounded-2xl shadow-2xl ${themeClass('bg-card', 'bg-white')}`}
             >
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
-                  <RotateCcw className="w-6 h-6 text-destructive" />
+                <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center">
+                  <RotateCcw className="w-7 h-7 text-destructive" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-foreground">Reset All Content?</h3>
+                  <h3 className="text-xl font-bold text-foreground">Reset All Content?</h3>
                   <p className="text-sm text-muted-foreground">This action cannot be undone</p>
                 </div>
               </div>
               <p className="mb-6 text-muted-foreground">
-                All content changes will be lost and reset to defaults.
+                All content changes will be permanently lost and reset to their default values.
               </p>
               <div className="flex gap-3">
-                <button 
-                  onClick={() => setShowResetConfirm(false)} 
-                  className="flex-1 py-2.5 rounded-xl font-medium bg-secondary text-foreground"
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="flex-1 py-3 rounded-xl font-medium bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
-                  onClick={handleReset} 
-                  className="flex-1 py-2.5 rounded-xl font-medium bg-destructive text-destructive-foreground"
+                <button
+                  onClick={handleReset}
+                  className="flex-1 py-3 rounded-xl font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
                 >
-                  Reset
+                  Reset Content
                 </button>
               </div>
             </motion.div>
@@ -1142,29 +1383,31 @@ export const AdminPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Discard Changes Confirmation Modal */}
+      {/* ============================================ */}
+      {/* DISCARD CHANGES MODAL */}
+      {/* ============================================ */}
       <AnimatePresence>
         {showDiscardConfirm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setShowDiscardConfirm(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className={`max-w-md w-full p-6 rounded-2xl shadow-xl ${themeClass('bg-card', 'bg-white')}`}
+              className={`max-w-md w-full p-6 rounded-2xl shadow-2xl ${themeClass('bg-card', 'bg-white')}`}
             >
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center">
-                  <AlertCircle className="w-6 h-6 text-amber-500" />
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                  <AlertCircle className="w-7 h-7 text-amber-500" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-foreground">Discard Changes?</h3>
+                  <h3 className="text-xl font-bold text-foreground">Discard Changes?</h3>
                   <p className="text-sm text-muted-foreground">Your unsaved changes will be lost</p>
                 </div>
               </div>
@@ -1172,15 +1415,15 @@ export const AdminPage: React.FC = () => {
                 Are you sure you want to discard all unsaved changes? This action cannot be undone.
               </p>
               <div className="flex gap-3">
-                <button 
-                  onClick={() => setShowDiscardConfirm(false)} 
-                  className="flex-1 py-2.5 rounded-xl font-medium bg-secondary text-foreground"
+                <button
+                  onClick={() => setShowDiscardConfirm(false)}
+                  className="flex-1 py-3 rounded-xl font-medium bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   Keep Editing
                 </button>
-                <button 
-                  onClick={handleDiscardChanges} 
-                  className="flex-1 py-2.5 rounded-xl font-medium bg-amber-500 text-white hover:bg-amber-600"
+                <button
+                  onClick={handleDiscardChanges}
+                  className="flex-1 py-3 rounded-xl font-medium bg-amber-500 text-white hover:bg-amber-600 transition-colors"
                 >
                   Discard
                 </button>
@@ -1190,16 +1433,19 @@ export const AdminPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Notification Toast */}
+      {/* ============================================ */}
+      {/* NOTIFICATION TOAST */}
+      {/* ============================================ */}
       <AnimatePresence>
         {notification && (
           <motion.div
             initial={{ opacity: 0, y: 50, x: '-50%' }}
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, y: 50, x: '-50%' }}
-            className={`fixed bottom-6 left-1/2 z-50 flex items-center gap-3 px-4 py-2.5 rounded-xl shadow-lg ${
-              notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-destructive text-destructive-foreground'
-            }`}
+            className={`fixed bottom-6 left-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl ${notification.type === 'success'
+                ? 'bg-green-500 text-white'
+                : 'bg-destructive text-destructive-foreground'
+              }`}
           >
             {notification.type === 'success' ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
             <span className="font-medium">{notification.message}</span>
