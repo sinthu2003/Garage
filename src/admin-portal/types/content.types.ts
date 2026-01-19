@@ -19,6 +19,7 @@ export interface MetaContent {
 // ============================================
 export interface BrandContent {
   name: string;
+  title?: string;
   tagline: string;
   phone: string;
   email: string;
@@ -668,9 +669,24 @@ export interface NotFoundPageContent {
   quickLinks?: NotFoundQuickLink[];
 }
 
+export interface PolicySection {
+  title: string;
+  content: string;
+}
+
+export interface PolicyContent {
+  title: string;
+  description: string;
+  lastUpdated: string;
+  sections: PolicySection[];
+}
+
 export interface PagesContent {
   services?: ServicesPageContent;
   notFound?: NotFoundPageContent;
+  termsOfService?: PolicyContent;
+  privacyPolicy?: PolicyContent;
+  warrantyPolicy?: PolicyContent;
 }
 
 // ============================================

@@ -41,6 +41,8 @@ import {
   Mail,
   PanelLeft,
   ChevronDown,
+  Shield,
+  BookOpen,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -68,6 +70,7 @@ import {
   GlobalSettingsEditor,
   BookingWidgetEditor,
   PagesEditor,
+  PrivacyPolicyEditor,
 } from './editors';
 
 // Import admin screens
@@ -100,10 +103,12 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   Globe,
   CalendarCheck,
   FileText,
+  Shield,
+  BookOpen,
 };
 
 // Editor component mapping
-const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageChange?: (page: 'services' | 'notFound' | 'faqSection' | 'contactPage') => void; onEditingIndexChange?: (index: number | null) => void }>> = {
+const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageChange?: (page: 'services' | 'notFound' | 'faqSection' | 'contactPage' | 'privacyPolicy' | 'termsOfService' | 'warrantyPolicy') => void; onEditingIndexChange?: (index: number | null) => void }>> = {
   HeroEditor,
   ServicesEditor,
   ServiceDetailEditor,
@@ -120,6 +125,7 @@ const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onPageCha
   GlobalSettingsEditor,
   BookingWidgetEditor,
   PagesEditor,
+  PrivacyPolicyEditor,
 };
 
 // Main navigation sections with enhanced styling
@@ -196,6 +202,7 @@ export const AdminPage: React.FC = () => {
     global: 'global',
     bookingWidget: 'bookingWidget+carBrands',
     pages: 'pages',
+    legal: 'pages',
   };
 
   // Core states
@@ -224,6 +231,7 @@ export const AdminPage: React.FC = () => {
   // Pages preview state
   const [pagesPreviewId, setPagesPreviewId] = useState<'servicesPage' | 'notFoundPage'>('servicesPage');
   const [faqPreviewId, setFaqPreviewId] = useState<'faqSection' | 'contactPage'>('faqSection');
+  const [legalPreviewId, setLegalPreviewId] = useState<'privacyPolicyPage' | 'termsPage' | 'warrantyPolicyPage'>('privacyPolicyPage');
   const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null);
 
   const resizeRef = useRef<HTMLDivElement>(null);
@@ -241,6 +249,11 @@ export const AdminPage: React.FC = () => {
     setFaqPreviewId(tab);
   }, []);
 
+  // Handler for Legal tab change
+  const handleLegalTabChange = useCallback((tab: 'privacyPolicy' | 'termsOfService' | 'warrantyPolicy') => {
+    setLegalPreviewId(tab === 'privacyPolicy' ? 'privacyPolicyPage' : tab === 'termsOfService' ? 'termsPage' : 'warrantyPolicyPage');
+  }, []);
+
   // Handler for service editing index change
   const handleServiceEditingIndexChange = useCallback((index: number | null) => {
     setEditingServiceIndex(index);
@@ -250,6 +263,7 @@ export const AdminPage: React.FC = () => {
   const effectivePreviewId = (() => {
     if (activeEditor === 'pages') return pagesPreviewId;
     if (activeEditor === 'faq') return faqPreviewId;
+    if (activeEditor === 'legal') return legalPreviewId;
     return activeEditor;
   })();
 
@@ -489,6 +503,11 @@ export const AdminPage: React.FC = () => {
       return <FAQEditor isDarkMode={isDarkMode} onPageChange={handleFAQTabChange} />;
     }
 
+    if (activeEditor === 'legal') {
+      // @ts-ignore
+      return <PrivacyPolicyEditor isDarkMode={isDarkMode} onPageChange={handleLegalTabChange} />;
+    }
+
     if (activeEditor === 'serviceDetail') {
       return <ServiceDetailEditor isDarkMode={isDarkMode} onEditingIndexChange={handleServiceEditingIndexChange} />;
     }
@@ -641,8 +660,8 @@ export const AdminPage: React.FC = () => {
                         whileHover="hover"
                         whileTap="tap"
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                            : 'hover:bg-secondary/70 text-foreground'
+                          ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                          : 'hover:bg-secondary/70 text-foreground'
                           }`}
                       >
                         <Icon className={`w-5 h-5 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
@@ -687,8 +706,8 @@ export const AdminPage: React.FC = () => {
                             key={editor.id}
                             onClick={() => handleEditorSelect(editor.id)}
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${isActive
-                                ? 'bg-primary/10 text-primary border border-primary/20'
-                                : 'hover:bg-secondary/50 text-foreground'
+                              ? 'bg-primary/10 text-primary border border-primary/20'
+                              : 'hover:bg-secondary/50 text-foreground'
                               }`}
                           >
                             <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -798,8 +817,8 @@ export const AdminPage: React.FC = () => {
                   whileHover="hover"
                   whileTap="tap"
                   className={`w-full flex items-center gap-2.5 py-2.5 rounded-xl transition-all ${isActive
-                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
-                      : 'hover:bg-secondary/70 text-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20'
+                    : 'hover:bg-secondary/70 text-foreground'
                     } ${isSidebarExpanded ? 'px-3' : 'justify-center px-2'}`}
                 >
                   <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
@@ -852,8 +871,8 @@ export const AdminPage: React.FC = () => {
                       whileHover="hover"
                       whileTap="tap"
                       className={`w-full flex items-center gap-2.5 py-2 rounded-lg transition-all ${isActive
-                          ? 'bg-primary/10 text-primary'
-                          : 'hover:bg-secondary/50 text-foreground'
+                        ? 'bg-primary/10 text-primary'
+                        : 'hover:bg-secondary/50 text-foreground'
                         } ${isSidebarExpanded ? 'px-3' : 'justify-center px-2'}`}
                     >
                       <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -1027,8 +1046,8 @@ export const AdminPage: React.FC = () => {
                   onClick={handleApplyChanges}
                   disabled={!hasUnsavedChanges || isApplying}
                   className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${hasUnsavedChanges && !isApplying
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20'
-                      : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/20'
+                    : 'bg-secondary text-muted-foreground cursor-not-allowed opacity-50'
                     }`}
                   title="Apply Changes (Ctrl+S)"
                   whileTap={hasUnsavedChanges && !isApplying ? { scale: 0.95 } : {}}
@@ -1451,8 +1470,8 @@ export const AdminPage: React.FC = () => {
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, y: 50, x: '-50%' }}
             className={`fixed bottom-6 left-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl ${notification.type === 'success'
-                ? 'bg-green-500 text-white'
-                : 'bg-destructive text-destructive-foreground'
+              ? 'bg-green-500 text-white'
+              : 'bg-destructive text-destructive-foreground'
               }`}
           >
             {notification.type === 'success' ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}

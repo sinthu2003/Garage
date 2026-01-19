@@ -105,12 +105,22 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                     />
                   </div>
                   <div className="space-y-2">
+                    <label className={labelClass}>Title</label>
+                    <input
+                      type="text"
+                      value={content.brand?.title || 'Automotive'}
+                      onChange={(e) => handleUpdate('brand.title', e.target.value)}
+                      placeholder="Automotive"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <label className={labelClass}>Tagline</label>
                     <input
                       type="text"
-                      value={content.brand?.tagline || 'Automotive'}
+                      value={content.brand?.tagline || 'Drive with Confidence'}
                       onChange={(e) => handleUpdate('brand.tagline', e.target.value)}
-                      placeholder="Automotive"
+                      placeholder="Drive with Confidence"
                       className={inputClass}
                     />
                   </div>
@@ -180,8 +190,8 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
 
       {/* Navigation Links */}
       <div className={sectionClass}>
-        <div 
-          onClick={() => toggleSection('navigation')} 
+        <div
+          onClick={() => toggleSection('navigation')}
           onKeyDown={(e) => e.key === 'Enter' && toggleSection('navigation')}
           role="button"
           tabIndex={0}
@@ -312,8 +322,8 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
 
                 <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
                   <p className="text-xs text-blue-600 dark:text-blue-400">
-                    💡 <strong>Tip:</strong> Use <code className="px-1 py-0.5 rounded bg-blue-500/20">#section-id</code> for 
-                    same-page scrolling or <code className="px-1 py-0.5 rounded bg-blue-500/20">/page-path</code> for 
+                    💡 <strong>Tip:</strong> Use <code className="px-1 py-0.5 rounded bg-blue-500/20">#section-id</code> for
+                    same-page scrolling or <code className="px-1 py-0.5 rounded bg-blue-500/20">/page-path</code> for
                     page navigation. Enable "Page route" for links that go to different pages.
                   </p>
                 </div>
@@ -353,6 +363,23 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                     placeholder="Book Service"
                     className={inputClass}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Main CTA button text
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>Call Now Text (Mobile)</label>
+                  <input
+                    type="text"
+                    value={content.navbar?.ctaTextMobile || 'Call Now'}
+                    onChange={(e) => handleUpdate('navbar.ctaTextMobile', e.target.value)}
+                    placeholder="Call Now"
+                    className={inputClass}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Text shown for phone link on mobile/desktop navbar
+                  </p>
                 </div>
               </div>
             </motion.div>
