@@ -2,12 +2,10 @@
  * ============================================
  * CONTENT CONTEXT (API INTEGRATED + LAZY LOADING)
  * ============================================
- * 
- * [FIX] Uses refs to prevent duplicate API calls and infinite loops
- * The key fix is removing loading states from useCallback dependencies
- * and using refs to track loading/loaded status instead.
- * 
- * @file src/context/ContentContext.tsx
+ * * [FIX] Uses refs to prevent duplicate API calls and infinite loops
+ * [FIX] Admin Init: Loads fresh data from backend immediately (no local defaults)
+ * [FIX] Reset: Uses backend response strictly (no local merging)
+ * * @file src/context/ContentContext.tsx
  */
 
 import React, {
@@ -289,21 +287,31 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
       // Check if we're in admin mode
       const isAdminMode = actualMode === 'admin' && tokenStorage.isAuthenticated();
 
-      if (isAdminMode) {
-        // ADMIN MODE: Don't load all content - sections will be lazy-loaded
-        console.log('[ContentContext] ✅ Admin mode: Initialized with defaults. Sections will be lazy-loaded on demand.');
-        setHistory([{ content: deepClone(content), timestamp: Date.now(), action: 'initial' }]);
-        setHistoryIndex(0);
-        setIsLoading(false);
-      } else {
-        // PUBLIC MODE: Load all content at once for smooth browsing
-        console.log('[ContentContext] 🔄 Public mode: Loading all content...');
-        setIsLoading(true);
-        setError(null);
+      // [FIX] Always set loading true initially
+      setIsLoading(true);
+      setError(null);
 
-        try {
-          const loadedContent = await contentApi.getPublicContent();
-          const mergedContent = deepMerge(defaultContent as SiteContent, loadedContent);
+      try {
+        if (isAdminMode) {
+          // [FIX] ADMIN MODE: Fetch fresh 'Working Content' from Backend.
+          // Do NOT use local defaults.
+          console.log('[ContentContext] 🔐 Admin mode: Loading working content from Backend...');
+          const workingContent = await contentApi.getWorkingContent();
+          const resolvedContent = resolveContentImages(workingContent);
+
+          setContent(resolvedContent);
+          setSavedContent(resolvedContent);
+          
+          // Initial history state
+          setHistory([{ content: deepClone(resolvedContent), timestamp: Date.now(), action: 'initial' }]);
+          setHistoryIndex(0);
+          
+          console.log('[ContentContext] ✅ Admin content loaded from Backend.');
+        } else {
+          // PUBLIC MODE: Load public content
+          console.log('[ContentContext] 🔄 Public mode: Loading public content...');
+          const publicContent = await contentApi.getPublicContent();
+          const mergedContent = deepMerge(defaultContent as SiteContent, publicContent);
           const resolvedContent = resolveContentImages(mergedContent);
 
           setContent(resolvedContent);
@@ -312,29 +320,29 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
           setHistoryIndex(0);
 
           console.log('[ContentContext] ✅ Public mode: All content loaded.');
-        } catch (err) {
-          console.error('[ContentContext] ❌ Failed to load public content:', err);
-          setError(getErrorMessage(err));
-
-          // Fallback to localStorage if available
-          if (enableFallback && typeof window !== 'undefined') {
-            try {
-              const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-              if (stored) {
-                const parsed = JSON.parse(stored);
-                const merged = deepMerge(defaultContent as SiteContent, parsed);
-                const resolved = resolveContentImages(merged);
-                setContent(resolved);
-                setSavedContent(resolved);
-                console.log('[ContentContext] Loaded from localStorage fallback.');
-              }
-            } catch (localErr) {
-              console.error('[ContentContext] LocalStorage fallback failed:', localErr);
-            }
-          }
-        } finally {
-          setIsLoading(false);
         }
+      } catch (err) {
+        console.error('[ContentContext] ❌ Failed to load content:', err);
+        setError(getErrorMessage(err));
+
+        // Fallback to localStorage if available (Last resort)
+        if (enableFallback && typeof window !== 'undefined') {
+          try {
+            const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (stored) {
+              const parsed = JSON.parse(stored);
+              const merged = deepMerge(defaultContent as SiteContent, parsed);
+              const resolved = resolveContentImages(merged);
+              setContent(resolved);
+              setSavedContent(resolved);
+              console.log('[ContentContext] Loaded from localStorage fallback.');
+            }
+          } catch (localErr) {
+            console.error('[ContentContext] LocalStorage fallback failed:', localErr);
+          }
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -347,7 +355,7 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   const loadSection = useCallback(async (section: keyof SiteContent) => {
     // [FIX] Use refs to check loading/loaded state - not state variables
     if (loadedSectionsRef.current.has(section) || loadingSectionsRef.current.has(section)) {
-      console.log(`[loadSection] ⏭️ Section '${section}' already loaded or loading, skipping.`);
+      // console.log(`[loadSection] ⏭️ Section '${section}' already loaded or loading, skipping.`);
       return;
     }
 
@@ -727,11 +735,15 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
 
       if (enableApi && tokenStorage.isAuthenticated()) {
         const result = await contentApi.resetContent();
-        // [FIX] Merge API result with defaults to ensure all sections exist
-        const mergedContent = result.content
-          ? deepMerge(defaultContent as SiteContent, result.content)
-          : defaultContent as SiteContent;
-        newContent = resolveContentImages(mergedContent);
+        
+        // [FIX] Use Backend response directly. Do NOT merge with local defaultContent.
+        if (result.content) {
+             newContent = resolveContentImages(result.content);
+        } else {
+             // Fallback only if backend specifically fails to return content
+             console.warn("Backend reset returned no content, using local defaults.");
+             newContent = resolveContentImages(defaultContent as SiteContent);
+        }
       } else {
         newContent = resolveContentImages(defaultContent as SiteContent);
       }
@@ -748,6 +760,10 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
       carBrandsLoadedRef.current = false;
       setServices([]);
       setCarBrands([]);
+      
+      // [FIX] Force reload of critical data lists from backend
+      loadServices();
+      loadCarBrands();
 
       setHistory([{ content: deepClone(newContent), timestamp: Date.now(), action: 'reset' }]);
       setHistoryIndex(0);
@@ -757,19 +773,19 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
         localStorage.removeItem(SAVED_CONTENT_KEY);
       }
 
-      console.log('[resetContent] ✅ Content reset to defaults');
+      console.log('[resetContent] ✅ Content reset to backend defaults (local data ignored)');
     } catch (err) {
       console.error('[resetContent] ❌ Failed to reset content:', err);
       setError(getErrorMessage(err));
 
-      // Fallback to defaults
+      // Fallback to local defaults on error
       const resolved = resolveContentImages(defaultContent as SiteContent);
       setContent(deepClone(resolved));
       setSavedContent(deepClone(resolved));
     } finally {
       setIsLoading(false);
     }
-  }, [enableApi]);
+  }, [enableApi, loadServices, loadCarBrands]);
 
   // ----------------------------------------
   // Apply Changes

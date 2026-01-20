@@ -57,7 +57,7 @@ export const HowItWorks = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
-
+  
   // Get content from context
   const { content } = useContent();
   const howItWorksContent = content.howItWorks;
@@ -113,7 +113,7 @@ export const HowItWorks = () => {
         {/* Steps - Desktop Timeline */}
         <div className="hidden lg:block relative">
           {/* Timeline Line - Simplified animation */}
-          {/* <div className="absolute top-24 left-0 right-0 h-1 bg-gray-100 rounded-full overflow-hidden">
+          <div className="absolute top-24 left-0 right-0 h-1 bg-gray-100 rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-r from-primary via-primary to-primary"
               style={{ willChange: 'width' }}
@@ -122,7 +122,7 @@ export const HowItWorks = () => {
               viewport={{ once: true, amount: 0.5 }}
               transition={{ duration: 1, ease: 'easeOut' }}
             />
-          </div> */}
+          </div>
 
           <motion.div
             className="grid grid-cols-4 gap-8"
@@ -133,7 +133,7 @@ export const HowItWorks = () => {
           >
             {howItWorksContent.steps.map((step) => {
               const IconComponent = iconMap[step.icon] || CheckCircle;
-
+              
               return (
                 <motion.div
                   key={step.number}
@@ -189,7 +189,7 @@ export const HowItWorks = () => {
         >
           {howItWorksContent.steps.map((step, index) => {
             const IconComponent = iconMap[step.icon] || CheckCircle;
-
+            
             return (
               <motion.div
                 key={step.number}
@@ -259,6 +259,6 @@ export const HowItWorks = () => {
           </button>
         </motion.div>
       </div>
-    </section >
+    </section>
   );
 };

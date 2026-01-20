@@ -2,14 +2,12 @@
  * ============================================
  * API CONFIGURATION
  * ============================================
- * 
- * This file sets up:
+ * * This file sets up:
  * - Axios instance with base URL
- * - Request interceptors (add auth token)
+ * - Request interceptors (add auth token & targeted cache busting)
  * - Response interceptors (handle errors, refresh token)
  * - Token management utilities
- * 
- * @file src/services/api/config.ts
+ * * @file src/services/api/config.ts
  */
 
 import axios, { type AxiosInstance, AxiosError, type InternalAxiosRequestConfig } from 'axios';
@@ -179,6 +177,7 @@ export interface LoginResponse {
 
 /**
  * Create axios instance with default config
+ * Note: Global headers removed to prevent affecting all requests
  */
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -194,6 +193,7 @@ const apiClient: AxiosInstance = axios.create({
 
 /**
  * Add auth token to requests
+ * TARGETED: Adds cache busting ONLY for public content API
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -201,6 +201,20 @@ apiClient.interceptors.request.use(
 
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // [FIX] TARGETED CACHE BUSTING
+    // Only apply to the specific public content endpoint
+    if (config.method === 'get' && config.url?.includes('/content/public')) {
+      // 1. Add timestamp param to force fresh fetch
+      config.params = { ...config.params, _t: Date.now() };
+
+      // 2. Add headers to prevent caching for this specific request
+      if (config.headers) {
+        config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+        config.headers['Pragma'] = 'no-cache';
+        config.headers['Expires'] = '0';
+      }
     }
 
     return config;

@@ -359,8 +359,9 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
 
   // 1. Services List View
   const renderServicesList = () => (
-    <div className={sectionClass}>
-      <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border">
+    <div className="space-y-0">
+      {/* Sticky Header - outside the overflow container */}
+      <div className="sticky top-0 z-20 p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-border bg-card rounded-xl shadow-sm mb-4">
         <div className="flex items-center gap-3">
           <div className="min-w-0">
             <h3 className="text-base sm:text-lg font-bold text-foreground truncate">
@@ -385,7 +386,9 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
         </button>
       </div>
 
-      <div className="divide-y divide-border">
+      {/* Content */}
+      <div className={sectionClass}>
+        <div className="divide-y divide-border">
         {servicesList.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
             <Wrench className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -450,6 +453,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
             </div>
           ))
         )}
+        </div>
       </div>
     </div>
   );
@@ -464,15 +468,16 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
 
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-3 pb-3 border-b border-border">
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-20 flex items-center gap-3 py-3 px-4 border border-border rounded-xl bg-card shadow-sm">
           <button
             onClick={() => setEditingIndex(null)}
             className="p-2 rounded-lg hover:bg-muted transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="flex-1">
-            <h3 className="text-lg font-bold text-foreground">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-bold text-foreground truncate">
               Edit: {service.title}
             </h3>
             <p className="text-xs text-muted-foreground">
