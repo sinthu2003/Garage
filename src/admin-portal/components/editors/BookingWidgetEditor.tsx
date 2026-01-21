@@ -7,7 +7,7 @@ import {
 import { useBookingWidgetContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
-import { SectionLoader } from '../shared/Sectionloader';
+import { SectionLoader } from '../shared/SectionLoader';
 
 interface BookingWidgetEditorProps { isDarkMode: boolean; }
 interface Brand { id: string; name: string; logo: string; urlName: string; }
@@ -170,38 +170,85 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     }
   };
 
-  const updateBrand = (index: number, field: keyof Brand, value: string) => {
+  // ✅ FIXED: Proper brand update with immediate save for images
+  const updateBrand = (index: number, field: keyof Brand, value: string, immediate = false) => {
     const brandId = displayBrands[index]?.id;
+    
+    if (!brandId) {
+      console.error('❌ No brand ID found at index:', index);
+      return;
+    }
+    
+    // Update local state first for immediate UI feedback
     setLocalBrands(prev => {
       const newBrands = [...prev];
       newBrands[index] = { ...newBrands[index], [field]: value };
       if (field === 'name') newBrands[index].urlName = generateId(value);
       return newBrands;
     });
-    if (useNewApi && updateBrandApi && brandId) {
-      const timerKey = `brand-${brandId}-${field}`;
-      const existingTimer = debounceTimersRef.current.get(timerKey);
-      if (existingTimer) clearTimeout(existingTimer);
-      const timer = setTimeout(async () => {
-        try {
-          const updateData: any = { [field]: value };
-          if (field === 'name') updateData.urlName = generateId(value);
-          await updateBrandApi(brandId, updateData);
-        } catch (error) { console.error('Failed to update brand:', error); }
-        debounceTimersRef.current.delete(timerKey);
-      }, DEBOUNCE_DELAY);
-      debounceTimersRef.current.set(timerKey, timer);
+    
+    if (useNewApi && updateBrandApi) {
+      // For images, save immediately without debounce
+      if (immediate || field === 'logo') {
+        (async () => {
+          try {
+            const updateData: any = { [field]: value };
+            if (field === 'name') updateData.urlName = generateId(value);
+            
+            console.log('💾 Saving brand to database:', {
+              brandId,
+              field,
+              isS3Url: value.includes('amazonaws.com'),
+            });
+            
+            await updateBrandApi(brandId, updateData);
+            
+            console.log('✅ Brand saved successfully:', {
+              brandId,
+              field,
+              timestamp: new Date().toISOString(),
+            });
+          } catch (error) {
+            console.error('❌ Failed to update brand:', error);
+          }
+        })();
+      } else {
+        // For text fields, use debounce
+        const timerKey = `brand-${brandId}-${field}`;
+        const existingTimer = debounceTimersRef.current.get(timerKey);
+        if (existingTimer) clearTimeout(existingTimer);
+        
+        const timer = setTimeout(async () => {
+          try {
+            const updateData: any = { [field]: value };
+            if (field === 'name') updateData.urlName = generateId(value);
+            await updateBrandApi(brandId, updateData);
+            console.log(`✅ Brand ${field} saved (debounced)`);
+          } catch (error) {
+            console.error('Failed to update brand:', error);
+          }
+          debounceTimersRef.current.delete(timerKey);
+        }, DEBOUNCE_DELAY);
+        
+        debounceTimersRef.current.set(timerKey, timer);
+      }
     } else {
+      // Legacy content.json mode
       const timerKey = `legacy-brand-${index}-${field}`;
       const existingTimer = debounceTimersRef.current.get(timerKey);
       if (existingTimer) clearTimeout(existingTimer);
+      
       const timer = setTimeout(() => {
         const newBrands = [...brands];
         newBrands[index] = { ...newBrands[index], [field]: value };
-        if (field === 'name') { newBrands[index].id = generateId(value); newBrands[index].urlName = generateId(value); }
+        if (field === 'name') {
+          newBrands[index].id = generateId(value);
+          newBrands[index].urlName = generateId(value);
+        }
         handleUpdate('brands', newBrands);
         debounceTimersRef.current.delete(timerKey);
       }, DEBOUNCE_DELAY);
+      
       debounceTimersRef.current.set(timerKey, timer);
     }
   };
@@ -243,23 +290,116 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     }
   };
 
-  const updateModel = async (brandId: string, modelIndex: number, field: keyof CarModel, value: string) => {
+  // ✅ CRITICAL FIX: Proper model ID lookup and immediate save for images
+  const updateModel = async (
+    brandId: string, 
+    modelIndex: number, 
+    field: keyof CarModel, 
+    value: string, 
+    immediate = false
+  ) => {
+    // Step 1: Update local state first for immediate UI feedback
     setLocalModels(prev => {
       const newModels = { ...prev };
       if (newModels[brandId]) {
         newModels[brandId] = [...newModels[brandId]];
-        newModels[brandId][modelIndex] = { ...newModels[brandId][modelIndex], [field]: value };
+        newModels[brandId][modelIndex] = { 
+          ...newModels[brandId][modelIndex], 
+          [field]: value 
+        };
       }
       return newModels;
     });
+    
     if (useNewApi && updateModelApi) {
       const brand = apiBrands?.find((b: any) => (b._id || b.id) === brandId);
-      const modelId = brand?.models?.[modelIndex]?._id;
-      if (modelId) {
-        try { await updateModelApi(modelId, { [field]: value }); }
-        catch (error) { console.error('Failed to update model:', error); }
+      
+      // ✅ CRITICAL FIX: Get the actual model from displayModels (not filtered!)
+      const actualModel = displayModels[brandId]?.[modelIndex];
+      
+      if (!actualModel) {
+        console.error('❌ Could not find model at index:', modelIndex);
+        return;
+      }
+      
+      // ✅ CRITICAL FIX: Find model by name and type (more reliable than index)
+      const modelData = brand?.models?.find((m: any) => 
+        m.name === actualModel.name && m.type === actualModel.type
+      );
+      
+      const modelId = modelData?._id;
+      
+      console.log('🔍 Model Update:', {
+        brandId,
+        brandName: brand?.name,
+        modelIndex,
+        modelName: actualModel.name,
+        foundModelId: modelId,
+        field,
+        valuePreview: field === 'image' ? value.substring(0, 60) + '...' : value,
+        isS3: field === 'image' && value.includes('amazonaws.com'),
+      });
+      
+      if (!modelId) {
+        console.error('❌ Could not find model ID in database:', {
+          brandId,
+          modelIndex,
+          modelName: actualModel.name,
+          modelType: actualModel.type,
+          availableModels: brand?.models?.map((m: any) => ({ name: m.name, type: m.type, id: m._id })),
+        });
+        return;
+      }
+      
+      // Step 2: Save to database
+      if (immediate || field === 'image') {
+        // For images: save immediately without debounce
+        try {
+          const updateData = { [field]: value };
+          
+          console.log('💾 Saving model to database immediately:', {
+            modelId,
+            field,
+            isS3Url: value.includes('amazonaws.com'),
+          });
+          
+          await updateModelApi(modelId, updateData);
+          
+          console.log('✅ SUCCESS! Model saved to database:', {
+            modelId,
+            modelName: actualModel.name,
+            field,
+            timestamp: new Date().toISOString(),
+          });
+        } catch (error) {
+          console.error('❌ FAILED to save model to database:', {
+            modelId,
+            field,
+            error,
+          });
+          // TODO: Show error toast to user
+          // toast.error('Failed to save image. Please try again.');
+        }
+      } else {
+        // For text fields: save with debounce
+        const timerKey = `model-${modelId}-${field}`;
+        const existingTimer = debounceTimersRef.current.get(timerKey);
+        if (existingTimer) clearTimeout(existingTimer);
+        
+        const timer = setTimeout(async () => {
+          try {
+            await updateModelApi(modelId, { [field]: value });
+            console.log(`✅ Model ${field} saved (debounced):`, modelId);
+          } catch (error) {
+            console.error('Failed to update model:', error);
+          }
+          debounceTimersRef.current.delete(timerKey);
+        }, DEBOUNCE_DELAY);
+        
+        debounceTimersRef.current.set(timerKey, timer);
       }
     } else {
+      // Legacy content.json mode
       const brandModels = [...(carModels[brandId] || [])];
       brandModels[modelIndex] = { ...brandModels[modelIndex], [field]: value };
       handleUpdate('carModels', { ...carModels, [brandId]: brandModels });
@@ -464,16 +604,17 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                         {expandedBrands.has(originalIndex) && (
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-border">
                             <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-                              {/* Brand Logo Upload - S3: booking-widget/brands/ */}
+                              {/* ✅ Brand Logo Upload - IMMEDIATE SAVE + AUTO-UPLOAD LOCAL PATHS */}
                               <ImageUpload
                                 value={brand.logo || ''}
-                                onChange={(url) => updateBrand(originalIndex, 'logo', url)}
+                                onChange={(url) => updateBrand(originalIndex, 'logo', url, true)}
                                 label="Brand Logo"
                                 cloudFolder={brandLogoFolder}
                                 helperText={`S3: ${brandLogoFolder}/`}
                                 previewHeight="h-40"
                                 maxSizeMB={2}
                                 maxWidthOrHeight={512}
+                                autoUploadExternalUrls={true}
                               />
 
                               <div className="space-y-2">
@@ -525,10 +666,10 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                                           {expandedModels.has(modelKey) && (
                                             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-border bg-card">
                                               <div className="p-2 sm:p-3 space-y-3">
-                                                {/* Model Image Upload - S3: booking-widget/models/{brand-name}/ */}
+                                                {/* ✅ Model Image Upload - IMMEDIATE SAVE + AUTO-UPLOAD LOCAL PATHS */}
                                                 <ImageUpload
                                                   value={model.image || ''}
-                                                  onChange={(url) => updateModel(brand.id, mIdx, 'image', url)}
+                                                  onChange={(url) => updateModel(brand.id, mIdx, 'image', url, true)}
                                                   label="Model Image"
                                                   cloudFolder={modelImageFolder}
                                                   helperText={`S3: ${modelImageFolder}/`}
@@ -536,6 +677,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                                                   previewHeight="h-32"
                                                   maxSizeMB={2}
                                                   maxWidthOrHeight={800}
+                                                  autoUploadExternalUrls={true}
                                                 />
                                                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                                                   <div className="space-y-1">
