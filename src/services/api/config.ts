@@ -7,6 +7,7 @@
  * - Request interceptors (add auth token & targeted cache busting)
  * - Response interceptors (handle errors, refresh token)
  * - Token management utilities
+ * - Cache-busting for GET requests to prevent stale data
  * * @file src/services/api/config.ts
  */
 
@@ -172,6 +173,67 @@ export interface LoginResponse {
 }
 
 // ============================================
+// CACHE BUSTING CONFIGURATION
+// ============================================
+
+/**
+ * List of API paths that should have cache-busting applied.
+ * These are endpoints that return dynamic content which should
+ * always be fresh (not served from browser cache).
+ * 
+ * When you update images/data in admin, these endpoints will
+ * return fresh data instead of cached responses.
+ * 
+ * IMPORTANT: This list should include ALL endpoints that serve
+ * content which can be edited in the admin panel.
+ */
+const CACHE_BUST_PATHS = [
+  // Car data endpoints - CRITICAL for booking widget
+  '/car-brands',
+  '/car-models',
+  '/car-data',
+  '/brands',        // Alternative endpoint name
+  '/models',        // Alternative endpoint name
+  
+  // Content management endpoints
+  '/content',
+  '/services',
+  '/media',
+  '/uploads',
+  
+  // Booking widget specific
+  '/booking-widget',
+  '/widget-config',
+  
+  // General CMS content
+  '/pages',
+  '/settings',
+  '/site-content',
+];
+
+/**
+ * Check if a URL path should have cache-busting applied
+ * Uses a more aggressive matching strategy
+ */
+const shouldBustCache = (url: string): boolean => {
+  // Always bust cache for these exact matches or partial matches
+  return CACHE_BUST_PATHS.some(path => {
+    // Check if the URL contains the path
+    return url.includes(path);
+  });
+};
+
+/**
+ * Add cache-busting timestamp parameter to URL
+ * Uses a unique timestamp for each request
+ */
+const addCacheBustParam = (url: string): string => {
+  const separator = url.includes('?') ? '&' : '?';
+  // Use both timestamp and random number for extra uniqueness
+  return `${url}${separator}_t=${Date.now()}&_r=${Math.random().toString(36).substring(7)}`;
+};
+
+// ============================================
 // AXIOS INSTANCE
 // ============================================
 
@@ -193,27 +255,33 @@ const apiClient: AxiosInstance = axios.create({
 
 /**
  * Add auth token to requests
- * TARGETED: Adds cache busting ONLY for public content API
+ * Add cache-busting for GET requests to dynamic content endpoints
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // Add auth token if available
     const token = tokenStorage.getAccessToken();
-
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // [FIX] TARGETED CACHE BUSTING
-    // Only apply to the specific public content endpoint
-    if (config.method === 'get' && config.url?.includes('/content/public')) {
-      // 1. Add timestamp param to force fresh fetch
-      config.params = { ...config.params, _t: Date.now() };
-
-      // 2. Add headers to prevent caching for this specific request
-      if (config.headers) {
+    // Add cache-busting for GET requests to dynamic content endpoints
+    // This prevents the browser from serving stale cached API responses
+    if (config.method?.toLowerCase() === 'get' && config.url) {
+      if (shouldBustCache(config.url)) {
+        // Add timestamp query parameter to make each request unique
+        config.url = addCacheBustParam(config.url);
+        
+        // Also add no-cache headers as additional measure
+        config.headers = config.headers || {};
         config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
         config.headers['Pragma'] = 'no-cache';
         config.headers['Expires'] = '0';
+        
+        // Debug log to verify cache busting is applied
+        if (import.meta.env.DEV) {
+          console.log('[API Config] Cache-busting applied to:', config.url);
+        }
       }
     }
 
@@ -253,6 +321,15 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
  */
 apiClient.interceptors.response.use(
   (response) => {
+    // Debug log to verify we're getting fresh data
+    if (import.meta.env.DEV && response.config.url?.includes('car-brands')) {
+      console.log('[API Config] Received car-brands response:', {
+        url: response.config.url,
+        dataCount: Array.isArray(response.data?.data) ? response.data.data.length : 'N/A',
+        firstBrandLogo: response.data?.data?.[0]?.logo || 'N/A'
+      });
+    }
+
     // Return successful response data
     return response;
   },

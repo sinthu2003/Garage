@@ -483,35 +483,47 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   // ----------------------------------------
   // [FIX] Car Brands CRUD - using refs for guards
   // ----------------------------------------
-  const loadCarBrands = useCallback(async (includeModels = true) => {
-    // [FIX] Use refs to prevent duplicate calls - not state
-    if (carBrandsLoadingRef.current || carBrandsLoadedRef.current) {
-      return;
-    }
+const loadCarBrands = useCallback(async (includeModels = true) => {
+  if (carBrandsLoadingRef.current || carBrandsLoadedRef.current) {
+    return;
+  }
 
-    // Mark as loading in ref FIRST
-    carBrandsLoadingRef.current = true;
-    setCarBrandsLoading(true);
+  carBrandsLoadingRef.current = true;
+  setCarBrandsLoading(true);
 
-    try {
-      const brands = await carDataApi.getAllBrands({ includeModels, includeInactive: true });
-      // [FIX] Apply resolveContentImages to resolve ../assets/ paths to actual URLs
-      const resolvedBrands = resolveContentImages(brands);
-      console.log('[loadCarBrands] ✅ Car brands loaded:', resolvedBrands.length, 'items');
-      setCarBrands(resolvedBrands);
-      // Mark as loaded
-      carBrandsLoadedRef.current = true;
-    } catch (err) {
-      console.error('[loadCarBrands] ❌ Failed to load car brands:', err);
-      setError(getErrorMessage(err));
-      // Reset ref on error to allow retry
-      carBrandsLoadedRef.current = false;
-    } finally {
-      carBrandsLoadingRef.current = false;
-      setCarBrandsLoading(false);
-    }
-  }, []); // [FIX] Empty deps - function reference is stable
-
+  try {
+    const brands = await carDataApi.getAllBrands({ includeModels, includeInactive: true });
+    
+    // 🔍 DEBUG: Check what API returns
+    console.log('====================================');
+    console.log('🔍 RAW brands from API:', brands);
+    console.log('🔍 First brand (raw):', brands[0]);
+    console.log('🔍 First brand logo (raw):', brands[0]?.logo);
+    console.log('🔍 Mitsubishi brand (raw):', brands.find(b => b.name === 'Mitsubishi'));
+    console.log('====================================');
+    
+    const resolvedBrands = resolveContentImages(brands);
+    
+    // 🔍 DEBUG: Check what resolveContentImages does
+    console.log('====================================');
+    console.log('🔍 RESOLVED brands:', resolvedBrands);
+    console.log('🔍 First brand (resolved):', resolvedBrands[0]);
+    console.log('🔍 First brand logo (resolved):', resolvedBrands[0]?.logo);
+    console.log('🔍 Mitsubishi brand (resolved):', resolvedBrands.find(b => b.name === 'Mitsubishi'));
+    console.log('====================================');
+    
+    console.log('[loadCarBrands] ✅ Car brands loaded:', resolvedBrands.length, 'items');
+    setCarBrands(resolvedBrands);
+    carBrandsLoadedRef.current = true;
+  } catch (err) {
+    console.error('[loadCarBrands] ❌ Failed to load car brands:', err);
+    setError(getErrorMessage(err));
+    carBrandsLoadedRef.current = false;
+  } finally {
+    carBrandsLoadingRef.current = false;
+    setCarBrandsLoading(false);
+  }
+}, []);
   const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBrand> => {
     const newBrand = await carDataApi.createBrand(data);
     // [FIX] Add new brand at BEGINNING of array (most recent first)
@@ -520,12 +532,23 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   }, []);
 
 
-  const updateBrandFn = useCallback(async (id: string, data: UpdateBrandData): Promise<CarBrand> => {
-    const updated = await carDataApi.updateBrand(id, data);
-    const resolvedBrand = resolveContentImages(updated);
-    setCarBrands(prev => prev.map(b => b._id === id ? { ...b, ...resolvedBrand } : b));
-    return resolvedBrand;
-  }, []);
+ const updateBrandFn = useCallback(async (id: string, data: UpdateBrandData): Promise<CarBrand> => {
+  const updated = await carDataApi.updateBrand(id, data);
+  const resolvedBrand = resolveContentImages(updated);
+  
+  // ✅ FIX: Properly merge - preserve models array but update all other fields
+  setCarBrands(prev => prev.map(b => {
+    if (b._id === id) {
+      return {
+        ...resolvedBrand,           // New data from API (has updated logo)
+        models: b.models || [],     // Keep existing models array
+      };
+    }
+    return b;
+  }));
+  
+  return resolvedBrand;
+}, []);
 
   const deleteBrandFn = useCallback(async (id: string): Promise<void> => {
     await carDataApi.deleteBrand(id);
