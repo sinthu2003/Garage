@@ -5,11 +5,11 @@ import {
   Type,
   ChevronRight,
   ChevronDown,
-  Trash2,
   GripVertical,
   Clock,
   IndianRupee,
   Car,
+  MousePointerClick,
 } from 'lucide-react';
 import { useBeforeAfterContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
@@ -31,7 +31,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
 
   // [LAZY LOADING] Show loading state - MUST be after all hooks
   if (content.isLoading) {
-    return <SectionLoader section="Before \& After" />;
+    return <SectionLoader section="Before & After" />;
   }
 
   const toggleSection = (section: string) => {
@@ -78,10 +78,15 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
       time: '1 Day',
       savings: '₹5,000',
     };
-    // Add at the beginning of the array
     handleUpdate('items', [newItem, ...(content.items || [])]);
-    // Auto-expand the newly added item (now at index 0)
     setExpandedItems(new Set([0]));
+  };
+
+  // Update item field
+  const updateItemField = (index: number, field: keyof BeforeAfterItem, value: unknown) => {
+    const newItems = [...(content.items || [])];
+    newItems[index] = { ...newItems[index], [field]: value };
+    handleUpdate('items', newItems);
   };
 
   return (
@@ -174,6 +179,35 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>Select Transformation Label</label>
+                  <input
+                    type="text"
+                    value={content.selectLabel || ''}
+                    onChange={(e) => handleUpdate('selectLabel', e.target.value)}
+                    placeholder="Select a transformation"
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* CTA Button */}
+                <div className="space-y-2">
+                  <label className={labelClass}>
+                    <MousePointerClick className="w-4 h-4 inline mr-1" />
+                    CTA Button Text
+                  </label>
+                  <input
+                    type="text"
+                    value={content.cta || ''}
+                    onChange={(e) => handleUpdate('cta', e.target.value)}
+                    placeholder="Get Your Car Transformed"
+                    className={inputClass}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This button navigates to the Booking Widget section
+                  </p>
+                </div>
               </div>
             </motion.div>
           )}
@@ -199,15 +233,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
               {content.items?.length || 0}
             </span>
           </div>
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewTransformation();
-            }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-          >
-            <Plus className="w-4 h-4" />
-          </button> */}
+          
         </div>
 
         <AnimatePresence>
@@ -276,16 +302,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const newItems = content.items?.filter((_: BeforeAfterItem, i: number) => i !== index);
-                            handleUpdate('items', newItems);
-                          }}
-                          className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                  
                         <motion.div animate={{ rotate: expandedItems.has(index) ? 180 : 0 }}>
                           <ChevronDown className="w-4 h-4 text-muted-foreground" />
                         </motion.div>
@@ -309,11 +326,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                                 <input
                                   type="text"
                                   value={item.title || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], title: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
+                                  onChange={(e) => updateItemField(index, 'title', e.target.value)}
                                   placeholder="Full Body Denting"
                                   className={inputClass}
                                 />
@@ -327,11 +340,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                                 <input
                                   type="text"
                                   value={item.car || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], car: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
+                                  onChange={(e) => updateItemField(index, 'car', e.target.value)}
                                   placeholder="Hyundai i20"
                                   className={inputClass}
                                 />
@@ -343,11 +352,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                               <label className={labelClass}>Description</label>
                               <textarea
                                 value={item.description || ''}
-                                onChange={(e) => {
-                                  const newItems = [...(content.items || [])];
-                                  newItems[index] = { ...newItems[index], description: e.target.value };
-                                  handleUpdate('items', newItems);
-                                }}
+                                onChange={(e) => updateItemField(index, 'description', e.target.value)}
                                 placeholder="Complete restoration from accident damage..."
                                 rows={2}
                                 className={inputClass}
@@ -400,11 +405,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                                 <input
                                   type="text"
                                   value={item.time || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], time: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
+                                  onChange={(e) => updateItemField(index, 'time', e.target.value)}
                                   placeholder="2 Days"
                                   className={inputClass}
                                 />
@@ -418,11 +419,7 @@ export const BeforeAfterEditor: React.FC<BeforeAfterEditorProps> = ({ }) => {
                                 <input
                                   type="text"
                                   value={item.savings || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], savings: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
+                                  onChange={(e) => updateItemField(index, 'savings', e.target.value)}
                                   placeholder="₹8,000"
                                   className={inputClass}
                                 />

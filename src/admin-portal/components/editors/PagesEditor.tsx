@@ -23,6 +23,26 @@ interface PagesEditorProps {
   onPageChange?: (page: 'services' | 'notFound') => void;
 }
 
+// Default categories for Services page
+const defaultCategories = [
+  { id: 'all', label: 'All', icon: 'Sparkles' },
+  { id: 'maintenance', label: 'Maintenance', icon: 'Wrench' },
+  { id: 'repair', label: 'Repairs', icon: 'Settings' },
+  { id: 'cosmetic', label: 'Cosmetic', icon: 'Paintbrush' },
+  { id: 'inspection', label: 'Inspection', icon: 'Gauge' },
+  { id: 'Wheels', label: 'Wheels', icon: 'Disc' },
+  { id: 'Electrical', label: 'Electrical', icon: 'Plug' },
+  { id: 'AirVent', label: 'AC', icon: 'AirVent' },
+];
+
+// Default quick links for 404 page
+const defaultQuickLinks = [
+  { name: 'Services', href: '/services' },
+  { name: 'Pricing', href: '/#pricing' },
+  { name: 'About Us', href: '/#about' },
+  { name: 'Contact', href: '/#contact' },
+];
+
 export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
   const { updateField } = useContent();
   const content = usePagesContent();
@@ -30,6 +50,11 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'categories', 'cta', 'title', 'buttons', 'quickLinks'])
   );
+
+  // Simple update function - debouncing handled by ContentContext
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('pages', path, value);
+  };
 
   // Call onPageChange on mount and when activePage changes
   useEffect(() => {
@@ -51,10 +76,6 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
     setExpandedSections(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('pages', path, value);
-  };
-
   const handlePageChange = (page: 'services' | 'notFound') => {
     setActivePage(page);
   };
@@ -66,26 +87,38 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
 
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
 
-  // Default categories for Services page
-  const defaultCategories = [
-    { id: 'all', label: 'All', icon: 'Sparkles' },
-    { id: 'maintenance', label: 'Maintenance', icon: 'Wrench' },
-    { id: 'repair', label: 'Repairs', icon: 'Settings' },
-    { id: 'cosmetic', label: 'Cosmetic', icon: 'Paintbrush' },
-    { id: 'inspection', label: 'Inspection', icon: 'Gauge' },
-  ];
-
   const categories = content.services?.categories || defaultCategories;
-
-  // Default quick links for 404 page
-  const defaultQuickLinks = [
-    { name: 'Services', href: '/services' },
-    { name: 'Pricing', href: '/#pricing' },
-    { name: 'About Us', href: '/#about' },
-    { name: 'Contact', href: '/#contact' },
-  ];
-
   const quickLinks = content.notFound?.quickLinks || defaultQuickLinks;
+
+  const addCategory = () => {
+    const newCategories = [
+      { id: `cat-${Date.now()}`, label: 'New Category', icon: 'Sparkles' },
+      ...categories
+    ];
+    handleUpdate('services.categories', newCategories);
+  };
+
+  const updateCategory = (index: number, field: string, value: string) => {
+    const newCats = [...categories];
+    newCats[index] = { ...newCats[index], [field]: value };
+    handleUpdate('services.categories', newCats);
+  };
+
+  const deleteCategory = (index: number) => {
+    const newCats = categories.filter((_: unknown, i: number) => i !== index);
+    handleUpdate('services.categories', newCats);
+  };
+
+  const updateQuickLink = (index: number, field: string, value: string) => {
+    const newLinks = [...quickLinks];
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    handleUpdate('notFound.quickLinks', newLinks);
+  };
+
+  const deleteQuickLink = (index: number) => {
+    const newLinks = quickLinks.filter((_: unknown, i: number) => i !== index);
+    handleUpdate('notFound.quickLinks', newLinks);
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -158,28 +191,31 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                     className="overflow-hidden"
                   >
                     <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                      {/* Page Title */}
                       <div className="space-y-2">
                         <label className={labelClass}>Page Title</label>
                         <input
                           type="text"
-                          value={content.services?.title || 'Our Services'}
+                          value={content.services?.title || ''}
                           onChange={(e) => handleUpdate('services.title', e.target.value)}
                           placeholder="Our Services"
                           className={inputClass}
                         />
                       </div>
 
+                      {/* Page Description */}
                       <div className="space-y-2">
                         <label className={labelClass}>Page Description</label>
                         <input
                           type="text"
-                          value={content.services?.description || 'Professional car care services at transparent prices'}
+                          value={content.services?.description || ''}
                           onChange={(e) => handleUpdate('services.description', e.target.value)}
                           placeholder="Professional car care services at transparent prices"
                           className={inputClass}
                         />
                       </div>
 
+                      {/* Search Placeholder */}
                       <div className="space-y-2">
                         <label className={labelClass}>
                           <Search className="w-4 h-4 inline mr-1" />
@@ -187,7 +223,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                         </label>
                         <input
                           type="text"
-                          value={content.services?.searchPlaceholder || 'Search services...'}
+                          value={content.services?.searchPlaceholder || ''}
                           onChange={(e) => handleUpdate('services.searchPlaceholder', e.target.value)}
                           placeholder="Search services..."
                           className={inputClass}
@@ -221,13 +257,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                   </span>
                 </div>
                 <button
-                  onClick={() => {
-                    // Add at the beginning of the array
-                    handleUpdate('services.categories', [
-                      { id: `cat-${Date.now()}`, label: 'New Category', icon: 'Sparkles' },
-                      ...categories
-                    ]);
-                  }}
+                  onClick={addCategory}
                   className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
                 >
                   <Plus className="w-4 h-4" />
@@ -245,37 +275,32 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                     <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border">
                       {categories.map((cat: { id: string; label: string; icon: string }, index: number) => (
                         <div key={cat.id} className="flex items-center gap-2">
+                          {/* Category label */}
                           <input
                             type="text"
                             value={cat.label}
-                            onChange={(e) => {
-                              const newCats = [...categories];
-                              newCats[index] = { ...newCats[index], label: e.target.value };
-                              handleUpdate('services.categories', newCats);
-                            }}
+                            onChange={(e) => updateCategory(index, 'label', e.target.value)}
                             placeholder="Category Label"
                             className={`flex-1 ${inputClass}`}
                           />
+                          {/* Icon dropdown */}
                           <select
                             value={cat.icon}
-                            onChange={(e) => {
-                              const newCats = [...categories];
-                              newCats[index] = { ...newCats[index], icon: e.target.value };
-                              handleUpdate('services.categories', newCats);
-                            }}
+                            onChange={(e) => updateCategory(index, 'icon', e.target.value)}
                             className={`w-32 ${inputClass}`}
                           >
                             <option value="Sparkles">✨ All</option>
                             <option value="Wrench">🔧 Wrench</option>
+                            <option value="AirVent">❄️ AC</option>
                             <option value="Settings">⚙️ Settings</option>
                             <option value="Paintbrush">🎨 Paint</option>
                             <option value="Gauge">📊 Gauge</option>
+                            <option value="Disc">🛞 Wheels</option>
+                            <option value="Plug">⚡ Electrical</option>
                           </select>
+                          {/* Delete button */}
                           <button
-                            onClick={() => {
-                              const newCats = categories.filter((_: unknown, i: number) => i !== index);
-                              handleUpdate('services.categories', newCats);
-                            }}
+                            onClick={() => deleteCategory(index)}
                             className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
                             disabled={categories.length <= 1}
                           >
@@ -289,7 +314,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
               </AnimatePresence>
             </div>
 
-            {/* CTA Section - with proper two-button fields */}
+            {/* CTA Section */}
             <div className={sectionClass}>
               <div 
                 onClick={() => toggleSection('cta')} 
@@ -316,21 +341,23 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                     className="overflow-hidden"
                   >
                     <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                      {/* CTA Title */}
                       <div className="space-y-2">
                         <label className={labelClass}>CTA Title</label>
                         <input
                           type="text"
-                          value={content.services?.cta?.title || "Can't find what you're looking for?"}
+                          value={content.services?.cta?.title || ''}
                           onChange={(e) => handleUpdate('services.cta.title', e.target.value)}
                           placeholder="Can't find what you're looking for?"
                           className={inputClass}
                         />
                       </div>
 
+                      {/* CTA Description */}
                       <div className="space-y-2">
                         <label className={labelClass}>CTA Description</label>
                         <textarea
-                          value={content.services?.cta?.description || 'Contact us for custom service packages or any specific requirements.'}
+                          value={content.services?.cta?.description || ''}
                           onChange={(e) => handleUpdate('services.cta.description', e.target.value)}
                           placeholder="Contact us for custom service packages..."
                           rows={2}
@@ -354,7 +381,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                             </div>
                             <input
                               type="text"
-                              value={content.services?.cta?.primaryButton || 'Contact Us'}
+                              value={content.services?.cta?.primaryButton || ''}
                               onChange={(e) => handleUpdate('services.cta.primaryButton', e.target.value)}
                               placeholder="Contact Us"
                               className={inputClass}
@@ -369,7 +396,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                             </div>
                             <input
                               type="text"
-                              value={content.services?.cta?.secondaryButton || 'Call Now'}
+                              value={content.services?.cta?.secondaryButton || ''}
                               onChange={(e) => handleUpdate('services.cta.secondaryButton', e.target.value)}
                               placeholder="Call Now"
                               className={inputClass}
@@ -384,7 +411,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                             </label>
                             <input
                               type="text"
-                              value={content.services?.cta?.phone || '+91 98765 43210'}
+                              value={content.services?.cta?.phone || ''}
                               onChange={(e) => handleUpdate('services.cta.phone', e.target.value)}
                               placeholder="+91 98765 43210"
                               className={inputClass}
@@ -442,21 +469,23 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                     className="overflow-hidden"
                   >
                     <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                      {/* Error Title */}
                       <div className="space-y-2">
                         <label className={labelClass}>Error Title</label>
                         <input
                           type="text"
-                          value={content.notFound?.title || 'Page Not Found'}
+                          value={content.notFound?.title || ''}
                           onChange={(e) => handleUpdate('notFound.title', e.target.value)}
                           placeholder="Page Not Found"
                           className={inputClass}
                         />
                       </div>
 
+                      {/* Error Description */}
                       <div className="space-y-2">
                         <label className={labelClass}>Error Description</label>
                         <textarea
-                          value={content.notFound?.description || "Looks like you've taken a wrong turn. The page you're looking for doesn't exist or has been moved."}
+                          value={content.notFound?.description || ''}
                           onChange={(e) => handleUpdate('notFound.description', e.target.value)}
                           placeholder="Looks like you've taken a wrong turn..."
                           rows={2}
@@ -464,6 +493,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                         />
                       </div>
 
+                      {/* Search Placeholder */}
                       <div className="space-y-2">
                         <label className={labelClass}>
                           <Search className="w-4 h-4 inline mr-1" />
@@ -471,7 +501,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                         </label>
                         <input
                           type="text"
-                          value={content.notFound?.searchPlaceholder || 'Search for services...'}
+                          value={content.notFound?.searchPlaceholder || ''}
                           onChange={(e) => handleUpdate('notFound.searchPlaceholder', e.target.value)}
                           placeholder="Search for services..."
                           className={inputClass}
@@ -519,7 +549,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                           </div>
                           <input
                             type="text"
-                            value={content.notFound?.primaryButton || 'Back to Home'}
+                            value={content.notFound?.primaryButton || ''}
                             onChange={(e) => handleUpdate('notFound.primaryButton', e.target.value)}
                             placeholder="Back to Home"
                             className={inputClass}
@@ -534,7 +564,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                           </div>
                           <input
                             type="text"
-                            value={content.notFound?.secondaryButton || 'Go Back'}
+                            value={content.notFound?.secondaryButton || ''}
                             onChange={(e) => handleUpdate('notFound.secondaryButton', e.target.value)}
                             placeholder="Go Back"
                             className={inputClass}
@@ -568,18 +598,6 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                     {quickLinks.length}
                   </span>
                 </div>
-                {/* <button
-                  onClick={() => {
-                    // Add at the beginning of the array
-                    handleUpdate('notFound.quickLinks', [
-                      { name: 'New Link', href: '/' },
-                      ...quickLinks
-                    ]);
-                  }}
-                  className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-                >
-                  <Plus className="w-4 h-4" />
-                </button> */}
               </div>
 
               <AnimatePresence>
@@ -597,33 +615,25 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                       
                       {quickLinks.map((link: { name: string; href: string }, index: number) => (
                         <div key={index} className="flex items-center gap-2">
+                          {/* Quick link name */}
                           <input
                             type="text"
                             value={link.name}
-                            onChange={(e) => {
-                              const newLinks = [...quickLinks];
-                              newLinks[index] = { ...newLinks[index], name: e.target.value };
-                              handleUpdate('notFound.quickLinks', newLinks);
-                            }}
+                            onChange={(e) => updateQuickLink(index, 'name', e.target.value)}
                             placeholder="Link Name"
                             className={`flex-1 ${inputClass}`}
                           />
+                          {/* Quick link href */}
                           <input
                             type="text"
                             value={link.href}
-                            onChange={(e) => {
-                              const newLinks = [...quickLinks];
-                              newLinks[index] = { ...newLinks[index], href: e.target.value };
-                              handleUpdate('notFound.quickLinks', newLinks);
-                            }}
+                            onChange={(e) => updateQuickLink(index, 'href', e.target.value)}
                             placeholder="/page or #section"
                             className={`w-32 sm:w-40 ${inputClass}`}
                           />
+                          {/* Delete button */}
                           <button
-                            onClick={() => {
-                              const newLinks = quickLinks.filter((_: unknown, i: number) => i !== index);
-                              handleUpdate('notFound.quickLinks', newLinks);
-                            }}
+                            onClick={() => deleteQuickLink(index)}
                             className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
                           >
                             <Trash2 className="w-4 h-4" />

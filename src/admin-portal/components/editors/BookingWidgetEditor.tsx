@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Type, MapPin, Car, Fuel, ChevronRight, ChevronDown, Star, Phone,
@@ -31,8 +31,6 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
   const [brandSearch, setBrandSearch] = useState('');
   const [modelSearch, setModelSearch] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const DEBOUNCE_DELAY = 1000;
   const [localBrands, setLocalBrands] = useState<Brand[]>([]);
   const [localModels, setLocalModels] = useState<Record<string, CarModel[]>>({});
 
@@ -71,6 +69,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     { id: 'electric', name: 'Electric', icon: '⚡', color: '#8B5CF6' },
   ];
 
+  // Sync local brands/models state with API data
   useEffect(() => {
     if (useNewApi && apiBrands) {
       const transformedBrands = apiBrands.map((b: any) => ({
@@ -91,13 +90,6 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
       setLocalModels(content.carModels || {});
     }
   }, [useNewApi, apiBrands, content.brands, content.carModels]);
-
-  useEffect(() => {
-    return () => {
-      debounceTimersRef.current.forEach(timer => clearTimeout(timer));
-      debounceTimersRef.current.clear();
-    };
-  }, []);
 
   const displayBrands = localBrands.length > 0 ? localBrands : brands;
   const displayModels = Object.keys(localModels).length > 0 ? localModels : carModels;
@@ -134,7 +126,10 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     setExpandedModels(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => updateField('bookingWidget', path, value);
+  // Simple update function - debouncing handled by ContentContext
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('bookingWidget', path, value);
+  };
 
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20 ${isDarkMode ? 'bg-secondary/20' : 'bg-background'}`;
   const labelClass = `text-sm font-medium text-muted-foreground`;
@@ -170,16 +165,11 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     }
   };
 
-  // ✅ FIXED: Proper brand update with immediate save for images
-  const updateBrand = (index: number, field: keyof Brand, value: string, immediate = false) => {
+  const updateBrand = async (index: number, field: keyof Brand, value: string) => {
     const brandId = displayBrands[index]?.id;
+    if (!brandId) return;
     
-    if (!brandId) {
-      console.error('❌ No brand ID found at index:', index);
-      return;
-    }
-    
-    // Update local state first for immediate UI feedback
+    // Update local state immediately for UI
     setLocalBrands(prev => {
       const newBrands = [...prev];
       newBrands[index] = { ...newBrands[index], [field]: value };
@@ -188,68 +178,23 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     });
     
     if (useNewApi && updateBrandApi) {
-      // For images, save immediately without debounce
-      if (immediate || field === 'logo') {
-        (async () => {
-          try {
-            const updateData: any = { [field]: value };
-            if (field === 'name') updateData.urlName = generateId(value);
-            
-            console.log('💾 Saving brand to database:', {
-              brandId,
-              field,
-              isS3Url: value.includes('amazonaws.com'),
-            });
-            
-            await updateBrandApi(brandId, updateData);
-            
-            console.log('✅ Brand saved successfully:', {
-              brandId,
-              field,
-              timestamp: new Date().toISOString(),
-            });
-          } catch (error) {
-            console.error('❌ Failed to update brand:', error);
-          }
-        })();
-      } else {
-        // For text fields, use debounce
-        const timerKey = `brand-${brandId}-${field}`;
-        const existingTimer = debounceTimersRef.current.get(timerKey);
-        if (existingTimer) clearTimeout(existingTimer);
-        
-        const timer = setTimeout(async () => {
-          try {
-            const updateData: any = { [field]: value };
-            if (field === 'name') updateData.urlName = generateId(value);
-            await updateBrandApi(brandId, updateData);
-            console.log(`✅ Brand ${field} saved (debounced)`);
-          } catch (error) {
-            console.error('Failed to update brand:', error);
-          }
-          debounceTimersRef.current.delete(timerKey);
-        }, DEBOUNCE_DELAY);
-        
-        debounceTimersRef.current.set(timerKey, timer);
+      // API updates happen immediately for brands (they have their own API)
+      try {
+        const updateData: any = { [field]: value };
+        if (field === 'name') updateData.urlName = generateId(value);
+        await updateBrandApi(brandId, updateData);
+      } catch (error) {
+        console.error('Failed to update brand:', error);
       }
     } else {
-      // Legacy content.json mode
-      const timerKey = `legacy-brand-${index}-${field}`;
-      const existingTimer = debounceTimersRef.current.get(timerKey);
-      if (existingTimer) clearTimeout(existingTimer);
-      
-      const timer = setTimeout(() => {
-        const newBrands = [...brands];
-        newBrands[index] = { ...newBrands[index], [field]: value };
-        if (field === 'name') {
-          newBrands[index].id = generateId(value);
-          newBrands[index].urlName = generateId(value);
-        }
-        handleUpdate('brands', newBrands);
-        debounceTimersRef.current.delete(timerKey);
-      }, DEBOUNCE_DELAY);
-      
-      debounceTimersRef.current.set(timerKey, timer);
+      // Legacy: update through content context
+      const newBrands = [...brands];
+      newBrands[index] = { ...newBrands[index], [field]: value };
+      if (field === 'name') {
+        newBrands[index].id = generateId(value);
+        newBrands[index].urlName = generateId(value);
+      }
+      handleUpdate('brands', newBrands);
     }
   };
 
@@ -290,15 +235,8 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     }
   };
 
-  // ✅ CRITICAL FIX: Proper model ID lookup and immediate save for images
-  const updateModel = async (
-    brandId: string, 
-    modelIndex: number, 
-    field: keyof CarModel, 
-    value: string, 
-    immediate = false
-  ) => {
-    // Step 1: Update local state first for immediate UI feedback
+  const updateModel = async (brandId: string, modelIndex: number, field: keyof CarModel, value: string) => {
+    // Update local state immediately for UI
     setLocalModels(prev => {
       const newModels = { ...prev };
       if (newModels[brandId]) {
@@ -313,93 +251,22 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     
     if (useNewApi && updateModelApi) {
       const brand = apiBrands?.find((b: any) => (b._id || b.id) === brandId);
-      
-      // ✅ CRITICAL FIX: Get the actual model from displayModels (not filtered!)
       const actualModel = displayModels[brandId]?.[modelIndex];
+      if (!actualModel) return;
       
-      if (!actualModel) {
-        console.error('❌ Could not find model at index:', modelIndex);
-        return;
-      }
-      
-      // ✅ CRITICAL FIX: Find model by name and type (more reliable than index)
       const modelData = brand?.models?.find((m: any) => 
         m.name === actualModel.name && m.type === actualModel.type
       );
-      
       const modelId = modelData?._id;
+      if (!modelId) return;
       
-      console.log('🔍 Model Update:', {
-        brandId,
-        brandName: brand?.name,
-        modelIndex,
-        modelName: actualModel.name,
-        foundModelId: modelId,
-        field,
-        valuePreview: field === 'image' ? value.substring(0, 60) + '...' : value,
-        isS3: field === 'image' && value.includes('amazonaws.com'),
-      });
-      
-      if (!modelId) {
-        console.error('❌ Could not find model ID in database:', {
-          brandId,
-          modelIndex,
-          modelName: actualModel.name,
-          modelType: actualModel.type,
-          availableModels: brand?.models?.map((m: any) => ({ name: m.name, type: m.type, id: m._id })),
-        });
-        return;
-      }
-      
-      // Step 2: Save to database
-      if (immediate || field === 'image') {
-        // For images: save immediately without debounce
-        try {
-          const updateData = { [field]: value };
-          
-          console.log('💾 Saving model to database immediately:', {
-            modelId,
-            field,
-            isS3Url: value.includes('amazonaws.com'),
-          });
-          
-          await updateModelApi(modelId, updateData);
-          
-          console.log('✅ SUCCESS! Model saved to database:', {
-            modelId,
-            modelName: actualModel.name,
-            field,
-            timestamp: new Date().toISOString(),
-          });
-        } catch (error) {
-          console.error('❌ FAILED to save model to database:', {
-            modelId,
-            field,
-            error,
-          });
-          // TODO: Show error toast to user
-          // toast.error('Failed to save image. Please try again.');
-        }
-      } else {
-        // For text fields: save with debounce
-        const timerKey = `model-${modelId}-${field}`;
-        const existingTimer = debounceTimersRef.current.get(timerKey);
-        if (existingTimer) clearTimeout(existingTimer);
-        
-        const timer = setTimeout(async () => {
-          try {
-            await updateModelApi(modelId, { [field]: value });
-            console.log(`✅ Model ${field} saved (debounced):`, modelId);
-          } catch (error) {
-            console.error('Failed to update model:', error);
-          }
-          debounceTimersRef.current.delete(timerKey);
-        }, DEBOUNCE_DELAY);
-        
-        debounceTimersRef.current.set(timerKey, timer);
+      // API updates happen immediately for models (they have their own API)
+      try {
+        await updateModelApi(modelId, { [field]: value });
+      } catch (error) {
+        console.error('Failed to update model:', error);
       }
     } else {
-      // Legacy content.json mode
       const brandModels = [...(carModels[brandId] || [])];
       brandModels[modelIndex] = { ...brandModels[modelIndex], [field]: value };
       handleUpdate('carModels', { ...carModels, [brandId]: brandModels });
@@ -488,24 +355,24 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
                     <label className={labelClass}><MapPin className="w-4 h-4 inline mr-1" />City Label</label>
-                    <input type="text" value={content.labels?.city || 'Select City'} onChange={(e) => handleUpdate('labels.city', e.target.value)} placeholder="Select City" className={inputClass} />
+                    <input type="text" value={content.labels?.city || ''} onChange={(e) => handleUpdate('labels.city', e.target.value)} placeholder="Select City" className={inputClass} />
                   </div>
                   <div className="space-y-2">
                     <label className={labelClass}><Car className="w-4 h-4 inline mr-1" />Brand Label</label>
-                    <input type="text" value={content.labels?.brand || 'Select Brand'} onChange={(e) => handleUpdate('labels.brand', e.target.value)} placeholder="Select Brand" className={inputClass} />
+                    <input type="text" value={content.labels?.brand || ''} onChange={(e) => handleUpdate('labels.brand', e.target.value)} placeholder="Select Brand" className={inputClass} />
                   </div>
                   <div className="space-y-2">
                     <label className={labelClass}><Car className="w-4 h-4 inline mr-1" />Model Label</label>
-                    <input type="text" value={content.labels?.model || 'Select Model'} onChange={(e) => handleUpdate('labels.model', e.target.value)} placeholder="Select Model" className={inputClass} />
+                    <input type="text" value={content.labels?.model || ''} onChange={(e) => handleUpdate('labels.model', e.target.value)} placeholder="Select Model" className={inputClass} />
                   </div>
                   <div className="space-y-2">
                     <label className={labelClass}><Fuel className="w-4 h-4 inline mr-1" />Fuel Label</label>
-                    <input type="text" value={content.labels?.fuel || 'Select Fuel Type'} onChange={(e) => handleUpdate('labels.fuel', e.target.value)} placeholder="Select Fuel Type" className={inputClass} />
+                    <input type="text" value={content.labels?.fuel || ''} onChange={(e) => handleUpdate('labels.fuel', e.target.value)} placeholder="Select Fuel Type" className={inputClass} />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className={labelClass}><Phone className="w-4 h-4 inline mr-1" />Phone Label</label>
-                  <input type="text" value={(content.labels as any)?.phone || 'Enter Phone Number'} onChange={(e) => handleUpdate('labels.phone', e.target.value)} placeholder="Enter Phone Number" className={inputClass} />
+                  <input type="text" value={(content.labels as any)?.phone || ''} onChange={(e) => handleUpdate('labels.phone', e.target.value)} placeholder="Enter Phone Number" className={inputClass} />
                 </div>
               </div>
             </motion.div>
@@ -577,7 +444,6 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                 {!carBrandsLoading && filteredBrands.map((brand) => {
                   const originalIndex = displayBrands.findIndex(b => b.id === brand.id);
                   const brandFolderName = brand.urlName || generateId(brand.name);
-                  // S3 FOLDER PATHS - Dynamic based on brand name
                   const brandLogoFolder = 'booking-widget/brands';
                   const modelImageFolder = `booking-widget/models/${brandFolderName}`;
 
@@ -604,10 +470,9 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                         {expandedBrands.has(originalIndex) && (
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-border">
                             <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-                              {/* ✅ Brand Logo Upload - IMMEDIATE SAVE + AUTO-UPLOAD LOCAL PATHS */}
                               <ImageUpload
                                 value={brand.logo || ''}
-                                onChange={(url) => updateBrand(originalIndex, 'logo', url, true)}
+                                onChange={(url) => updateBrand(originalIndex, 'logo', url)}
                                 label="Brand Logo"
                                 cloudFolder={brandLogoFolder}
                                 helperText={`S3: ${brandLogoFolder}/`}
@@ -666,10 +531,9 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                                           {expandedModels.has(modelKey) && (
                                             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-border bg-card">
                                               <div className="p-2 sm:p-3 space-y-3">
-                                                {/* ✅ Model Image Upload - IMMEDIATE SAVE + AUTO-UPLOAD LOCAL PATHS */}
                                                 <ImageUpload
                                                   value={model.image || ''}
-                                                  onChange={(url) => updateModel(brand.id, mIdx, 'image', url, true)}
+                                                  onChange={(url) => updateModel(brand.id, mIdx, 'image', url)}
                                                   label="Model Image"
                                                   cloudFolder={modelImageFolder}
                                                   helperText={`S3: ${modelImageFolder}/`}
@@ -775,7 +639,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 <div className="space-y-2">
                   <label className={labelClass}>Button Text</label>
-                  <input type="text" value={content.ctaText || 'Check Prices For Free'} onChange={(e) => handleUpdate('ctaText', e.target.value)} placeholder="Check Prices For Free" className={inputClass} />
+                  <input type="text" value={content.ctaText || ''} onChange={(e) => handleUpdate('ctaText', e.target.value)} placeholder="Check Prices For Free" className={inputClass} />
                 </div>
               </div>
             </motion.div>
@@ -799,11 +663,11 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
                     <label className={labelClass}><Star className="w-4 h-4 inline mr-1 text-yellow-500" />Rating</label>
-                    <input type="text" value={content.trustFooter?.rating || '4.8/5'} onChange={(e) => handleUpdate('trustFooter.rating', e.target.value)} placeholder="4.8/5" className={inputClass} />
+                    <input type="text" value={content.trustFooter?.rating || ''} onChange={(e) => handleUpdate('trustFooter.rating', e.target.value)} placeholder="4.8/5" className={inputClass} />
                   </div>
                   <div className="space-y-2">
                     <label className={labelClass}>Services Count</label>
-                    <input type="text" value={content.trustFooter?.servicesCount || '50,000+'} onChange={(e) => handleUpdate('trustFooter.servicesCount', e.target.value)} placeholder="50,000+" className={inputClass} />
+                    <input type="text" value={content.trustFooter?.servicesCount || ''} onChange={(e) => handleUpdate('trustFooter.servicesCount', e.target.value)} placeholder="50,000+" className={inputClass} />
                   </div>
                 </div>
               </div>

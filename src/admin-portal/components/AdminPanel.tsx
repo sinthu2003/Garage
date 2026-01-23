@@ -87,7 +87,7 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   FileText,
 };
 
-// Editor component mapping - Updated type to support onEditingIndexChange callback
+// Editor component mapping
 const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onEditingIndexChange?: (index: number | null) => void }>> = {
   HeroEditor,
   ServicesEditor,
@@ -110,9 +110,10 @@ const editorComponents: Record<string, React.FC<{ isDarkMode: boolean; onEditing
 /**
  * AdminPanel - Slide-out Panel with Two-Panel Layout
  * Left: Editor Fields (30%) | Right: Live Component Preview (70%)
- * Desktop-only preview with Apply Changes functionality
  */
 export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
+  // ⚠️ ADD THIS LINE RIGHT HERE - VERY FIRST LINE IN COMPONENT
+  console.log('🚨🚨🚨 ADMIN PANEL LOADED - NEW VERSION 🚨🚨🚨');
   const {
     content,
     undo,
@@ -146,16 +147,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
 
-  // NEW: ServiceDetail editing index state - tracks which service is being edited
+  // ServiceDetail editing index state
   const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null);
+  
+  // ✅ Local service state for INSTANT preview updates
+  const [previewService, setPreviewService] = useState<any>(null);
+
+  // ✅ STABLE CALLBACK for preview service updates
+  const handleLocalServiceChange = useCallback((service: any) => {
+    console.log('🟠 handleLocalServiceChange called with:', service?.title, 'price:', service?.price);
+    setPreviewService(service);
+  }, []);
+
+  // ✅ DEBUG: Log when callback is created
+  useEffect(() => {
+    console.log('🔵 AdminPanel: handleLocalServiceChange reference:', typeof handleLocalServiceChange);
+  }, [handleLocalServiceChange]);
 
   const resizeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sidebarTimeoutRef = useRef<number | null>(null);
 
-  // NEW: Handler for service editing index change
+  // Handler for service editing index change
   const handleServiceEditingIndexChange = useCallback((index: number | null) => {
+    console.log('🔵 handleServiceEditingIndexChange:', index);
     setEditingServiceIndex(index);
+  }, []);
+
+  // Show notification helper
+  const showNotification = useCallback((type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 3000);
   }, []);
 
   // Check for mobile/tablet viewport
@@ -190,7 +212,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       editor.id.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Refresh preview when content changes (debounced)
+  // Refresh preview when content changes
   useEffect(() => {
     if (!isOpen) return;
     const timer = setTimeout(() => {
@@ -199,18 +221,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     return () => clearTimeout(timer);
   }, [content, isOpen]);
 
-  // Reset editingServiceIndex when switching away from serviceDetail editor
+  // Reset states when switching away from serviceDetail editor
   useEffect(() => {
     if (activeEditor !== 'serviceDetail') {
       setEditingServiceIndex(null);
+      setPreviewService(null);
     }
   }, [activeEditor]);
 
-  // Show notification
-  const showNotification = (type: 'success' | 'error', message: string) => {
-    setNotification({ type, message });
-    setTimeout(() => setNotification(null), 3000);
-  };
+  // ✅ DEBUG: Log previewService changes
+  useEffect(() => {
+    console.log('🟣 AdminPanel previewService state changed:', previewService?.title, 'price:', previewService?.price);
+  }, [previewService]);
 
   // Handle Apply Changes
   const handleApplyChanges = async () => {
@@ -342,14 +364,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     </div>
   ));
 
-  // Render the editor component with special handling for ServiceDetailEditor
+  // ✅ FIXED: Render editor component with special handling for ServiceDetailEditor
   const renderEditorComponent = () => {
-    // Special handling for ServiceDetailEditor to pass the editing index callback
+    console.log('🔵 renderEditorComponent called, activeEditor:', activeEditor);
+    
+    // Special handling for ServiceDetailEditor - pass ALL callbacks
     if (activeEditor === 'serviceDetail') {
+      console.log('🔵 Rendering ServiceDetailEditor with:');
+      console.log('🔵   - handleLocalServiceChange:', typeof handleLocalServiceChange);
+      console.log('🔵   - handleServiceEditingIndexChange:', typeof handleServiceEditingIndexChange);
+      console.log('🔵   - showNotification:', typeof showNotification);
+      
       return (
         <ServiceDetailEditor 
           isDarkMode={isDarkMode} 
           onEditingIndexChange={handleServiceEditingIndexChange}
+          onLocalServiceChange={handleLocalServiceChange}
+          showNotification={showNotification}
         />
       );
     }
@@ -398,7 +429,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   const themeClass = (darkClass: string, lightClass: string) =>
     isDarkMode ? darkClass : lightClass;
 
-  // Determine if sidebar should be expanded (hovered or explicitly expanded)
+  // Determine if sidebar should be expanded
   const isSidebarExpanded = !sidebarCollapsed || sidebarHovered;
 
   return (
@@ -452,12 +483,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 >
                   {previewVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                 </button>
-                {/* <button
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  className="p-2 rounded-xl hover:bg-secondary text-muted-foreground"
-                >
-                  {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                </button> */}
                 <button
                   onClick={onClose}
                   className="p-2 rounded-xl hover:bg-secondary text-muted-foreground"
@@ -805,7 +830,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
                 {/* Two Panel Content Area */}
                 <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-                  {/* Editor Panel - 30% width */}
+                  {/* Editor Panel */}
                   <motion.div
                     animate={{ 
                       width: isMobile ? '100%' : (previewVisible ? `${editorPanelWidth}%` : '100%'),
@@ -868,7 +893,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                     </div>
                   )}
 
-                  {/* Preview Panel - 70% width - Desktop Only View */}
+                  {/* Preview Panel */}
                   <AnimatePresence>
                     {previewVisible && (
                       <motion.div
@@ -881,7 +906,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                         transition={{ duration: 0.2 }}
                         className={`flex flex-col overflow-hidden ${themeClass('bg-secondary/30', 'bg-gray-100')}`}
                       >
-                        {/* Preview Header - Desktop Only (No device toggles) */}
+                        {/* Preview Header */}
                         <div className={`flex items-center justify-between px-4 py-2 border-b ${themeClass('bg-card border-border', 'bg-card border-border')}`}>
                           <div className="flex items-center gap-2">
                             <Eye className="w-4 h-4 text-primary" />
@@ -928,9 +953,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                         {/* Preview URL Bar */}
                         <div className={`flex items-center gap-2 px-4 py-2 border-b ${themeClass('bg-secondary/50 border-border', 'bg-gray-100 border-gray-200')}`}>
                           <div className="flex items-center gap-1.5">
-                            <div className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors cursor-pointer" />
-                            <div className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors cursor-pointer" />
-                            <div className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors cursor-pointer" />
+                            <div className="w-3 h-3 rounded-full bg-red-500" />
+                            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                            <div className="w-3 h-3 rounded-full bg-green-500" />
                           </div>
                           <div className={`flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg ${themeClass('bg-background', 'bg-white')} border ${themeClass('border-border', 'border-gray-200')}`}>
                             <div className="w-4 h-4 rounded bg-green-500/20 flex items-center justify-center flex-shrink-0">
@@ -942,7 +967,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                           </div>
                         </div>
 
-                        {/* Preview Content - Desktop Only View */}
+                        {/* Preview Content */}
                         <div className="flex-1 overflow-auto p-2 sm:p-3 md:p-4">
                           <motion.div
                             animate={{ width: '100%' }}
@@ -957,6 +982,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                                 refreshKey={previewKey}
                                 className="h-full"
                                 editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
+                                previewService={activeEditor === 'serviceDetail' ? previewService : undefined}
                               />
                             </div>
                           </motion.div>
@@ -981,7 +1007,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
             </div>
           </motion.div>
 
-          {/* Fullscreen Preview Overlay - Desktop Only View */}
+          {/* Fullscreen Preview Overlay */}
           <AnimatePresence>
             {previewFullscreen && previewVisible && (
               <motion.div
@@ -1023,6 +1049,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       refreshKey={previewKey}
                       className="h-full"
                       editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
+                      previewService={activeEditor === 'serviceDetail' ? previewService : undefined}
                     />
                   </motion.div>
                 </div>

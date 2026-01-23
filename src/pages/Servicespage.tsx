@@ -12,7 +12,10 @@ import {
   Paintbrush,
   Gauge,
   Phone,
-  X
+  X,
+  Disc,
+  Plug,
+  AirVent,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '../admin-portal';
@@ -24,6 +27,9 @@ const defaultCategories = [
   { id: 'repair', label: 'Repairs', icon: 'Settings' },
   { id: 'cosmetic', label: 'Cosmetic', icon: 'Paintbrush' },
   { id: 'inspection', label: 'Inspection', icon: 'Gauge' },
+  { id: 'Tyre', label: 'Tyre', icon: 'Disc' },
+  { id: 'Electric', label: 'Electric', icon: 'Plug' },
+  { id: 'AC', label: 'AC', icon: 'AirVent' },
 ];
 
 // Icon mapping
@@ -33,6 +39,9 @@ const iconMap: Record<string, React.FC<{ className?: string }>> = {
   Settings,
   Paintbrush,
   Gauge,
+  Disc,
+  Plug,
+  AirVent,
 };
 
 // Map services to categories (fallback if category not in JSON)
@@ -323,7 +332,7 @@ export const ServicesPage = () => {
               {/* Secondary CTA Button - Now using CMS content */}
               <motion.a
                 href={`tel:${pagesContent?.cta?.phone || globalContent.brand.phone}`}
-                className="px-8 py-4 bg-secondary text-foreground rounded-full font-semibold border border-border hover:border-primary/30 transition-colors flex items-center justify-center gap-2"
+                className="px-8 py-4 bg-white text-foreground rounded-full font-semibold border border-border hover:border-primary/30 transition-colors flex items-center justify-center gap-2"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
               >

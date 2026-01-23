@@ -24,13 +24,18 @@ interface TestimonialsEditorProps {
   isDarkMode: boolean;
 }
 
-export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
+export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = () => {
   const { updateField } = useContent();
   const content = useTestimonialsContent();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'items'])
   );
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+
+  // Simple update function - debouncing handled by ContentContext
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('testimonials', path, value);
+  };
 
   // [LAZY LOADING] Show loading state - MUST be after all hooks
   if (content.isLoading) {
@@ -57,10 +62,6 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
     setExpandedItems(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('testimonials', path, value);
-  };
-
   // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
@@ -69,6 +70,8 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
 
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
+
+  const items = content.items || [];
 
   const addNewTestimonial = () => {
     const newTestimonial: TestimonialItem = {
@@ -82,10 +85,21 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
       content: 'Write the customer review here...',
       image: '',
     };
-    // Add at the beginning of the array
-    handleUpdate('items', [newTestimonial, ...(content.items || [])]);
+    const newItems = [newTestimonial, ...items];
+    handleUpdate('items', newItems);
     // Auto-expand the newly added testimonial (now at index 0)
     setExpandedItems(new Set([0]));
+  };
+
+  const handleItemFieldUpdate = (index: number, field: keyof TestimonialItem, value: unknown) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    handleUpdate('items', newItems);
+  };
+
+  const deleteTestimonial = (index: number) => {
+    const newItems = items.filter((_: TestimonialItem, i: number) => i !== index);
+    handleUpdate('items', newItems);
   };
 
   // Star Rating Component
@@ -128,6 +142,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                {/* Badge Text */}
                 <div className="space-y-2">
                   <label className={labelClass}>Badge Text</label>
                   <input
@@ -140,6 +155,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {/* Headline Line 1 */}
                   <div className="space-y-2">
                     <label className={labelClass}>Headline Line 1</label>
                     <input
@@ -150,6 +166,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                       className={inputClass}
                     />
                   </div>
+                  {/* Highlighted Text */}
                   <div className="space-y-2">
                     <label className={labelClass}>Highlighted Text</label>
                     <input
@@ -183,9 +200,10 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
             <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Testimonials</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
-              {content.items?.length || 0}
+              {items.length}
             </span>
           </div>
+          {/* Add button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -206,7 +224,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                {content.items?.map((testimonial: TestimonialItem, index: number) => (
+                {items.map((testimonial: TestimonialItem, index: number) => (
                   <div
                     key={testimonial.id || index}
                     className="rounded-xl border overflow-hidden border-border bg-card"
@@ -247,11 +265,11 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                        {/* Delete button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const newItems = content.items?.filter((_: TestimonialItem, i: number) => i !== index);
-                            handleUpdate('items', newItems);
+                            deleteTestimonial(index);
                           }}
                           className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
                         >
@@ -276,11 +294,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                             {/* Customer Image Upload */}
                             <ImageUpload
                               value={testimonial.image || ''}
-                              onChange={(url) => {
-                                const newItems = [...(content.items || [])];
-                                newItems[index] = { ...newItems[index], image: url };
-                                handleUpdate('items', newItems);
-                              }}
+                              onChange={(url) => handleItemFieldUpdate(index, 'image', url)}
                               label="Customer Photo"
                               placeholder="Upload image or enter URL"
                               previewHeight="h-40"
@@ -293,6 +307,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
 
                             {/* Name & Role */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                              {/* Customer Name */}
                               <div className="space-y-2">
                                 <label className={labelClass}>
                                   <User className="w-4 h-4 inline mr-1" />
@@ -301,16 +316,13 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                                 <input
                                   type="text"
                                   value={testimonial.name || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], name: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
+                                  onChange={(e) => handleItemFieldUpdate(index, 'name', e.target.value)}
                                   placeholder="John Doe"
                                   className={inputClass}
                                 />
                               </div>
 
+                              {/* Role/Profession */}
                               <div className="space-y-2">
                                 <label className={labelClass}>
                                   <Briefcase className="w-4 h-4 inline mr-1" />
@@ -319,11 +331,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                                 <input
                                   type="text"
                                   value={testimonial.role || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], role: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
+                                  onChange={(e) => handleItemFieldUpdate(index, 'role', e.target.value)}
                                   placeholder="Business Owner"
                                   className={inputClass}
                                 />
@@ -332,6 +340,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
 
                             {/* Location & Car */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                              {/* Location */}
                               <div className="space-y-2">
                                 <label className={labelClass}>
                                   <MapPin className="w-4 h-4 inline mr-1" />
@@ -340,16 +349,13 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                                 <input
                                   type="text"
                                   value={testimonial.location || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], location: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
+                                  onChange={(e) => handleItemFieldUpdate(index, 'location', e.target.value)}
                                   placeholder="Coimbatore"
                                   className={inputClass}
                                 />
                               </div>
 
+                              {/* Car Model */}
                               <div className="space-y-2">
                                 <label className={labelClass}>
                                   <Car className="w-4 h-4 inline mr-1" />
@@ -358,11 +364,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                                 <input
                                   type="text"
                                   value={testimonial.carModel || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], carModel: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
+                                  onChange={(e) => handleItemFieldUpdate(index, 'carModel', e.target.value)}
                                   placeholder="Hyundai Creta"
                                   className={inputClass}
                                 />
@@ -371,30 +373,24 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
 
                             {/* Service & Rating */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                              {/* Service Used */}
                               <div className="space-y-2">
                                 <label className={labelClass}>Service Used</label>
                                 <input
                                   type="text"
                                   value={testimonial.service || ''}
-                                  onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], service: e.target.value };
-                                    handleUpdate('items', newItems);
-                                  }}
+                                  onChange={(e) => handleItemFieldUpdate(index, 'service', e.target.value)}
                                   placeholder="Denting & Painting"
                                   className={inputClass}
                                 />
                               </div>
 
+                              {/* Rating */}
                               <div className="space-y-2">
                                 <label className={labelClass}>Rating</label>
                                 <StarRating
                                   rating={testimonial.rating || 5}
-                                  onChange={(rating) => {
-                                    const newItems = [...(content.items || [])];
-                                    newItems[index] = { ...newItems[index], rating };
-                                    handleUpdate('items', newItems);
-                                  }}
+                                  onChange={(rating) => handleItemFieldUpdate(index, 'rating', rating)}
                                 />
                               </div>
                             </div>
@@ -407,11 +403,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                               </label>
                               <textarea
                                 value={testimonial.content || ''}
-                                onChange={(e) => {
-                                  const newItems = [...(content.items || [])];
-                                  newItems[index] = { ...newItems[index], content: e.target.value };
-                                  handleUpdate('items', newItems);
-                                }}
+                                onChange={(e) => handleItemFieldUpdate(index, 'content', e.target.value)}
                                 placeholder="Write the customer's review here..."
                                 rows={3}
                                 className={inputClass}
@@ -424,7 +416,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                   </div>
                 ))}
 
-                {(!content.items || content.items.length === 0) && (
+                {items.length === 0 && (
                   <div className="text-center py-6 sm:py-8 text-muted-foreground">
                     <Star className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No testimonials added yet</p>
@@ -435,23 +427,23 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ }) => {
                 )}
 
                 {/* Stats Summary */}
-                {content.items && content.items.length > 0 && (
+                {items.length > 0 && (
                   <div className="grid grid-cols-3 gap-2 sm:gap-4 p-3 sm:p-4 rounded-xl bg-secondary">
                     <div className="text-center">
                       <p className="text-xl sm:text-2xl font-bold text-foreground">
-                        {content.items.length}
+                        {items.length}
                       </p>
                       <p className="text-[10px] sm:text-xs text-muted-foreground">Total Reviews</p>
                     </div>
                     <div className="text-center">
                       <p className="text-xl sm:text-2xl font-bold text-yellow-500">
-                        {(content.items.reduce((acc: number, item: TestimonialItem) => acc + (item.rating || 5), 0) / content.items.length).toFixed(1)}
+                        {(items.reduce((acc: number, item: TestimonialItem) => acc + (item.rating || 5), 0) / items.length).toFixed(1)}
                       </p>
                       <p className="text-[10px] sm:text-xs text-muted-foreground">Avg Rating</p>
                     </div>
                     <div className="text-center">
                       <p className="text-xl sm:text-2xl font-bold text-green-500">
-                        {content.items.filter((item: TestimonialItem) => (item.rating || 5) === 5).length}
+                        {items.filter((item: TestimonialItem) => (item.rating || 5) === 5).length}
                       </p>
                       <p className="text-[10px] sm:text-xs text-muted-foreground">5-Star Reviews</p>
                     </div>

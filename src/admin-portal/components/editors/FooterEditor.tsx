@@ -28,6 +28,7 @@ interface FooterEditorProps {
 export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
   const { updateField } = useContent();
   const content = useFooterContent();
+
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['brand', 'contact', 'services', 'company', 'support', 'cities'])
   );
@@ -36,6 +37,10 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
   if (content.isLoading) {
     return <SectionLoader section="Footer" />;
   }
+
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('footer', path, value);
+  };
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -47,20 +52,11 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
     setExpandedSections(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('footer', path, value);
-  };
-
-  // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
-
   const labelClass = `text-sm font-medium text-muted-foreground`;
-
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
-
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
-  // Link editor component
   const LinkEditor = ({
     links,
     path,
@@ -113,7 +109,6 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
       ))}
       <button
         onClick={() => {
-          // Add at the beginning of the array
           handleUpdate(path, [{ name: 'New Link', href: '#' }, ...(links || [])]);
         }}
         className="text-sm text-primary font-medium"
@@ -151,7 +146,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                     <label className={labelClass}>Brand Name</label>
                     <input
                       type="text"
-                      value={content.brandName || 'Addax'}
+                      value={content.brandName || ''}
                       onChange={(e) => handleUpdate('brandName', e.target.value)}
                       placeholder="Addax"
                       className={inputClass}
@@ -161,7 +156,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                     <label className={labelClass}>Tagline</label>
                     <input
                       type="text"
-                      value={content.tagline || 'Automotive'}
+                      value={content.tagline || ''}
                       onChange={(e) => handleUpdate('tagline', e.target.value)}
                       placeholder="Automotive"
                       className={inputClass}
@@ -498,7 +493,6 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              // Add at the beginning of the array
               handleUpdate('links.cities', ['New City', ...(content.links?.cities || [])]);
             }}
             className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
@@ -594,7 +588,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                     <label className={labelClass}>Privacy Policy URL</label>
                     <input
                       type="text"
-                      value={content.privacyUrl || '#'}
+                      value={content.privacyUrl || ''}
                       onChange={(e) => handleUpdate('privacyUrl', e.target.value)}
                       placeholder="/privacy-policy"
                       className={inputClass}
@@ -604,7 +598,7 @@ export const FooterEditor: React.FC<FooterEditorProps> = ({ }) => {
                     <label className={labelClass}>Terms of Service URL</label>
                     <input
                       type="text"
-                      value={content.termsUrl || '#'}
+                      value={content.termsUrl || ''}
                       onChange={(e) => handleUpdate('termsUrl', e.target.value)}
                       placeholder="/terms-of-service"
                       className={inputClass}

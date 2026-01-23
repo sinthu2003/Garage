@@ -254,14 +254,14 @@ const PlaceholderPreview: React.FC<PlaceholderPreviewProps> = ({
 
 interface ServiceDetailPreviewProps {
   editingServiceIndex: number | null;
+  previewService?: any | null;
 }
 
-const ServiceDetailPreviewWrapper: React.FC<ServiceDetailPreviewProps> = ({ editingServiceIndex }) => {
-  // This component wraps ServiceDetailPage and injects the correct service data
-  // based on editingServiceIndex
-
+const ServiceDetailPreviewWrapper: React.FC<ServiceDetailPreviewProps> = ({ 
+  editingServiceIndex,
+  previewService
+}) => {
   if (editingServiceIndex === null) {
-    // Show placeholder when viewing the list (no service selected)
     return (
       <PlaceholderPreview
         title="Service Details Preview"
@@ -276,27 +276,30 @@ const ServiceDetailPreviewWrapper: React.FC<ServiceDetailPreviewProps> = ({ edit
     );
   }
 
-  // When editing a service, render the actual ServiceDetailPage
-  // We'll pass the service index via a custom context or URL state
   return (
     <Suspense fallback={<LoadingSpinner message="Loading service preview..." />}>
-      <ServiceDetailPreviewContent editingIndex={editingServiceIndex} />
+      <ServiceDetailPreviewContent 
+        editingIndex={editingServiceIndex}
+        previewService={previewService}
+      />
     </Suspense>
   );
 };
 
 // Inner component that renders the service detail preview
-const ServiceDetailPreviewContent: React.FC<{ editingIndex: number }> = ({ editingIndex }) => {
-  // Get content from the imported useContent hook
-  // [FIX] Get BOTH API services and legacy content - prefer API services
+const ServiceDetailPreviewContent: React.FC<{ 
+  editingIndex: number;
+  previewService?: any | null;
+}> = ({ editingIndex, previewService }) => {
   const { content, services: apiServices } = useContent();
 
-  // [FIX] Use API services if available, otherwise fallback to legacy content
-  const services = (apiServices && apiServices.length > 0)
+  // Fallback services (only used if previewService not provided)
+  const fallbackServices = (apiServices && apiServices.length > 0)
     ? apiServices
     : (content?.services?.items || []);
 
-  const service = services[editingIndex];
+  // ✅ KEY FIX: Use previewService if available for INSTANT updates
+  const service = previewService || fallbackServices[editingIndex];
 
   if (!service) {
     return (
@@ -535,8 +538,8 @@ interface SectionPreviewConfig {
   };
   wrapperClass?: string;
   backgroundColor?: string;
-  containFixed?: boolean; // For components with position:fixed that need to be contained
-  useDynamicPreview?: boolean; // For sections that need dynamic preview based on editing state
+  containFixed?: boolean;
+  useDynamicPreview?: boolean;
 }
 
 const sectionConfigs: Record<string, SectionPreviewConfig> = {
@@ -552,7 +555,7 @@ const sectionConfigs: Record<string, SectionPreviewConfig> = {
   },
   serviceDetail: {
     component: null,
-    useDynamicPreview: true, // This will use ServiceDetailPreviewWrapper
+    useDynamicPreview: true,
     wrapperClass: 'min-h-[800px]',
     backgroundColor: 'bg-white',
   },
@@ -571,13 +574,11 @@ const sectionConfigs: Record<string, SectionPreviewConfig> = {
     wrapperClass: '',
     backgroundColor: 'bg-white',
   },
-  // NEW: FAQ Section preview (for FAQ Section tab in FAQEditor)
   faqSection: {
     component: FAQSection,
     wrapperClass: '',
     backgroundColor: 'bg-white',
   },
-  // NEW: Contact Page preview (for Contact Page tab in FAQEditor)
   contactPage: {
     component: ContactUsPage,
     wrapperClass: 'min-h-[800px]',
@@ -612,7 +613,7 @@ const sectionConfigs: Record<string, SectionPreviewConfig> = {
     component: Navbar,
     wrapperClass: 'relative min-h-[600px] overflow-hidden',
     backgroundColor: 'bg-gradient-to-b from-gray-900 via-gray-800 to-gray-600',
-    containFixed: true, // Special flag for fixed-position components
+    containFixed: true,
   },
   footer: {
     component: Footer,
@@ -686,7 +687,8 @@ interface SectionPreviewWrapperProps {
   device?: DeviceType;
   className?: string;
   refreshKey?: number;
-  editingServiceIndex?: number | null; // For serviceDetail preview
+  editingServiceIndex?: number | null;
+  previewService?: any | null;
 }
 
 export const SectionPreviewWrapper: React.FC<SectionPreviewWrapperProps> = ({
@@ -695,7 +697,12 @@ export const SectionPreviewWrapper: React.FC<SectionPreviewWrapperProps> = ({
   className = '',
   refreshKey = 0,
   editingServiceIndex = null,
+  previewService = null,
 }) => {
+
+  console.log('🔴 SectionPreviewWrapper received previewService:', previewService); // ADD THIS
+
+
   const config = sectionConfigs[sectionId];
   const deviceConfig = devicePresets[device];
 
@@ -708,7 +715,10 @@ export const SectionPreviewWrapper: React.FC<SectionPreviewWrapperProps> = ({
     if (sectionId === 'serviceDetail' && config.useDynamicPreview) {
       return (
         <div className={`${config.wrapperClass} ${config.backgroundColor || 'bg-white'}`}>
-          <ServiceDetailPreviewWrapper editingServiceIndex={editingServiceIndex} />
+          <ServiceDetailPreviewWrapper 
+            editingServiceIndex={editingServiceIndex}
+            previewService={previewService}
+          />
         </div>
       );
     }
@@ -727,7 +737,6 @@ export const SectionPreviewWrapper: React.FC<SectionPreviewWrapperProps> = ({
     if (config.component) {
       const SectionComponent = config.component;
 
-      // For components with position:fixed (like Navbar), wrap in a container that isolates the fixed positioning
       if (config.containFixed) {
         return (
           <Suspense fallback={<LoadingSpinner message={`Loading ${sectionId} preview...`} />}>
@@ -735,11 +744,10 @@ export const SectionPreviewWrapper: React.FC<SectionPreviewWrapperProps> = ({
               className={`${config.wrapperClass} ${config.backgroundColor || 'bg-white'}`}
               style={{
                 position: 'relative',
-                transform: 'translateZ(0)', // Creates new stacking context
+                transform: 'translateZ(0)',
                 isolation: 'isolate',
               }}
             >
-              {/* Transform container to contain fixed positioning */}
               <div style={{ transform: 'scale(1)' }}>
                 <SectionComponent />
               </div>
@@ -758,7 +766,7 @@ export const SectionPreviewWrapper: React.FC<SectionPreviewWrapperProps> = ({
     }
 
     return <ErrorFallback sectionId={sectionId} />;
-  }, [sectionId, config, refreshKey, editingServiceIndex]);
+  }, [sectionId, config, refreshKey, editingServiceIndex, previewService]); // ✅ FIXED: Added previewService to dependencies!
 
   return (
     <div className={`preview-wrapper h-full ${className}`}>
@@ -820,7 +828,6 @@ export const PreviewPanelHeader: React.FC<PreviewPanelHeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-1">
-        {/* Device Toggles */}
         <div className="hidden md:flex items-center gap-1 mr-2 p-1 rounded-lg bg-secondary/50">
           {(Object.keys(devicePresets) as DeviceType[]).map((d) => {
             const DeviceIcon = devicePresets[d].icon;
@@ -842,7 +849,6 @@ export const PreviewPanelHeader: React.FC<PreviewPanelHeaderProps> = ({
 
         <div className="w-px h-6 bg-border mx-1 hidden md:block" />
 
-        {/* Refresh */}
         <button
           onClick={onRefresh}
           className={`p-1.5 rounded-lg transition-colors ${themeClass('hover:bg-secondary text-muted-foreground', 'hover:bg-secondary text-muted-foreground')}`}
@@ -851,7 +857,6 @@ export const PreviewPanelHeader: React.FC<PreviewPanelHeaderProps> = ({
           <RefreshCw className="w-4 h-4" />
         </button>
 
-        {/* Copy URL */}
         <button
           onClick={onCopyUrl}
           className={`p-1.5 rounded-lg transition-colors ${themeClass('hover:bg-secondary text-muted-foreground', 'hover:bg-secondary text-muted-foreground')}`}
@@ -860,7 +865,6 @@ export const PreviewPanelHeader: React.FC<PreviewPanelHeaderProps> = ({
           {copiedUrl ? <CheckCircle className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
         </button>
 
-        {/* Open in New Tab */}
         <button
           onClick={onOpenExternal}
           className={`p-1.5 rounded-lg transition-colors ${themeClass('hover:bg-secondary text-muted-foreground', 'hover:bg-secondary text-muted-foreground')}`}
@@ -869,7 +873,6 @@ export const PreviewPanelHeader: React.FC<PreviewPanelHeaderProps> = ({
           <ExternalLink className="w-4 h-4" />
         </button>
 
-        {/* Fullscreen Toggle */}
         {onFullscreen && (
           <button
             onClick={onFullscreen}
@@ -893,7 +896,6 @@ interface PreviewUrlBarProps {
   isDarkMode?: boolean;
 }
 
-// Preview routes mapping - UPDATED with FAQ section routes
 const previewRoutes: Record<string, string> = {
   hero: '/#hero',
   services: '/#services',
@@ -931,14 +933,12 @@ export const PreviewUrlBar: React.FC<PreviewUrlBarProps> = ({ sectionId, isDarkM
 
   return (
     <div className={`flex items-center gap-2 px-4 py-2 border-b ${themeClass('bg-secondary/50 border-border', 'bg-gray-100 border-gray-200')}`}>
-      {/* Browser Dots */}
       <div className="flex items-center gap-1.5">
         <div className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors cursor-pointer" />
         <div className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors cursor-pointer" />
         <div className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors cursor-pointer" />
       </div>
 
-      {/* URL Bar */}
       <div className={`flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg ${themeClass('bg-background', 'bg-white')} border ${themeClass('border-border', 'border-gray-200')}`}>
         <div className="w-4 h-4 rounded bg-green-500/20 flex items-center justify-center flex-shrink-0">
           <div className="w-2 h-2 rounded-full bg-green-500" />

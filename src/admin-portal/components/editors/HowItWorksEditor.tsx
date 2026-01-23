@@ -5,7 +5,6 @@ import {
   Type,
   ChevronRight,
   ChevronDown,
-  
   Trash2,
   GripVertical,
   Palette,
@@ -15,12 +14,14 @@ import {
   CheckCircle,
   Play,
   Hash,
+  Plus,
 } from 'lucide-react';
 import { useHowItWorksContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
 import { ImageUpload } from '../shared/ImageUpload';
 import type { HowItWorksStep } from '../../types/content.types';
 import { SectionLoader } from '../shared/SectionLoader';
+
 interface HowItWorksEditorProps {
   isDarkMode: boolean;
 }
@@ -35,13 +36,18 @@ const iconOptions = [
   { value: 'Layers', label: 'Layers', icon: Layers },
 ];
 
-export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
+export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = () => {
   const { updateField } = useContent();
   const content = useHowItWorksContent();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'steps'])
   );
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+
+  // Simple update function - debouncing handled by ContentContext
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('howItWorks', path, value);
+  };
 
   // [LAZY LOADING] Show loading state - MUST be after all hooks
   if (content.isLoading) {
@@ -68,10 +74,6 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
     setExpandedItems(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('howItWorks', path, value);
-  };
-
   // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
@@ -80,6 +82,8 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
 
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
+
+  const steps = content.steps || [];
 
   const addNewStep = () => {
     const newStep: HowItWorksStep = {
@@ -91,8 +95,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
       image: '',
     };
     // Add at the beginning and renumber all steps
-    const existingSteps = content.steps || [];
-    const updatedSteps = [newStep, ...existingSteps].map((step, index) => ({
+    const updatedSteps = [newStep, ...steps].map((step, index) => ({
       ...step,
       number: (index + 1).toString().padStart(2, '0'),
     }));
@@ -101,7 +104,21 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
     setExpandedItems(new Set([0]));
   };
 
-  // Get icon component by name
+  const handleStepFieldUpdate = (index: number, field: keyof HowItWorksStep, value: unknown) => {
+    const newSteps = [...steps];
+    newSteps[index] = { ...newSteps[index], [field]: value };
+    handleUpdate('steps', newSteps);
+  };
+
+  const deleteStep = (index: number) => {
+    const newSteps = steps.filter((_: HowItWorksStep, i: number) => i !== index);
+    // Renumber remaining steps
+    const renumbered = newSteps.map((s: HowItWorksStep, idx: number) => ({
+      ...s,
+      number: (idx + 1).toString().padStart(2, '0'),
+    }));
+    handleUpdate('steps', renumbered);
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -126,6 +143,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                {/* Badge Text */}
                 <div className="space-y-2">
                   <label className={labelClass}>Badge Text</label>
                   <input
@@ -138,6 +156,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {/* Headline Line 1 */}
                   <div className="space-y-2">
                     <label className={labelClass}>Headline Line 1</label>
                     <input
@@ -148,6 +167,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                       className={inputClass}
                     />
                   </div>
+                  {/* Highlighted Text */}
                   <div className="space-y-2">
                     <label className={labelClass}>Highlighted Text</label>
                     <input
@@ -160,6 +180,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                   </div>
                 </div>
 
+                {/* Description */}
                 <div className="space-y-2">
                   <label className={labelClass}>Description</label>
                   <textarea
@@ -171,6 +192,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                   />
                 </div>
 
+                {/* CTA Button Text */}
                 <div className="space-y-2">
                   <label className={labelClass}>CTA Button Text</label>
                   <input
@@ -189,32 +211,33 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
 
       {/* Steps */}
       <div className={sectionClass}>
-        <div 
-          onClick={() => toggleSection('steps')} 
-          onKeyDown={(e) => e.key === 'Enter' && toggleSection('steps')}
-          role="button"
-          tabIndex={0}
-          className={`${sectionHeaderClass} cursor-pointer`}
-        >
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className={`${sectionHeaderClass} cursor-pointer`}>
+          <div
+            onClick={() => toggleSection('steps')}
+            onKeyDown={(e) => e.key === 'Enter' && toggleSection('steps')}
+            role="button"
+            tabIndex={0}
+            className="flex items-center gap-2 sm:gap-3 flex-1"
+          >
             <motion.div animate={{ rotate: expandedSections.has('steps') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
             <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Process Steps</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
-              {content.steps?.length || 0}
+              {steps.length}
             </span>
           </div>
-          {/* <button
+          <button
             onClick={(e) => {
               e.stopPropagation();
               addNewStep();
             }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
+            className="p-1.5 sm:p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+            title="Add Step"
           >
             <Plus className="w-4 h-4" />
-          </button> */}
+          </button>
         </div>
 
         <AnimatePresence>
@@ -226,7 +249,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                {content.steps?.map((step: HowItWorksStep, index: number) => {
+                {steps.map((step: HowItWorksStep, index: number) => {
                   return (
                     <div
                       key={index}
@@ -280,16 +303,11 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                           </div>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                          {/* Delete button */}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              const newSteps = content.steps?.filter((_: HowItWorksStep, i: number) => i !== index);
-                              // Renumber remaining steps
-                              const renumbered = newSteps?.map((s: HowItWorksStep, idx: number) => ({
-                                ...s,
-                                number: (idx + 1).toString().padStart(2, '0'),
-                              }));
-                              handleUpdate('steps', renumbered);
+                              deleteStep(index);
                             }}
                             className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
                           >
@@ -312,6 +330,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                           >
                             <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                {/* Step Number */}
                                 <div className="space-y-2">
                                   <label className={labelClass}>
                                     <Hash className="w-4 h-4 inline mr-1" />
@@ -320,25 +339,18 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                                   <input
                                     type="text"
                                     value={step.number || ''}
-                                    onChange={(e) => {
-                                      const newSteps = [...(content.steps || [])];
-                                      newSteps[index] = { ...newSteps[index], number: e.target.value };
-                                      handleUpdate('steps', newSteps);
-                                    }}
+                                    onChange={(e) => handleStepFieldUpdate(index, 'number', e.target.value)}
                                     placeholder="01"
                                     className={inputClass}
                                   />
                                 </div>
 
+                                {/* Icon dropdown */}
                                 <div className="space-y-2">
                                   <label className={labelClass}>Icon</label>
                                   <select
                                     value={step.icon || 'CheckCircle'}
-                                    onChange={(e) => {
-                                      const newSteps = [...(content.steps || [])];
-                                      newSteps[index] = { ...newSteps[index], icon: e.target.value };
-                                      handleUpdate('steps', newSteps);
-                                    }}
+                                    onChange={(e) => handleStepFieldUpdate(index, 'icon', e.target.value)}
                                     className={inputClass}
                                   >
                                     {iconOptions.map(opt => (
@@ -348,30 +360,24 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                                 </div>
                               </div>
 
+                              {/* Step Title */}
                               <div className="space-y-2">
                                 <label className={labelClass}>Title</label>
                                 <input
                                   type="text"
                                   value={step.title || ''}
-                                  onChange={(e) => {
-                                    const newSteps = [...(content.steps || [])];
-                                    newSteps[index] = { ...newSteps[index], title: e.target.value };
-                                    handleUpdate('steps', newSteps);
-                                  }}
+                                  onChange={(e) => handleStepFieldUpdate(index, 'title', e.target.value)}
                                   placeholder="Select Location"
                                   className={inputClass}
                                 />
                               </div>
 
+                              {/* Step Description */}
                               <div className="space-y-2">
                                 <label className={labelClass}>Description</label>
                                 <textarea
                                   value={step.description || ''}
-                                  onChange={(e) => {
-                                    const newSteps = [...(content.steps || [])];
-                                    newSteps[index] = { ...newSteps[index], description: e.target.value };
-                                    handleUpdate('steps', newSteps);
-                                  }}
+                                  onChange={(e) => handleStepFieldUpdate(index, 'description', e.target.value)}
                                   placeholder="Choose your city and preferred service location..."
                                   rows={2}
                                   className={inputClass}
@@ -385,38 +391,28 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                                   Step Color
                                 </label>
                                 <div className="flex items-center gap-2">
+                                  {/* Color picker */}
                                   <input
                                     type="color"
                                     value={step.color?.startsWith('#') ? step.color : '#3B82F6'}
-                                    onChange={(e) => {
-                                      const newSteps = [...(content.steps || [])];
-                                      newSteps[index] = { ...newSteps[index], color: e.target.value };
-                                      handleUpdate('steps', newSteps);
-                                    }}
+                                    onChange={(e) => handleStepFieldUpdate(index, 'color', e.target.value)}
                                     className="w-10 h-10 rounded-lg cursor-pointer border-0"
                                   />
+                                  {/* Color text input */}
                                   <input
                                     type="text"
                                     value={step.color || '#3B82F6'}
-                                    onChange={(e) => {
-                                      const newSteps = [...(content.steps || [])];
-                                      newSteps[index] = { ...newSteps[index], color: e.target.value };
-                                      handleUpdate('steps', newSteps);
-                                    }}
+                                    onChange={(e) => handleStepFieldUpdate(index, 'color', e.target.value)}
                                     placeholder="#3B82F6"
                                     className={`flex-1 ${inputClass}`}
                                   />
                                 </div>
                               </div>
 
-                              {/* Step Image */}
+                              {/* Step Image Upload */}
                               <ImageUpload
                                 value={step.image || ''}
-                                onChange={(url) => {
-                                  const newSteps = [...(content.steps || [])];
-                                  newSteps[index] = { ...newSteps[index], image: url };
-                                  handleUpdate('steps', newSteps);
-                                }}
+                                onChange={(url) => handleStepFieldUpdate(index, 'image', url)}
                                 label="Step Image"
                                 placeholder="Upload image or enter URL"
                                 previewHeight="h-48"
@@ -434,7 +430,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = ({ }) => {
                   );
                 })}
 
-                {(!content.steps || content.steps.length === 0) && (
+                {steps.length === 0 && (
                   <div className="text-center py-6 sm:py-8 text-muted-foreground">
                     <Layers className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No steps added yet</p>

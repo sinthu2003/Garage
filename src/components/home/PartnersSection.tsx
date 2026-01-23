@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Award, Shield, Car, Sparkles, Star, CheckCircle } from 'lucide-react';
+import { Award, Shield, Car, Sparkles, Star, CheckCircle,Users } from 'lucide-react';
 import { useContent } from '../../admin-portal';
 
 // Icon mapping for trust badges
@@ -11,6 +11,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Sparkles,
   Star,
   CheckCircle,
+  Users
+
 };
 
 export const PartnersSection = () => {
