@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SectionLoader } from '../shared/SectionLoader';
 import {
-
   Image,
   Type,
   ChevronRight,
@@ -19,6 +18,7 @@ import {
   Car,
   Camera,
   Sparkles,
+  Warehouse
 } from 'lucide-react';
 import { useGalleryContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
@@ -29,18 +29,19 @@ interface GalleryEditorProps {
   isDarkMode: boolean;
 }
 
-// Icon options for stats
 const statIconOptions = [
   { value: 'Wrench', label: 'Wrench', icon: Wrench },
   { value: 'Car', label: 'Car', icon: Car },
   { value: 'Camera', label: 'Camera', icon: Camera },
   { value: 'Sparkles', label: 'Sparkles', icon: Sparkles },
   { value: 'Image', label: 'Image', icon: Image },
+  { value: 'Warehouse', label: 'Warehouse', icon: Warehouse },
 ];
 
 export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
   const { updateField } = useContent();
   const content = useGalleryContent();
+
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'categories', 'images'])
   );
@@ -51,6 +52,10 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
   if (content.isLoading) {
     return <SectionLoader section="Gallery" />;
   }
+
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('gallery', path, value);
+  };
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -72,17 +77,9 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
     setExpandedImages(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('gallery', path, value);
-  };
-
-  // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
-
   const labelClass = `text-sm font-medium text-muted-foreground`;
-
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
-
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
   const addNewImage = () => {
@@ -94,9 +91,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
       title: 'New Image',
       description: 'Image description',
     };
-    // Add at the beginning of the array
     handleUpdate('images', [newImage, ...(content.images || [])]);
-    // Auto-expand the newly added image (now at index 0)
     setExpandedImages(new Set([0]));
   };
 
@@ -105,7 +100,6 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
       id: `category-${Date.now()}`,
       label: 'New Category',
     };
-    // Add at the beginning of the array
     handleUpdate('categories', [newCategory, ...(content.categories || [])]);
   };
 
@@ -201,15 +195,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
               {content.categories?.length || 0}
             </span>
           </div>
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewCategory();
-            }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-          >
-            <Plus className="w-4 h-4" />
-          </button> */}
+          
         </div>
 
         <AnimatePresence>
@@ -249,15 +235,6 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                       placeholder="Category Label"
                       className={`flex-1 ${inputClass}`}
                     />
-                    <button
-                      onClick={() => {
-                        const newCategories = content.categories?.filter((_: GalleryCategory, i: number) => i !== index);
-                        handleUpdate('categories', newCategories);
-                      }}
-                      className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 ))}
 
@@ -320,7 +297,6 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                     key={image.id || index}
                     className="rounded-xl border overflow-hidden border-border bg-card"
                   >
-                    {/* Image Header */}
                     <div
                       onClick={() => toggleImage(index)}
                       onKeyDown={(e) => e.key === 'Enter' && toggleImage(index)}
@@ -383,7 +359,6 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                       </div>
                     </div>
 
-                    {/* Image Details */}
                     <AnimatePresence>
                       {expandedImages.has(index) && (
                         <motion.div
@@ -516,17 +491,6 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
               {content.stats?.length || 0}
             </span>
           </div>
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              const newStat: GalleryStat = { icon: 'Wrench', value: '100+', label: 'New Stat' };
-              // Add at the beginning of the array
-              handleUpdate('stats', [newStat, ...(content.stats || [])]);
-            }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-          >
-            <Plus className="w-4 h-4" />
-          </button> */}
         </div>
 
         <AnimatePresence>
@@ -579,18 +543,9 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ }) => {
                           handleUpdate('stats', newStats);
                         }}
                         placeholder="Expert Mechanics"
-                        className={`col-span-2 sm:col-span-1 ${inputClass}`}
+                        className={`col-span-2 sm:col-span-2 ${inputClass}`}
                       />
 
-                      <button
-                        onClick={() => {
-                          const newStats = content.stats?.filter((_: GalleryStat, i: number) => i !== index);
-                          handleUpdate('stats', newStats);
-                        }}
-                        className="p-2 rounded-lg text-destructive hover:bg-destructive/10 justify-self-end sm:justify-self-auto"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
                   </div>
                 ))}

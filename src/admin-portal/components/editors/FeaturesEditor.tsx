@@ -5,7 +5,6 @@ import {
   Type,
   ChevronRight,
   ChevronDown,
-  Trash2,
   GripVertical,
   Palette,
   Shield,
@@ -27,7 +26,6 @@ interface FeaturesEditorProps {
   isDarkMode: boolean;
 }
 
-// Icon options for features
 const iconOptions = [
   { value: 'Shield', label: 'Shield', icon: Shield },
   { value: 'BadgePercent', label: 'Discount', icon: BadgePercent },
@@ -43,6 +41,7 @@ const iconOptions = [
 export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
   const { updateField } = useContent();
   const content = useFeaturesContent();
+
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'mainFeature', 'items'])
   );
@@ -52,6 +51,10 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
   if (content.isLoading) {
     return <SectionLoader section="Features" />;
   }
+
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('features', path, value);
+  };
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -73,17 +76,9 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
     setExpandedItems(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('features', path, value);
-  };
-
-  // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
-
   const labelClass = `text-sm font-medium text-muted-foreground`;
-
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
-
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
   const addNewFeature = () => {
@@ -94,13 +89,10 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
       color: '#3B82F6',
       image: '',
     };
-    // Add at the beginning of the array
     handleUpdate('items', [newFeature, ...(content.items || [])]);
-    // Auto-expand the newly added item (now at index 0)
     setExpandedItems(new Set([0]));
   };
 
-  // Get icon component by name
   const getIconComponent = (iconName: string) => {
     const iconOption = iconOptions.find(opt => opt.value === iconName);
     return iconOption?.icon || Star;
@@ -251,7 +243,7 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                     />
                     <input
                       type="text"
-                      value={content.mainFeature?.gradient || '#3B82F6'}
+                      value={content.mainFeature?.gradient || ''}
                       onChange={(e) => handleUpdate('mainFeature.gradient', e.target.value)}
                       placeholder="#3B82F6"
                       className={`flex-1 ${inputClass}`}
@@ -284,15 +276,6 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
               {content.items?.length || 0}
             </span>
           </div>
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewFeature();
-            }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-          >
-            <Plus className="w-4 h-4" />
-          </button> */}
         </div>
 
         <AnimatePresence>
@@ -311,7 +294,6 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                       key={index}
                       className="rounded-xl border overflow-hidden border-border bg-card"
                     >
-                      {/* Feature Header */}
                       <div
                         onClick={() => toggleItem(index)}
                         onKeyDown={(e) => e.key === 'Enter' && toggleItem(index)}
@@ -321,7 +303,6 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                       >
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                          {/* Image thumbnail or icon */}
                           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center border border-border">
                             {feature.image ? (
                               <img
@@ -351,23 +332,13 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                           </div>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const newItems = content.items?.filter((_: FeatureItem, i: number) => i !== index);
-                              handleUpdate('items', newItems);
-                            }}
-                            className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          
                           <motion.div animate={{ rotate: expandedItems.has(index) ? 180 : 0 }}>
                             <ChevronDown className="w-4 h-4 text-muted-foreground" />
                           </motion.div>
                         </div>
                       </div>
 
-                      {/* Feature Details */}
                       <AnimatePresence>
                         {expandedItems.has(index) && (
                           <motion.div
@@ -456,6 +427,7 @@ export const FeaturesEditor: React.FC<FeaturesEditorProps> = ({ }) => {
                                 />
                               </div>
 
+                              {/* Feature Image */}
                               <ImageUpload
                                 value={feature.image || ''}
                                 onChange={(url) => {

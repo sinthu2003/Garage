@@ -29,7 +29,7 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
     const termsContent = useTermsContent();
     const warrantyContent = useWarrantyPolicyContent();
 
-    // Tab state: 'privacyPolicy' | 'termsOfService'
+    // Tab state: 'privacyPolicy' | 'termsOfService' | 'warrantyPolicy'
     const [activeTab, setActiveTab] = useState<'privacyPolicy' | 'termsOfService' | 'warrantyPolicy'>('privacyPolicy');
 
     // Derived content based on active tab
@@ -42,6 +42,11 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
         new Set(['header', 'sections'])
     );
     const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+
+    // Simple update function - debouncing handled by ContentContext
+    const handleUpdate = (path: string, value: unknown) => {
+        updateField('pages', `${contentPathPrefix}.${path}`, value);
+    };
 
     // Notify parent of page change for preview updates
     useEffect(() => {
@@ -70,23 +75,31 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
         setExpandedItems(newExpanded);
     };
 
-    const handleUpdate = (path: string, value: unknown) => {
-        updateField('pages', `${contentPathPrefix}.${path}`, value);
-    };
+    const sections = content.sections || [];
 
     const addNewSection = () => {
         const newSection: PolicySection = {
             title: 'New Section',
             content: 'Enter section content here...',
         };
-        const currentSections = content.sections || [];
-        handleUpdate('sections', [...currentSections, newSection]);
-        setExpandedItems(new Set([...expandedItems, currentSections.length]));
+        handleUpdate('sections', [...sections, newSection]);
+        setExpandedItems(new Set([...expandedItems, sections.length]));
+    };
+
+    const updateSectionField = (index: number, field: string, value: string) => {
+        const newSections = [...sections];
+        newSections[index] = { ...newSections[index], [field]: value };
+        handleUpdate('sections', newSections);
+    };
+
+    const deleteSection = (index: number) => {
+        const newSections = sections.filter((_: PolicySection, i: number) => i !== index);
+        handleUpdate('sections', newSections);
     };
 
     const handleTabChange = (tab: 'privacyPolicy' | 'termsOfService' | 'warrantyPolicy') => {
         setActiveTab(tab);
-        // Reset expanded states or keep them? Resetting feels cleaner for context switch
+        // Reset expanded states for cleaner context switch
         setExpandedItems(new Set([0]));
     };
 
@@ -164,6 +177,7 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                     className="overflow-hidden"
                                 >
                                     <div className="p-4 pt-0 space-y-4 border-t border-border">
+                                        {/* Page Title */}
                                         <div className="space-y-2">
                                             <label className={labelClass}>Page Title</label>
                                             <div className="relative">
@@ -181,6 +195,7 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                             </div>
                                         </div>
 
+                                        {/* Introduction/Description */}
                                         <div className="space-y-2">
                                             <label className={labelClass}>Introduction / Description</label>
                                             <textarea
@@ -192,6 +207,7 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                             />
                                         </div>
 
+                                        {/* Last Updated Date */}
                                         <div className="space-y-2">
                                             <label className={labelClass}>Last Updated Date</label>
                                             <div className="relative">
@@ -224,9 +240,10 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                 <AlignLeft className="w-5 h-5 text-green-500" />
                                 <span className="font-medium text-foreground">Content Sections</span>
                                 <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
-                                    {(content.sections?.length) || 0}
+                                    {sections.length}
                                 </span>
                             </button>
+                            {/* Add section button */}
                             <button
                                 onClick={addNewSection}
                                 className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
@@ -244,7 +261,7 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                     className="overflow-hidden"
                                 >
                                     <div className="p-4 pt-0 space-y-4 border-t border-border">
-                                        {(content.sections || []).map((section: PolicySection, index: number) => (
+                                        {sections.map((section: PolicySection, index: number) => (
                                             <div
                                                 key={index}
                                                 className="rounded-xl border border-border bg-secondary/30 overflow-hidden"
@@ -263,11 +280,11 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
+                                                        {/* Delete button */}
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                const newSections = (content.sections || []).filter((_, i) => i !== index);
-                                                                handleUpdate('sections', newSections);
+                                                                deleteSection(index);
                                                             }}
                                                             className="p-2 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
                                                         >
@@ -288,29 +305,23 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                                             className="overflow-hidden"
                                                         >
                                                             <div className="p-4 pt-0 space-y-4 border-t border-border/50">
+                                                                {/* Section Title */}
                                                                 <div className="space-y-2">
                                                                     <label className={labelClass}>Section Title</label>
                                                                     <input
                                                                         type="text"
                                                                         value={section.title || ''}
-                                                                        onChange={(e) => {
-                                                                            const newSections = [...(content.sections || [])];
-                                                                            newSections[index] = { ...newSections[index], title: e.target.value };
-                                                                            handleUpdate('sections', newSections);
-                                                                        }}
+                                                                        onChange={(e) => updateSectionField(index, 'title', e.target.value)}
                                                                         placeholder="e.g. 1. DEFINITIONS"
                                                                         className={inputClass}
                                                                     />
                                                                 </div>
+                                                                {/* Section Content */}
                                                                 <div className="space-y-2">
                                                                     <label className={labelClass}>Section Content</label>
                                                                     <textarea
                                                                         value={section.content || ''}
-                                                                        onChange={(e) => {
-                                                                            const newSections = [...(content.sections || [])];
-                                                                            newSections[index] = { ...newSections[index], content: e.target.value };
-                                                                            handleUpdate('sections', newSections);
-                                                                        }}
+                                                                        onChange={(e) => updateSectionField(index, 'content', e.target.value)}
                                                                         placeholder="Enter the full text for this section..."
                                                                         rows={12}
                                                                         className={inputClass}
@@ -323,7 +334,7 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                             </div>
                                         ))}
 
-                                        {(!content.sections || content.sections.length === 0) && (
+                                        {sections.length === 0 && (
                                             <div className="text-center py-10 text-muted-foreground">
                                                 <FileText className="w-10 h-10 mx-auto mb-3 opacity-20" />
                                                 <p>No sections added yet</p>

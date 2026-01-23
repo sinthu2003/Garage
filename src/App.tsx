@@ -4,24 +4,25 @@ import { ContentProvider } from './admin-portal';
 import { AppRouter } from './router/AppRouter';
 import './index.css';
 
-/**
- * Main App Component
- * 
- * Provider hierarchy:
- * 1. BrowserRouter - Enables routing
- * 2. AuthProvider - Manages auth state (must be inside Router for navigation)
- * 3. ContentProvider - Manages CMS content (can access auth state)
- */
+// ✅ Helper to determine content mode based on route
+const getContentMode = (): 'admin' | 'public' => {
+  // If URL contains /admin, use admin mode
+  if (window.location.pathname.startsWith('/admin')) {
+    return 'admin';
+  }
+  // Otherwise, always use public mode (even if logged in)
+  return 'public';
+};
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ContentProvider 
-          mode="auto"      // Auto-detect: 'admin' if logged in, 'public' otherwise
-          enableApi={true} // Load content from API
-          enableFallback={true} // Fall back to localStorage if API fails
+          mode={getContentMode()}  // ✅ Fixed - checks route, not auth state
+          enableApi={true}
+          enableFallback={true}
         >
-          {/* Main Router handles all routes */}
           <AppRouter />
         </ContentProvider>
       </AuthProvider>

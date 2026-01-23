@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Phone,
   Menu,
-  Trash2,
   GripVertical,
   Type,
   Link as LinkIcon,
@@ -26,12 +25,25 @@ interface NavLink {
   isRoute?: boolean;
 }
 
-export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
+const defaultNavLinks: NavLink[] = [
+  { label: 'Services', href: '/services', isRoute: true },
+  { label: 'How It Works', href: '#how-it-works' },
+  { label: 'Pricing', href: '#pricing' },
+  { label: 'Reviews', href: '#testimonials' },
+  { label: 'FAQ', href: '#faq' },
+];
+
+export const NavbarEditor: React.FC<NavbarEditorProps> = () => {
   const { updateField } = useContent();
   const content = useGlobalContent();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['brand', 'navigation', 'contact', 'cta'])
   );
+
+  // Simple update function - debouncing handled by ContentContext
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('global', path, value);
+  };
 
   // [LAZY LOADING] Show loading state - MUST be after all hooks
   if (content.isLoading) {
@@ -48,10 +60,6 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
     setExpandedSections(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('global', path, value);
-  };
-
   // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
@@ -61,14 +69,14 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
 
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
-  // Default navigation items matching Navbar.tsx
-  const defaultNavLinks: NavLink[] = content.navbar?.links || [
-    { label: 'Services', href: '/services', isRoute: true },
-    { label: 'How It Works', href: '#how-it-works' },
-    { label: 'Pricing', href: '#pricing' },
-    { label: 'Reviews', href: '#testimonials' },
-    { label: 'FAQ', href: '#faq' },
-  ];
+  const navLinks = content.navbar?.links || defaultNavLinks;
+
+  const handleNavLinkUpdate = (index: number, field: keyof NavLink, value: unknown) => {
+    const newLinks = [...navLinks];
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    handleUpdate('navbar.links', newLinks);
+  };
+
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -94,31 +102,34 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {/* Brand Name */}
                   <div className="space-y-2">
                     <label className={labelClass}>Brand Name</label>
                     <input
                       type="text"
-                      value={content.brand?.name || 'Addax'}
+                      value={content.brand?.name || ''}
                       onChange={(e) => handleUpdate('brand.name', e.target.value)}
                       placeholder="Addax"
                       className={inputClass}
                     />
                   </div>
+                  {/* Title */}
                   <div className="space-y-2">
                     <label className={labelClass}>Title</label>
                     <input
                       type="text"
-                      value={content.brand?.title || 'Automotive'}
+                      value={content.brand?.title || ''}
                       onChange={(e) => handleUpdate('brand.title', e.target.value)}
                       placeholder="Automotive"
                       className={inputClass}
                     />
                   </div>
+                  {/* Tagline */}
                   <div className="space-y-2">
                     <label className={labelClass}>Tagline</label>
                     <input
                       type="text"
-                      value={content.brand?.tagline || 'Drive with Confidence'}
+                      value={content.brand?.tagline || ''}
                       onChange={(e) => handleUpdate('brand.tagline', e.target.value)}
                       placeholder="Drive with Confidence"
                       className={inputClass}
@@ -169,11 +180,12 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                {/* Phone Number */}
                 <div className="space-y-2">
                   <label className={labelClass}>Phone Number</label>
                   <input
                     type="text"
-                    value={content.brand?.phone || '+91 98765 43210'}
+                    value={content.brand?.phone || ''}
                     onChange={(e) => handleUpdate('brand.phone', e.target.value)}
                     placeholder="+91 98765 43210"
                     className={inputClass}
@@ -190,32 +202,23 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
 
       {/* Navigation Links */}
       <div className={sectionClass}>
-        <div
-          onClick={() => toggleSection('navigation')}
-          onKeyDown={(e) => e.key === 'Enter' && toggleSection('navigation')}
-          role="button"
-          tabIndex={0}
-          className={`${sectionHeaderClass} cursor-pointer`}
-        >
-          <div className="flex items-center gap-2 sm:gap-3">
+        <div className={`${sectionHeaderClass} cursor-pointer`}>
+          <div
+            onClick={() => toggleSection('navigation')}
+            onKeyDown={(e) => e.key === 'Enter' && toggleSection('navigation')}
+            role="button"
+            tabIndex={0}
+            className="flex items-center gap-2 sm:gap-3 flex-1"
+          >
             <motion.div animate={{ rotate: expandedSections.has('navigation') ? 90 : 0 }}>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </motion.div>
             <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-violet-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Navigation Links</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
-              {defaultNavLinks.length}
+              {navLinks.length}
             </span>
           </div>
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleUpdate('navbar.links', [...defaultNavLinks, { label: 'New Link', href: '#' }]);
-            }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-          >
-            <Plus className="w-4 h-4" />
-          </button> */}
         </div>
 
         <AnimatePresence>
@@ -227,7 +230,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 border-t border-border">
-                {defaultNavLinks.map((link, index) => (
+                {navLinks.map((link: NavLink, index: number) => (
                   <div
                     key={index}
                     className="p-3 rounded-xl border border-border bg-secondary/30"
@@ -240,58 +243,41 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                           {link.label || 'Untitled Link'}
                         </span>
                       </div>
-                      <button
-                        onClick={() => {
-                          const newLinks = defaultNavLinks.filter((_: NavLink, i: number) => i !== index);
-                          handleUpdate('navbar.links', newLinks);
-                        }}
-                        className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                     
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                      {/* Link Label */}
                       <div className="space-y-1">
                         <label className="text-xs text-muted-foreground">Label</label>
                         <input
                           type="text"
                           value={link.label || ''}
-                          onChange={(e) => {
-                            const newLinks = [...defaultNavLinks];
-                            newLinks[index] = { ...newLinks[index], label: e.target.value };
-                            handleUpdate('navbar.links', newLinks);
-                          }}
+                          onChange={(e) => handleNavLinkUpdate(index, 'label', e.target.value)}
                           placeholder="Link label"
                           className={inputClass}
                         />
                       </div>
+                      {/* Link URL */}
                       <div className="space-y-1">
                         <label className="text-xs text-muted-foreground">URL / Anchor</label>
                         <input
                           type="text"
                           value={link.href || ''}
-                          onChange={(e) => {
-                            const newLinks = [...defaultNavLinks];
-                            newLinks[index] = { ...newLinks[index], href: e.target.value };
-                            handleUpdate('navbar.links', newLinks);
-                          }}
+                          onChange={(e) => handleNavLinkUpdate(index, 'href', e.target.value)}
                           placeholder="#section or /page"
                           className={inputClass}
                         />
                       </div>
                     </div>
 
+                    {/* isRoute checkbox */}
                     <div className="mt-3 flex items-center gap-2">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={link.isRoute || false}
-                          onChange={(e) => {
-                            const newLinks = [...defaultNavLinks];
-                            newLinks[index] = { ...newLinks[index], isRoute: e.target.checked };
-                            handleUpdate('navbar.links', newLinks);
-                          }}
+                          onChange={(e) => handleNavLinkUpdate(index, 'isRoute', e.target.checked)}
                           className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20"
                         />
                         <span className="text-xs text-muted-foreground">
@@ -302,17 +288,12 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                   </div>
                 ))}
 
-                {defaultNavLinks.length === 0 && (
+                {navLinks.length === 0 && (
                   <div className="text-center py-6 text-muted-foreground">
                     <Menu className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No navigation links</p>
                     <button
-                      onClick={() => {
-                        handleUpdate('navbar.links', [
-                          { label: 'Services', href: '/services', isRoute: true },
-                          { label: 'How It Works', href: '#how-it-works' },
-                        ]);
-                      }}
+                      onClick={() => handleUpdate('navbar.links', defaultNavLinks)}
                       className="mt-2 text-primary text-sm font-medium"
                     >
                       + Add default links
@@ -354,11 +335,12 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                {/* Button Text */}
                 <div className="space-y-2">
                   <label className={labelClass}>Button Text</label>
                   <input
                     type="text"
-                    value={content.navbar?.ctaText || 'Book Service'}
+                    value={content.navbar?.ctaText || ''}
                     onChange={(e) => handleUpdate('navbar.ctaText', e.target.value)}
                     placeholder="Book Service"
                     className={inputClass}
@@ -368,11 +350,12 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                   </p>
                 </div>
 
+                {/* Call Now Text (Mobile) */}
                 <div className="space-y-2">
                   <label className={labelClass}>Call Now Text (Mobile)</label>
                   <input
                     type="text"
-                    value={content.navbar?.ctaTextMobile || 'Call Now'}
+                    value={content.navbar?.ctaTextMobile || ''}
                     onChange={(e) => handleUpdate('navbar.ctaTextMobile', e.target.value)}
                     placeholder="Call Now"
                     className={inputClass}
@@ -408,6 +391,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                {/* Transparent checkbox */}
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -423,6 +407,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = ({ }) => {
                   </div>
                 </label>
 
+                {/* Show phone checkbox */}
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"

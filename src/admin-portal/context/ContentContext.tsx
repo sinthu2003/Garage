@@ -136,7 +136,7 @@ interface ExtendedContentContextValue extends ContentContextValue {
 const LOCAL_STORAGE_KEY = 'addax-cms-content';
 const SAVED_CONTENT_KEY = 'addax-cms-saved-content';
 const HISTORY_LIMIT = 50;
-const DEBOUNCE_DELAY = 1000;
+const DEBOUNCE_DELAY = 5000;
 
 // ============================================
 // HELPER FUNCTIONS

@@ -8,7 +8,6 @@ import {
   Car,
   Sparkles,
   ChevronRight,
-  Trash2,
   Hash,
   Star,
 } from 'lucide-react';
@@ -31,12 +30,17 @@ const iconOptions = [
   { value: 'Users', label: 'Users', icon: Users },
 ];
 
-export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
+export const PartnersEditor: React.FC<PartnersEditorProps> = () => {
   const { updateField } = useContent();
   const content = usePartnersContent();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'trustBadges'])
   );
+
+  // Simple update function - debouncing handled by ContentContext
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('partners', path, value);
+  };
 
   // [LAZY LOADING] Show loading state - MUST be after all hooks
   if (content.isLoading) {
@@ -53,10 +57,6 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
     setExpandedSections(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('partners', path, value);
-  };
-
   // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
@@ -66,10 +66,24 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
 
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
+  const trustBadges = content.trustBadges || [];
+
   // Get icon component by name
   const getIconComponent = (iconName: string) => {
     const iconOption = iconOptions.find(opt => opt.value === iconName);
     return iconOption?.icon || Shield;
+  };
+
+  const handleBadgeFieldUpdate = (index: number, field: keyof PartnerTrustBadge, value: unknown) => {
+    const newBadges = [...trustBadges];
+    newBadges[index] = { ...newBadges[index], [field]: value };
+    handleUpdate('trustBadges', newBadges);
+  };
+
+
+  const addBadge = () => {
+    const newBadge: PartnerTrustBadge = { icon: 'Shield', title: 'ISO Certified', subtitle: '9001:2015' };
+    handleUpdate('trustBadges', [newBadge, ...trustBadges]);
   };
 
   return (
@@ -95,6 +109,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                {/* Badge Text */}
                 <div className="space-y-2">
                   <label className={labelClass}>Badge Text</label>
                   <input
@@ -107,6 +122,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {/* Headline Text */}
                   <div className="space-y-2">
                     <label className={labelClass}>Headline Text</label>
                     <input
@@ -117,6 +133,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                       className={inputClass}
                     />
                   </div>
+                  {/* Highlighted Text */}
                   <div className="space-y-2">
                     <label className={labelClass}>Highlighted Text</label>
                     <input
@@ -129,6 +146,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                   </div>
                 </div>
 
+                {/* Description */}
                 <div className="space-y-2">
                   <label className={labelClass}>Description</label>
                   <textarea
@@ -167,6 +185,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {/* Brand Count */}
                   <div className="space-y-2">
                     <label className={labelClass}>Brand Count</label>
                     <input
@@ -177,6 +196,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                       className={inputClass}
                     />
                   </div>
+                  {/* Label */}
                   <div className="space-y-2">
                     <label className={labelClass}>Label</label>
                     <input
@@ -210,7 +230,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
             <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Trust Badges</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
-              {content.trustBadges?.length || 0}
+              {trustBadges.length}
             </span>
           </div>
         </div>
@@ -224,7 +244,7 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                {content.trustBadges?.map((badge: PartnerTrustBadge, index: number) => {
+                {trustBadges.map((badge: PartnerTrustBadge, index: number) => {
                   const IconComponent = getIconComponent(badge.icon);
 
                   return (
@@ -239,27 +259,16 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                             Badge #{index + 1}
                           </span>
                         </div>
-                        <button
-                          onClick={() => {
-                            const newBadges = content.trustBadges?.filter((_: PartnerTrustBadge, i: number) => i !== index);
-                            handleUpdate('trustBadges', newBadges);
-                          }}
-                          className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                        {/* Icon dropdown */}
                         <div className="space-y-1">
                           <label className="text-xs text-muted-foreground">Icon</label>
                           <select
                             value={badge.icon || 'Shield'}
-                            onChange={(e) => {
-                              const newBadges = [...(content.trustBadges || [])];
-                              newBadges[index] = { ...newBadges[index], icon: e.target.value };
-                              handleUpdate('trustBadges', newBadges);
-                            }}
+                            onChange={(e) => handleBadgeFieldUpdate(index, 'icon', e.target.value)}
                             className={inputClass}
                           >
                             {iconOptions.map(opt => (
@@ -268,31 +277,25 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                           </select>
                         </div>
 
+                        {/* Title */}
                         <div className="space-y-1">
                           <label className="text-xs text-muted-foreground">Title</label>
                           <input
                             type="text"
                             value={badge.title || ''}
-                            onChange={(e) => {
-                              const newBadges = [...(content.trustBadges || [])];
-                              newBadges[index] = { ...newBadges[index], title: e.target.value };
-                              handleUpdate('trustBadges', newBadges);
-                            }}
+                            onChange={(e) => handleBadgeFieldUpdate(index, 'title', e.target.value)}
                             placeholder="ISO Certified"
                             className={inputClass}
                           />
                         </div>
 
+                        {/* Subtitle */}
                         <div className="space-y-1">
                           <label className="text-xs text-muted-foreground">Subtitle</label>
                           <input
                             type="text"
                             value={badge.subtitle || ''}
-                            onChange={(e) => {
-                              const newBadges = [...(content.trustBadges || [])];
-                              newBadges[index] = { ...newBadges[index], subtitle: e.target.value };
-                              handleUpdate('trustBadges', newBadges);
-                            }}
+                            onChange={(e) => handleBadgeFieldUpdate(index, 'subtitle', e.target.value)}
                             placeholder="9001:2015"
                             className={inputClass}
                           />
@@ -302,15 +305,12 @@ export const PartnersEditor: React.FC<PartnersEditorProps> = ({ }) => {
                   );
                 })}
 
-                {(!content.trustBadges || content.trustBadges.length === 0) && (
+                {trustBadges.length === 0 && (
                   <div className="text-center py-6 sm:py-8 text-muted-foreground">
                     <Shield className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No trust badges added yet</p>
                     <button
-                      onClick={() => {
-                        const newBadge: PartnerTrustBadge = { icon: 'Shield', title: 'ISO Certified', subtitle: '9001:2015' };
-                        handleUpdate('trustBadges', [newBadge]);
-                      }}
+                      onClick={addBadge}
                       className="mt-2 text-primary text-sm font-medium"
                     >
                       + Add your first badge

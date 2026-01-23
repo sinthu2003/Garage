@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SectionLoader } from '../shared/SectionLoader';
- import { DollarSign,
+import {
+  DollarSign,
   Type,
   ChevronRight,
   ChevronDown,
-  Trash2,
   Percent,
   TrendingDown,
   GripVertical,
@@ -26,13 +26,18 @@ interface PriceItem {
   image?: string;
 }
 
-export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
+export const PricingEditor: React.FC<PricingEditorProps> = () => {
   const { updateField } = useContent();
   const content = usePricingContent();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'items'])
   );
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([0]));
+
+  // Simple update function - debouncing handled by ContentContext
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('pricing', path, value);
+  };
 
   // [LAZY LOADING] Show loading state - MUST be after all hooks
   if (content.isLoading) {
@@ -59,10 +64,6 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
     setExpandedItems(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('pricing', path, value);
-  };
-
   // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
 
@@ -72,6 +73,8 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
 
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
+  const items = content.items || [];
+
   const addNewPriceItem = () => {
     const newItem: PriceItem = {
       service: 'New Service',
@@ -79,10 +82,16 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
       ours: 700,
       image: '',
     };
-    // Add at the beginning of the array
-    handleUpdate('items', [newItem, ...(content.items || [])]);
+    const newItems = [newItem, ...items];
+    handleUpdate('items', newItems);
     // Auto-expand the newly added item (now at index 0)
     setExpandedItems(new Set([0]));
+  };
+
+  const handleItemFieldUpdate = (index: number, field: keyof PriceItem, value: unknown) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    handleUpdate('items', newItems);
   };
 
   // Calculate savings
@@ -114,6 +123,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                {/* Badge Text */}
                 <div className="space-y-2">
                   <label className={labelClass}>Badge Text</label>
                   <input
@@ -126,6 +136,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                  {/* Headline Line 1 */}
                   <div className="space-y-2">
                     <label className={labelClass}>Headline Line 1</label>
                     <input
@@ -136,6 +147,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                       className={inputClass}
                     />
                   </div>
+                  {/* Headline Line 2 */}
                   <div className="space-y-2">
                     <label className={labelClass}>Line 2</label>
                     <input
@@ -146,6 +158,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                       className={inputClass}
                     />
                   </div>
+                  {/* Muted Text */}
                   <div className="space-y-2">
                     <label className={labelClass}>Muted Text</label>
                     <input
@@ -158,6 +171,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                   </div>
                 </div>
 
+                {/* Description */}
                 <div className="space-y-2">
                   <label className={labelClass}>Description</label>
                   <textarea
@@ -169,6 +183,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                   />
                 </div>
 
+                {/* CTA Button Text */}
                 <div className="space-y-2">
                   <label className={labelClass}>CTA Button Text</label>
                   <input
@@ -201,18 +216,9 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
             <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-teal-500" />
             <span className="font-medium text-foreground text-sm sm:text-base">Price Items</span>
             <span className="px-2 py-0.5 rounded-full text-xs bg-secondary text-muted-foreground">
-              {content.items?.length || 0}
+              {items.length}
             </span>
           </div>
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewPriceItem();
-            }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-          >
-            <Plus className="w-4 h-4" />
-          </button> */}
         </div>
 
         <AnimatePresence>
@@ -224,7 +230,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
-                {content.items?.map((item: PriceItem, index: number) => (
+                {items.map((item: PriceItem, index: number) => (
                   <div
                     key={index}
                     className="rounded-xl border overflow-hidden border-border bg-card"
@@ -267,16 +273,6 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const newItems = content.items?.filter((_: PriceItem, i: number) => i !== index);
-                            handleUpdate('items', newItems);
-                          }}
-                          className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                         <motion.div animate={{ rotate: expandedItems.has(index) ? 180 : 0 }}>
                           <ChevronDown className="w-4 h-4 text-muted-foreground" />
                         </motion.div>
@@ -296,11 +292,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                             {/* Service Image Upload */}
                             <ImageUpload
                               value={item.image || ''}
-                              onChange={(url) => {
-                                const newItems = [...(content.items || [])];
-                                newItems[index] = { ...newItems[index], image: url };
-                                handleUpdate('items', newItems);
-                              }}
+                              onChange={(url) => handleItemFieldUpdate(index, 'image', url)}
                               label="Pricing Image"
                               placeholder="Upload image or enter URL"
                               previewHeight="h-40"
@@ -317,11 +309,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                               <input
                                 type="text"
                                 value={item.service || ''}
-                                onChange={(e) => {
-                                  const newItems = [...(content.items || [])];
-                                  newItems[index] = { ...newItems[index], service: e.target.value };
-                                  handleUpdate('items', newItems);
-                                }}
+                                onChange={(e) => handleItemFieldUpdate(index, 'service', e.target.value)}
                                 placeholder="Service name"
                                 className={inputClass}
                               />
@@ -329,6 +317,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
 
                             {/* Pricing */}
                             <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                              {/* Market Price */}
                               <div className="space-y-2">
                                 <label className={labelClass}>Market Price (₹)</label>
                                 <input
@@ -336,16 +325,15 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                                   inputMode="numeric"
                                   value={item.market !== undefined && item.market !== null ? String(item.market) : ''}
                                   onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
                                     const numValue = e.target.value === '' ? 0 : Number(e.target.value);
-                                    newItems[index] = { ...newItems[index], market: numValue };
-                                    handleUpdate('items', newItems);
+                                    handleItemFieldUpdate(index, 'market', numValue);
                                   }}
                                   placeholder="0"
                                   className={inputClass}
                                 />
                               </div>
 
+                              {/* Our Price */}
                               <div className="space-y-2">
                                 <label className={labelClass}>Our Price (₹)</label>
                                 <input
@@ -353,16 +341,15 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                                   inputMode="numeric"
                                   value={item.ours !== undefined && item.ours !== null ? String(item.ours) : ''}
                                   onChange={(e) => {
-                                    const newItems = [...(content.items || [])];
                                     const numValue = e.target.value === '' ? 0 : Number(e.target.value);
-                                    newItems[index] = { ...newItems[index], ours: numValue };
-                                    handleUpdate('items', newItems);
+                                    handleItemFieldUpdate(index, 'ours', numValue);
                                   }}
                                   placeholder="0"
                                   className={inputClass}
                                 />
                               </div>
 
+                              {/* Auto-calculated Savings */}
                               <div className="space-y-2">
                                 <label className={labelClass}>Savings</label>
                                 <div className="flex items-center h-[42px] sm:h-[46px]">
@@ -380,7 +367,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                   </div>
                 ))}
 
-                {(!content.items || content.items.length === 0) && (
+                {items.length === 0 && (
                   <div className="text-center py-6 sm:py-8 text-muted-foreground">
                     <DollarSign className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">No price items added yet</p>
@@ -391,7 +378,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                 )}
 
                 {/* Total Savings Summary */}
-                {content.items && content.items.length > 0 && (
+                {items.length > 0 && (
                   <div className="p-3 sm:p-4 rounded-xl bg-green-500/10 border border-green-500/20">
                     <div className="flex items-center justify-between">
                       <div>
@@ -399,7 +386,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                           Total Potential Savings
                         </p>
                         <p className="text-xl sm:text-2xl font-bold text-green-800 dark:text-green-300">
-                          ₹{content.items.reduce((acc: number, item: PriceItem) => acc + (item.market - item.ours), 0).toLocaleString()}
+                          ₹{items.reduce((acc: number, item: PriceItem) => acc + (item.market - item.ours), 0).toLocaleString()}
                         </p>
                       </div>
                       <Percent className="w-8 h-8 sm:w-10 sm:h-10 text-green-500" />
@@ -433,6 +420,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
               className="overflow-hidden"
             >
               <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4 border-t border-border">
+                {/* Label Text */}
                 <div className="space-y-2">
                   <label className={labelClass}>Label Text</label>
                   <input
@@ -444,6 +432,7 @@ export const PricingEditor: React.FC<PricingEditorProps> = ({ }) => {
                   />
                 </div>
 
+                {/* Multiplier */}
                 <div className="space-y-2">
                   <label className={labelClass}>Multiplier (for annual calculation)</label>
                   <input

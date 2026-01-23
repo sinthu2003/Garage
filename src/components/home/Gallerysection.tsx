@@ -7,7 +7,9 @@ import {
   Camera,
   Wrench,
   Car,
-  Sparkles
+  Sparkles,
+  Image,
+  Warehouse
 } from 'lucide-react';
 import { useContent } from '../../admin-portal';
 
@@ -17,6 +19,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Car,
   Camera,
   Sparkles,
+  Image,
+  Warehouse
 };
 
 export const GallerySection = () => {

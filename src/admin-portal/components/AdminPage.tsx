@@ -234,6 +234,15 @@ export const AdminPage: React.FC = () => {
   const [legalPreviewId, setLegalPreviewId] = useState<'privacyPolicyPage' | 'termsPage' | 'warrantyPolicyPage'>('privacyPolicyPage');
   const [editingServiceIndex, setEditingServiceIndex] = useState<number | null>(null);
 
+  // ✅ NEW: Local service state for INSTANT preview updates (no 2-second delay!)
+  const [previewService, setPreviewService] = useState<any>(null);
+
+  // ✅ NEW: Stable callback for preview service updates
+  const handleLocalServiceChange = useCallback((service: any) => {
+    console.log('🟠 handleLocalServiceChange called:', service?.title, 'price:', service?.price);
+    setPreviewService(service);
+  }, []);
+
   const resizeRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const sidebarTimeoutRef = useRef<number | null>(null);
@@ -257,6 +266,12 @@ export const AdminPage: React.FC = () => {
   // Handler for service editing index change
   const handleServiceEditingIndexChange = useCallback((index: number | null) => {
     setEditingServiceIndex(index);
+  }, []);
+
+  // Show notification helper - wrapped in useCallback for stable reference
+  const showNotification = useCallback((type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 3000);
   }, []);
 
   // Calculate effective preview ID
@@ -336,7 +351,10 @@ export const AdminPage: React.FC = () => {
 
   // Reset states when switching editors
   useEffect(() => {
-    if (activeEditor !== 'serviceDetail') setEditingServiceIndex(null);
+    if (activeEditor !== 'serviceDetail') {
+      setEditingServiceIndex(null);
+      setPreviewService(null); // ✅ Also clear preview service
+    }
     if (activeEditor !== 'faq') setFaqPreviewId('faqSection');
   }, [activeEditor]);
 
@@ -350,12 +368,6 @@ export const AdminPage: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Show notification
-  const showNotification = (type: 'success' | 'error', message: string) => {
-    setNotification({ type, message });
-    setTimeout(() => setNotification(null), 3000);
-  };
 
   // Handle Apply Changes
   const handleApplyChanges = async () => {
@@ -485,7 +497,7 @@ export const AdminPage: React.FC = () => {
   const activeEditorConfig = editorConfig.find((e) => e.id === activeEditor);
   const EditorComponent = activeEditorConfig ? editorComponents[activeEditorConfig.component] : null;
 
-  // Render the editor component with special handling
+  // ✅ FIXED: Render the editor component with special handling for ServiceDetailEditor
   const renderEditorComponent = () => {
     if (!EditorComponent) {
       return (
@@ -508,8 +520,16 @@ export const AdminPage: React.FC = () => {
       return <PrivacyPolicyEditor isDarkMode={isDarkMode} onPageChange={handleLegalTabChange} />;
     }
 
+    // ✅ FIXED: Pass ALL required callbacks to ServiceDetailEditor
     if (activeEditor === 'serviceDetail') {
-      return <ServiceDetailEditor isDarkMode={isDarkMode} onEditingIndexChange={handleServiceEditingIndexChange} />;
+      return (
+        <ServiceDetailEditor 
+          isDarkMode={isDarkMode} 
+          onEditingIndexChange={handleServiceEditingIndexChange}
+          onLocalServiceChange={handleLocalServiceChange}
+          showNotification={showNotification}
+        />
+      );
     }
 
     return <EditorComponent isDarkMode={isDarkMode} />;
@@ -1284,6 +1304,7 @@ export const AdminPage: React.FC = () => {
                               refreshKey={previewKey}
                               className="h-full"
                               editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
+                              previewService={activeEditor === 'serviceDetail' ? previewService : undefined}
                             />
                           </div>
                         </motion.div>
@@ -1353,6 +1374,7 @@ export const AdminPage: React.FC = () => {
                   device="desktop"
                   refreshKey={previewKey}
                   editingServiceIndex={activeEditor === 'serviceDetail' ? editingServiceIndex : undefined}
+                  previewService={activeEditor === 'serviceDetail' ? previewService : undefined}
                 />
               </motion.div>
             </div>

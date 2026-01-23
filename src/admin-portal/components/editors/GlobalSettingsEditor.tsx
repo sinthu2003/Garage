@@ -19,6 +19,7 @@ interface GlobalSettingsEditorProps {
 export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) => {
   const { updateField } = useContent();
   const content = useGlobalContent();
+
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['seo', 'ogTags'])
   );
@@ -27,6 +28,10 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
   if (content.isLoading) {
     return <SectionLoader section="Global Settings" />;
   }
+
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('global', path, value);
+  };
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -38,29 +43,25 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
     setExpandedSections(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('global', path, value);
-  };
-
-  // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-background border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
-
   const labelClass = `text-sm font-medium text-muted-foreground`;
-
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
-
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
   // Calculate SEO score
+  const seoTitle = content.seo?.title || '';
+  const seoDescription = content.seo?.description || '';
+  const seoKeywords = content.seo?.keywords || '';
+
   const getTitleScore = () => {
-    const length = content.seo?.title?.length || 0;
+    const length = seoTitle.length;
     if (length >= 50 && length <= 60) return { status: 'good', label: '✓ Good', color: 'text-green-500' };
     if (length > 0) return { status: 'warning', label: '⚠ Adjust', color: 'text-yellow-500' };
     return { status: 'error', label: '✗ Missing', color: 'text-destructive' };
   };
 
   const getDescriptionScore = () => {
-    const length = content.seo?.description?.length || 0;
+    const length = seoDescription.length;
     if (length >= 150 && length <= 160) return { status: 'good', label: '✓ Good', color: 'text-green-500' };
     if (length > 0) return { status: 'warning', label: '⚠ Adjust', color: 'text-yellow-500' };
     return { status: 'error', label: '✗ Missing', color: 'text-destructive' };
@@ -103,13 +104,13 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
                       Recommended: 50-60 characters
                     </p>
                     <p className={`text-xs ${
-                      (content.seo?.title?.length || 0) > 60
+                      seoTitle.length > 60
                         ? 'text-destructive'
-                        : (content.seo?.title?.length || 0) >= 50
+                        : seoTitle.length >= 50
                           ? 'text-green-500'
                           : 'text-muted-foreground'
                     }`}>
-                      {content.seo?.title?.length || 0}/60
+                      {seoTitle.length}/60
                     </p>
                   </div>
                 </div>
@@ -128,13 +129,13 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
                       Recommended: 150-160 characters
                     </p>
                     <p className={`text-xs ${
-                      (content.seo?.description?.length || 0) > 160
+                      seoDescription.length > 160
                         ? 'text-destructive'
-                        : (content.seo?.description?.length || 0) >= 150
+                        : seoDescription.length >= 150
                           ? 'text-green-500'
                           : 'text-muted-foreground'
                     }`}>
-                      {content.seo?.description?.length || 0}/160
+                      {seoDescription.length}/160
                     </p>
                   </div>
                 </div>
@@ -160,13 +161,13 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
                   </p>
                   <div className="p-3 sm:p-4 rounded-xl bg-card">
                     <p className="text-blue-600 text-base sm:text-lg hover:underline cursor-pointer truncate">
-                      {content.seo?.title || 'Addax Automotive - Premium Car Service'}
+                      {seoTitle || 'Addax Automotive - Premium Car Service'}
                     </p>
                     <p className="text-green-700 text-xs sm:text-sm truncate">
                       www.addaxautomotive.in
                     </p>
                     <p className="text-xs sm:text-sm mt-1 line-clamp-2 text-muted-foreground">
-                      {content.seo?.description || "India's leading car service network offering quality repairs at transparent prices with doorstep convenience."}
+                      {seoDescription || "India's leading car service network offering quality repairs at transparent prices with doorstep convenience."}
                     </p>
                   </div>
                 </div>
@@ -192,9 +193,9 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
                     <div className="flex items-center justify-between">
                       <span className="text-xs sm:text-sm text-foreground">Keywords</span>
                       <span className={`text-xs sm:text-sm ${
-                        content.seo?.keywords ? 'text-green-500' : 'text-yellow-500'
+                        seoKeywords ? 'text-green-500' : 'text-yellow-500'
                       }`}>
-                        {content.seo?.keywords ? '✓ Added' : '⚠ Consider adding'}
+                        {seoKeywords ? '✓ Added' : '⚠ Consider adding'}
                       </span>
                     </div>
                   </div>
@@ -308,10 +309,10 @@ export const GlobalSettingsEditor: React.FC<GlobalSettingsEditorProps> = ({ }) =
                         addaxautomotive.in
                       </p>
                       <p className="font-semibold text-foreground text-sm mt-1 line-clamp-1">
-                        {content.seo?.ogTitle || content.seo?.title || 'Addax Automotive - Premium Car Service'}
+                        {content.seo?.ogTitle || seoTitle || 'Addax Automotive - Premium Car Service'}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                        {content.seo?.ogDescription || content.seo?.description || "India's leading car service network..."}
+                        {content.seo?.ogDescription || seoDescription || "India's leading car service network..."}
                       </p>
                     </div>
                   </div>

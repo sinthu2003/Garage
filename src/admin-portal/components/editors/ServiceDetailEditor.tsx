@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
@@ -21,10 +21,11 @@ import { ImageUpload } from '../shared/ImageUpload';
 interface ServiceDetailEditorProps {
   isDarkMode: boolean;
   onEditingIndexChange?: (index: number | null) => void;
+  onLocalServiceChange?: (service: any | null) => void; // ✅ Callback to pass localService to parent for preview
   showNotification?: (type: 'success' | 'error', message: string) => void;
 }
 
-// [NEW] Delete confirmation state interface
+// Delete confirmation state interface
 interface DeleteConfirmation {
   isOpen: boolean;
   serviceIndex: number | null;
@@ -33,11 +34,19 @@ interface DeleteConfirmation {
 
 export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({ 
   onEditingIndexChange,
+  onLocalServiceChange, // ✅ Receive callback from parent
   showNotification 
 }) => {
+  // ✅ DEBUG: Log on mount to verify props are received
+  useEffect(() => {
+    console.log('🟣 ServiceDetailEditor MOUNTED');
+    console.log('🟣 onLocalServiceChange prop received:', typeof onLocalServiceChange);
+    console.log('🟣 onEditingIndexChange prop received:', typeof onEditingIndexChange);
+  }, []);
+
   const { updateField } = useContent();
   
-  // [NEW] Get services from separate collection + loading functions
+  // Get services from separate collection + loading functions
   const {
     services,
     servicesLoading,
@@ -47,27 +56,28 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
     deleteService: deleteServiceApi,
   } = useContent();
 
-  // [LEGACY] Fallback to content.services if new API not available
+  // Fallback to content.services if new API not available
   const legacyContent = useServicesContent();
   
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // [FIX] Local state for the service being edited - allows immediate UI updates
+  // ==================== DEBOUNCE SETUP ====================
+  // This editor saves DIRECTLY to live website, so we need our own debounce
+  const DEBOUNCE_DELAY = 2000; // 2 seconds
+  const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  // ✅ LOCAL STATE for the service being edited - allows immediate UI updates for preview
   const [localService, setLocalService] = useState<any>(null);
   
-  // [NEW] Delete confirmation modal state
+  // Delete confirmation modal state
   const [deleteConfirmation, setDeleteConfirmation] = useState<DeleteConfirmation>({
     isOpen: false,
     serviceIndex: null,
     serviceTitle: '',
   });
-  
-  // [FIX] Debounce timers ref - prevents too many API calls
-  const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const DEBOUNCE_DELAY = 500; // ms
 
-  // [FIX] Determine which data source to use
+  // Determine which data source to use
   const useNewApi = services && services.length > 0;
   const servicesList = useNewApi ? services : (legacyContent?.items || []);
 
@@ -76,23 +86,41 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
     return service?._id || service?.id;
   };
 
-  // [FIX] Load services if not loaded yet
+  // Load services if not loaded yet
   useEffect(() => {
     if (!services || services.length === 0) {
       loadServices?.();
     }
   }, []);
 
-  // [FIX] Sync local service state when editingIndex changes
+  // ✅ Sync local service state ONLY when editingIndex changes
+  // IMPORTANT: Removed servicesList from dependencies to prevent overwriting local edits
   useEffect(() => {
     if (editingIndex !== null && servicesList[editingIndex]) {
       setLocalService({ ...servicesList[editingIndex] });
     } else {
       setLocalService(null);
     }
-  }, [editingIndex, servicesList]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingIndex]); // Only sync when editingIndex changes, NOT when servicesList updates
 
-  // [FIX] Cleanup debounce timers on unmount
+  // ✅ FIXED: Notify parent whenever localService changes (for live preview)
+  useEffect(() => {
+    console.log('🟡 onLocalServiceChange useEffect triggered');
+    console.log('🟡 localService:', localService?.title, 'price:', localService?.price);
+    console.log('🟡 typeof onLocalServiceChange:', typeof onLocalServiceChange);
+    
+    if (typeof onLocalServiceChange === 'function') {
+      console.log('🟡 ✅ CALLING onLocalServiceChange with localService...');
+      onLocalServiceChange(localService);
+      console.log('🟡 ✅ onLocalServiceChange CALLED successfully!');
+    } else {
+      console.log('🔴 ❌ ERROR: onLocalServiceChange is NOT a function!');
+      console.log('🔴 ❌ Actual value:', onLocalServiceChange);
+    }
+  }, [localService, onLocalServiceChange]);
+
+  // ✅ Cleanup timers on unmount
   useEffect(() => {
     return () => {
       debounceTimersRef.current.forEach(timer => clearTimeout(timer));
@@ -105,7 +133,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
     onEditingIndexChange?.(editingIndex);
   }, [editingIndex, onEditingIndexChange]);
 
-  // [LEGACY] Handle update for backward compatibility
+  // Handle update for backward compatibility (legacy)
   const handleUpdate = (path: string, value: unknown) => {
     updateField('services', path, value);
   };
@@ -121,7 +149,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
 
   // --- Actions ---
   const addNewService = async () => {
-    // [FIX] Generate unique title with timestamp + random suffix to avoid duplicate conflicts
+    // Generate unique title with timestamp + random suffix to avoid duplicate conflicts
     const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
     const uniqueTitle = `New Service ${randomSuffix}`;
     
@@ -167,7 +195,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
     }
   };
 
-  // [NEW] Open delete confirmation modal
+  // Open delete confirmation modal
   const openDeleteConfirmation = (index: number) => {
     const service = servicesList[index];
     setDeleteConfirmation({
@@ -177,7 +205,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
     });
   };
 
-  // [NEW] Close delete confirmation modal
+  // Close delete confirmation modal
   const closeDeleteConfirmation = () => {
     setDeleteConfirmation({
       isOpen: false,
@@ -186,7 +214,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
     });
   };
 
-  // [NEW] Confirm and execute delete
+  // Confirm and execute delete (IMMEDIATE - no debounce needed)
   const confirmDelete = async () => {
     const index = deleteConfirmation.serviceIndex;
     if (index === null) return;
@@ -216,15 +244,21 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
     }
   };
 
-  // [FIX] Update service field - with debouncing to prevent too many API calls
+  // ✅ DEBOUNCED - Update service field with local state for preview + debounced API call
   const updateServiceField = useCallback((index: number, field: string, value: unknown) => {
+    console.log('🔵 updateServiceField called:', { field, value });
+
     const service = servicesList[index];
     const serviceId = getServiceId(service);
 
-    // Update local state immediately for responsive UI
-    setLocalService((prev: any) => prev ? { ...prev, [field]: value } : null);
+    // 1. Update local state IMMEDIATELY for responsive preview
+    setLocalService((prev: any) => {
+      const updated = prev ? { ...prev, [field]: value } : null;
+      console.log('🟢 localService updated:', updated?.title, 'price:', updated?.price);
+      return updated;
+    });
 
-    // Debounce the API call
+    // 2. DEBOUNCE the API call to live website
     const timerKey = `service-${serviceId}-${field}`;
     const existingTimer = debounceTimersRef.current.get(timerKey);
     if (existingTimer) clearTimeout(existingTimer);
@@ -238,6 +272,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
           showNotification?.('error', 'Failed to save changes');
         }
       } else {
+        // Legacy fallback
         const newItems = [...(legacyContent?.items || [])];
         newItems[index] = { ...newItems[index], [field]: value };
         handleUpdate('items', newItems);
@@ -246,41 +281,32 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
     }, DEBOUNCE_DELAY);
 
     debounceTimersRef.current.set(timerKey, timer);
-  }, [servicesList, useNewApi, updateServiceApi, legacyContent?.items, handleUpdate, showNotification]);
+  }, [servicesList, useNewApi, updateServiceApi, legacyContent?.items, showNotification]);
 
-  // [FIX] Update nested service field - with debouncing
-  const updateServiceNestedField = useCallback((index: number, field: string, nestedValue: unknown) => {
+  // ⚡ IMMEDIATE - Update service field (for images, dropdowns - no debounce)
+  const updateServiceFieldImmediate = useCallback(async (index: number, field: string, value: unknown) => {
     const service = servicesList[index];
     const serviceId = getServiceId(service);
 
-    // Update local state immediately
-    setLocalService((prev: any) => prev ? { ...prev, [field]: nestedValue } : null);
+    // 1. Update local state immediately for preview
+    setLocalService((prev: any) => prev ? { ...prev, [field]: value } : null);
 
-    // Debounce the API call
-    const timerKey = `service-${serviceId}-${field}`;
-    const existingTimer = debounceTimersRef.current.get(timerKey);
-    if (existingTimer) clearTimeout(existingTimer);
-
-    const timer = setTimeout(async () => {
-      if (useNewApi && updateServiceApi && serviceId) {
-        try {
-          await updateServiceApi(serviceId, { [field]: nestedValue });
-        } catch (error) {
-          console.error('[updateServiceNestedField] API Error:', error);
-          showNotification?.('error', 'Failed to save changes');
-        }
-      } else {
-        const newItems = [...(legacyContent?.items || [])];
-        newItems[index] = { ...newItems[index], [field]: nestedValue };
-        handleUpdate('items', newItems);
+    // 2. Update API immediately (no debounce for images/critical fields)
+    if (useNewApi && updateServiceApi && serviceId) {
+      try {
+        await updateServiceApi(serviceId, { [field]: value });
+      } catch (error) {
+        console.error('[updateServiceFieldImmediate] API Error:', error);
+        showNotification?.('error', 'Failed to save changes');
       }
-      debounceTimersRef.current.delete(timerKey);
-    }, DEBOUNCE_DELAY);
+    } else {
+      const newItems = [...(legacyContent?.items || [])];
+      newItems[index] = { ...newItems[index], [field]: value };
+      handleUpdate('items', newItems);
+    }
+  }, [servicesList, useNewApi, updateServiceApi, legacyContent?.items, showNotification]);
 
-    debounceTimersRef.current.set(timerKey, timer);
-  }, [servicesList, useNewApi, updateServiceApi, legacyContent?.items, handleUpdate, showNotification]);
-
-  // [NEW] Delete Confirmation Modal Component
+  // Delete Confirmation Modal Component
   const DeleteConfirmationModal = () => {
     if (!deleteConfirmation.isOpen) return null;
 
@@ -460,6 +486,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
 
   // 2. Service Editor View
   const renderServiceEditor = (index: number) => {
+    // Use localService for preview (immediate updates), fallback to servicesList
     const service = localService || servicesList[index];
     if (!service) {
       setEditingIndex(null);
@@ -481,7 +508,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
               Edit: {service.title}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Changes auto-save as you type
+              Changes auto-save after 2 seconds
             </p>
           </div>
         </div>
@@ -496,6 +523,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* 🎯 DEBOUNCED - Service Title */}
                 <div>
                   <label className={labelClass}>Service Title</label>
                   <input
@@ -506,6 +534,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                     placeholder="e.g., Periodic Service"
                   />
                 </div>
+                {/* 🎯 DEBOUNCED - Category */}
                 <div>
                   <label className={labelClass}>Category</label>
                   <input
@@ -518,6 +547,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                 </div>
               </div>
 
+              {/* 🎯 DEBOUNCED - Description */}
               <div>
                 <label className={labelClass}>Description</label>
                 <textarea
@@ -530,6 +560,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {/* 🎯 DEBOUNCED - Price */}
                 <div>
                   <label className={labelClass}>Price (₹)</label>
                   <input
@@ -539,6 +570,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                     className={inputClass}
                   />
                 </div>
+                {/* 🎯 DEBOUNCED - Original Price */}
                 <div>
                   <label className={labelClass}>MRP(₹)</label>
                   <input
@@ -548,6 +580,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                     className={inputClass}
                   />
                 </div>
+                {/* 🎯 DEBOUNCED - Duration */}
                 <div>
                   <label className={labelClass}>Duration</label>
                   <input
@@ -558,6 +591,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                     placeholder="e.g., 2-3 hours"
                   />
                 </div>
+                {/* 🎯 DEBOUNCED - Warranty */}
                 <div>
                   <label className={labelClass}>Warranty</label>
                   <input
@@ -570,11 +604,12 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                 </div>
               </div>
 
+              {/* ⚡ IMMEDIATE - Main Image */}
               <div>
                 <label className={labelClass}>Main Image</label>
                 <ImageUpload
                   value={service.image || ''}
-                  onChange={(url) => updateServiceField(index, 'image', url)}
+                  onChange={(url) => updateServiceFieldImmediate(index, 'image', url)}
                   label="Service Image"
                   placeholder="Upload image or enter URL"
                   previewHeight="h-48"
@@ -591,10 +626,11 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                   <CheckCircle2 className="w-4 h-4 text-green-500" />
                   Features
                 </label>
+                {/* ⚡ IMMEDIATE - Add Feature button */}
                 <button
                   onClick={() => {
                     const newFeatures = ['', ...(service.features || [])];
-                    updateServiceNestedField(index, 'features', newFeatures);
+                    updateServiceFieldImmediate(index, 'features', newFeatures);
                   }}
                   className="text-green-500 text-xs font-bold uppercase hover:underline"
                 >
@@ -604,20 +640,22 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
               <div className="space-y-2">
                 {service.features?.map((feature: string, i: number) => (
                   <div key={i} className="flex gap-2 items-center">
+                    {/* 🎯 DEBOUNCED - Feature text */}
                     <input
                       value={feature}
                       onChange={(e) => {
                         const newFeatures = [...(service.features || [])];
                         newFeatures[i] = e.target.value;
-                        updateServiceNestedField(index, 'features', newFeatures);
+                        updateServiceField(index, 'features', newFeatures);
                       }}
                       className={inputClass}
                       placeholder="Feature description"
                     />
+                    {/* ⚡ IMMEDIATE - Delete button */}
                     <button
                       onClick={() => {
                         const newFeatures = (service.features || []).filter((_: any, idx: number) => idx !== i);
-                        updateServiceNestedField(index, 'features', newFeatures);
+                        updateServiceFieldImmediate(index, 'features', newFeatures);
                       }}
                       className="text-destructive hover:bg-destructive/10 p-2 rounded"
                     >
@@ -637,10 +675,11 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                   <Layers className="w-4 h-4 text-blue-500" />
                   What's Included
                 </label>
+                {/* ⚡ IMMEDIATE - Add Item button */}
                 <button
                   onClick={() => {
                     const newIncludes = ['', ...(service.includes || [])];
-                    updateServiceNestedField(index, 'includes', newIncludes);
+                    updateServiceFieldImmediate(index, 'includes', newIncludes);
                   }}
                   className="text-blue-500 text-xs font-bold uppercase hover:underline"
                 >
@@ -650,20 +689,22 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
               <div className="space-y-2">
                 {service.includes?.map((item: string, i: number) => (
                   <div key={i} className="flex gap-2 items-center">
+                    {/* 🎯 DEBOUNCED - Include text */}
                     <input
                       value={item}
                       onChange={(e) => {
                         const newIncludes = [...(service.includes || [])];
                         newIncludes[i] = e.target.value;
-                        updateServiceNestedField(index, 'includes', newIncludes);
+                        updateServiceField(index, 'includes', newIncludes);
                       }}
                       className={inputClass}
                       placeholder="Included item"
                     />
+                    {/* ⚡ IMMEDIATE - Delete button */}
                     <button
                       onClick={() => {
                         const newIncludes = (service.includes || []).filter((_: any, idx: number) => idx !== i);
-                        updateServiceNestedField(index, 'includes', newIncludes);
+                        updateServiceFieldImmediate(index, 'includes', newIncludes);
                       }}
                       className="text-destructive hover:bg-destructive/10 p-2 rounded"
                     >
@@ -683,10 +724,11 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                   <Workflow className="w-4 h-4 text-orange-500" />
                   Process Steps
                 </label>
+                {/* ⚡ IMMEDIATE - Add Step button */}
                 <button
                   onClick={() => {
                     const newProcess = [{ title: '', description: '' }, ...(service.process || [])];
-                    updateServiceNestedField(index, 'process', newProcess);
+                    updateServiceFieldImmediate(index, 'process', newProcess);
                   }}
                   className="text-orange-500 text-xs font-bold uppercase hover:underline"
                 >
@@ -700,16 +742,18 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                       {i + 1}
                     </div>
                     <div className="flex-1 space-y-2">
+                      {/* 🎯 DEBOUNCED - Step title */}
                       <input
                         placeholder="Step title"
                         value={step.title}
                         onChange={(e) => {
                           const newProcess = [...(service.process || [])];
                           newProcess[i] = { ...newProcess[i], title: e.target.value };
-                          updateServiceNestedField(index, 'process', newProcess);
+                          updateServiceField(index, 'process', newProcess);
                         }}
                         className={inputClass}
                       />
+                      {/* 🎯 DEBOUNCED - Step description */}
                       <textarea
                         placeholder="Step description"
                         rows={2}
@@ -717,15 +761,16 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                         onChange={(e) => {
                           const newProcess = [...(service.process || [])];
                           newProcess[i] = { ...newProcess[i], description: e.target.value };
-                          updateServiceNestedField(index, 'process', newProcess);
+                          updateServiceField(index, 'process', newProcess);
                         }}
                         className={inputClass}
                       />
                     </div>
+                    {/* ⚡ IMMEDIATE - Delete button */}
                     <button
                       onClick={() => {
                         const newProcess = (service.process || []).filter((_: any, idx: number) => idx !== i);
-                        updateServiceNestedField(index, 'process', newProcess);
+                        updateServiceFieldImmediate(index, 'process', newProcess);
                       }}
                       className="mt-2 text-destructive hover:bg-destructive/10 p-2 rounded flex-shrink-0"
                     >
@@ -745,10 +790,11 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                   <HelpCircle className="w-4 h-4 text-purple-500" />
                   Service FAQs
                 </label>
+                {/* ⚡ IMMEDIATE - Add FAQ button */}
                 <button
                   onClick={() => {
                     const newFaqs = [{ question: '', answer: '' }, ...(service.faqs || [])];
-                    updateServiceNestedField(index, 'faqs', newFaqs);
+                    updateServiceFieldImmediate(index, 'faqs', newFaqs);
                   }}
                   className="text-purple-500 text-xs font-bold uppercase hover:underline"
                 >
@@ -759,32 +805,35 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                 {service.faqs?.map((faq: any, i: number) => (
                   <div key={i} className="flex gap-2 sm:gap-3 items-start">
                     <div className="flex-1 space-y-2">
+                      {/* 🎯 DEBOUNCED - FAQ question */}
                       <input
                         placeholder="Question"
                         value={faq.question}
                         onChange={(e) => {
                           const newFaqs = [...(service.faqs || [])];
                           newFaqs[i] = { ...newFaqs[i], question: e.target.value };
-                          updateServiceNestedField(index, 'faqs', newFaqs);
+                          updateServiceField(index, 'faqs', newFaqs);
                         }}
                         className={inputClass}
                       />
+                      {/* 🎯 DEBOUNCED - FAQ answer */}
                       <textarea
                         placeholder="Answer"
                         value={faq.answer}
                         onChange={(e) => {
                           const newFaqs = [...(service.faqs || [])];
                           newFaqs[i] = { ...newFaqs[i], answer: e.target.value };
-                          updateServiceNestedField(index, 'faqs', newFaqs);
+                          updateServiceField(index, 'faqs', newFaqs);
                         }}
                         rows={2}
                         className={inputClass}
                       />
                     </div>
+                    {/* ⚡ IMMEDIATE - Delete button */}
                     <button
                       onClick={() => {
                         const newFaqs = (service.faqs || []).filter((_: any, idx: number) => idx !== i);
-                        updateServiceNestedField(index, 'faqs', newFaqs);
+                        updateServiceFieldImmediate(index, 'faqs', newFaqs);
                       }}
                       className="mt-2 text-destructive hover:bg-destructive/10 p-2 rounded flex-shrink-0"
                     >
@@ -804,10 +853,11 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                   <Layers className="w-4 h-4 text-cyan-500" />
                   Detail Page Gallery
                 </label>
+                {/* ⚡ IMMEDIATE - Add Image button */}
                 <button
                   onClick={() => {
                     const newGallery = ['', ...(service.gallery || [])];
-                    updateServiceNestedField(index, 'gallery', newGallery);
+                    updateServiceFieldImmediate(index, 'gallery', newGallery);
                   }}
                   className="text-cyan-500 text-xs font-bold uppercase hover:underline"
                 >
@@ -817,12 +867,13 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
               <div className="space-y-4">
                 {service.gallery?.map((img: string, i: number) => (
                   <div key={i} className="relative">
+                    {/* ⚡ IMMEDIATE - Gallery image upload */}
                     <ImageUpload
                       value={img}
                       onChange={(url) => {
                         const newGallery = [...(service.gallery || [])];
                         newGallery[i] = url;
-                        updateServiceNestedField(index, 'gallery', newGallery);
+                        updateServiceFieldImmediate(index, 'gallery', newGallery);
                       }}
                       label={`Gallery Image ${i + 1}`}
                       placeholder="Upload image or enter URL"
@@ -833,10 +884,11 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
                       showAltInput={false}
                       compact={false}
                     />
+                    {/* ⚡ IMMEDIATE - Delete image button */}
                     <button
                       onClick={() => {
                         const newGallery = (service.gallery || []).filter((_: any, idx: number) => idx !== i);
-                        updateServiceNestedField(index, 'gallery', newGallery);
+                        updateServiceFieldImmediate(index, 'gallery', newGallery);
                       }}
                       className="absolute top-0 right-0 text-destructive hover:bg-destructive/10 p-2 rounded"
                       title="Remove image"

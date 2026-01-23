@@ -25,14 +25,12 @@ interface FAQEditorProps {
   onPageChange?: (page: 'faqSection' | 'contactPage') => void;
 }
 
-// Contact type options
 const contactTypeOptions = [
   { value: 'phone', label: 'Phone', icon: Phone },
   { value: 'whatsapp', label: 'WhatsApp', icon: MessageCircle },
   { value: 'email', label: 'Email', icon: Mail },
 ];
 
-// Tab configuration
 type TabId = 'faqSection' | 'contactPage';
 
 const tabs: { id: TabId; label: string; icon: React.FC<{ className?: string }> }[] = [
@@ -44,12 +42,12 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
   const { updateField } = useContent();
   const content = useFAQContent();
   const [activeTab, setActiveTab] = useState<TabId>('faqSection');
+
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['faqHeader', 'contactHeader', 'map', 'contactCards', 'items', 'businessHours', 'contactForm', 'quickButtons'])
   );
   const [expandedFAQs, setExpandedFAQs] = useState<Set<number>>(new Set([0]));
 
-  // Notify parent when tab changes
   useEffect(() => {
     onPageChange?.(activeTab);
   }, [activeTab, onPageChange]);
@@ -58,6 +56,10 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
   if (content.isLoading) {
     return <SectionLoader section="FAQ" />;
   }
+
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('faq', path, value);
+  };
 
   const handleTabChange = (tabId: TabId) => {
     setActiveTab(tabId);
@@ -83,17 +85,9 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
     setExpandedFAQs(newExpanded);
   };
 
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('faq', path, value);
-  };
-
-  // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
-
   const labelClass = `text-sm font-medium text-muted-foreground`;
-
   const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
-
   const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
   const addNewContactCard = () => {
@@ -103,7 +97,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
       value: '+91 98765 43210',
       href: 'tel:+919876543210',
     };
-    // Add at the beginning of the array
     handleUpdate('contactCards', [newCard, ...(content.contactCards || [])]);
   };
 
@@ -112,9 +105,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
       question: 'New Question?',
       answer: 'Answer to the question goes here.',
     };
-    // Add at the beginning of the array
     handleUpdate('items', [newFAQ, ...(content.items || [])]);
-    // Auto-expand the newly added item (now at index 0)
     setExpandedFAQs(new Set([0]));
   };
 
@@ -123,20 +114,14 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
       day: 'New Day',
       hours: '9:00 AM - 5:00 PM',
     };
-    // Add at the beginning of the array
     handleUpdate('businessHours', [newHour, ...(content.businessHours || [])]);
   };
 
-
-  // Get icon component by type
   const getContactIcon = (type: string) => {
     const option = contactTypeOptions.find(opt => opt.value === type);
     return option?.icon || Phone;
   };
 
-  // ============================================================================
-  // FAQ SECTION TAB CONTENT
-  // ============================================================================
   const renderFAQSectionTab = () => (
     <div className="space-y-4 sm:space-y-6">
       {/* FAQ Header Content */}
@@ -210,7 +195,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
         </AnimatePresence>
       </div>
 
-      {/* Contact Cards (for FAQ section left side) */}
+      {/* Contact Cards */}
       <div className={sectionClass}>
         <div
           onClick={() => toggleSection('contactCards')}
@@ -229,15 +214,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
               {content.contactCards?.length || 0}
             </span>
           </div>
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewContactCard();
-            }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-          >
-            <Plus className="w-4 h-4" />
-          </button> */}
         </div>
 
         <AnimatePresence>
@@ -353,7 +329,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
         </AnimatePresence>
       </div>
 
-      {/* Business Hours (for FAQ section left side) */}
+      {/* Business Hours */}
       <div className={sectionClass}>
         <div
           onClick={() => toggleSection('businessHours')}
@@ -372,15 +348,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
               {content.businessHours?.length || 0}
             </span>
           </div>
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewBusinessHour();
-            }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-          >
-            <Plus className="w-4 h-4" />
-          </button> */}
         </div>
 
         <AnimatePresence>
@@ -480,15 +447,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
               {content.items?.length || 0}
             </span>
           </div>
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewFAQ();
-            }}
-            className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-          >
-            <Plus className="w-4 h-4" />
-          </button> */}
         </div>
 
         <AnimatePresence>
@@ -505,7 +463,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                     key={index}
                     className="rounded-xl border overflow-hidden border-border bg-card"
                   >
-                    {/* FAQ Header */}
                     <div
                       onClick={() => toggleFAQ(index)}
                       onKeyDown={(e) => e.key === 'Enter' && toggleFAQ(index)}
@@ -539,7 +496,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                       </div>
                     </div>
 
-                    {/* FAQ Details */}
                     <AnimatePresence>
                       {expandedFAQs.has(index) && (
                         <motion.div
@@ -602,9 +558,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
     </div>
   );
 
-  // ============================================================================
-  // CONTACT PAGE TAB CONTENT
-  // ============================================================================
   const renderContactPageTab = () => (
     <div className="space-y-4 sm:space-y-6">
       {/* Contact Page Header Content */}
@@ -784,61 +737,6 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                     />
                   </div>
                 </div>
-
-                {/* Service Options */}
-                {/* <div className="space-y-3 pt-2">
-                  <div className="flex items-center justify-between">
-                    <label className={labelClass}>Service Options (Dropdown)</label>
-                    <button
-                      onClick={addNewServiceOption}
-                      className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-foreground"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {content.contactPage?.serviceOptions?.map((option: ContactServiceOption, index: number) => (
-                    <div key={index} className="flex gap-2 items-center">
-                      <input
-                        type="text"
-                        value={option.value || ''}
-                        onChange={(e) => {
-                          const newOptions = [...(content.contactPage?.serviceOptions || [])];
-                          newOptions[index] = { ...newOptions[index], value: e.target.value };
-                          handleUpdate('contactPage.serviceOptions', newOptions);
-                        }}
-                        placeholder="value-slug"
-                        className={`${inputClass} flex-1`}
-                      />
-                      <input
-                        type="text"
-                        value={option.label || ''}
-                        onChange={(e) => {
-                          const newOptions = [...(content.contactPage?.serviceOptions || [])];
-                          newOptions[index] = { ...newOptions[index], label: e.target.value };
-                          handleUpdate('contactPage.serviceOptions', newOptions);
-                        }}
-                        placeholder="Display Label"
-                        className={`${inputClass} flex-1`}
-                      />
-                      <button
-                        onClick={() => {
-                          const newOptions = content.contactPage?.serviceOptions?.filter((_: ContactServiceOption, i: number) => i !== index);
-                          handleUpdate('contactPage.serviceOptions', newOptions);
-                        }}
-                        className="p-2 rounded-lg text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-
-                  {(!content.contactPage?.serviceOptions || content.contactPage.serviceOptions.length === 0) && (
-                    <p className="text-xs text-muted-foreground text-center py-2">
-                      No service options. Click + to add.
-                    </p>
-                  )}
-                </div> */}
               </div>
             </motion.div>
           )}

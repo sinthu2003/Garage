@@ -552,22 +552,11 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
                     key={index}
                     className="p-3 rounded-xl border border-border bg-secondary/30"
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
-                        <span className="text-sm font-medium text-foreground">
-                          {stat.label || 'Untitled Stat'}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => {
-                          const newStats = content.stats?.filter((_: HeroStat, i: number) => i !== index);
-                          handleUpdate('stats', newStats);
-                        }}
-                        className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <div className="flex items-center gap-2 mb-3">
+                      <GripVertical className="w-4 h-4 cursor-grab text-muted-foreground hidden sm:block" />
+                      <span className="text-sm font-medium text-foreground">
+                        {stat.label || 'Untitled Stat'}
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">

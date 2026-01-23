@@ -7,24 +7,25 @@ interface ServicesEditorProps {
   isDarkMode: boolean;
 }
 
-export const ServicesEditor: React.FC<ServicesEditorProps> = ({ }) => {
+export const ServicesEditor: React.FC<ServicesEditorProps> = () => {
   const { updateField, loadServices, servicesLoading } = useContent();
   const content = useServicesContent();
 
-  // [FIX] Load services from API when this editor is mounted
+  // Simple update function - debouncing handled by ContentContext
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('services', path, value);
+  };
+
+  // Load services from API when this editor is mounted
   // This ensures the ServiceGrid preview has data to display
   useEffect(() => {
     loadServices();
   }, [loadServices]);
 
-  // [LAZY LOADING] Show loading state
+  // [LAZY LOADING] Show loading state - MUST be after all hooks
   if (content.isLoading || servicesLoading) {
     return <SectionLoader section="Services" />;
   }
-
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('services', path, value);
-  };
 
   // Theme-aware styling helpers using CSS variables
   const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20`;
@@ -58,6 +59,7 @@ export const ServicesEditor: React.FC<ServicesEditorProps> = ({ }) => {
 
           {/* Headlines */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {/* Headline Line 1 */}
             <div className="space-y-2">
               <label className={labelClass}>Headline Line 1</label>
               <input
@@ -68,6 +70,7 @@ export const ServicesEditor: React.FC<ServicesEditorProps> = ({ }) => {
                 className={inputClass}
               />
             </div>
+            {/* Highlighted Text */}
             <div className="space-y-2">
               <label className={labelClass}>Highlighted Text</label>
               <input

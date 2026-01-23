@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, Wrench, CheckCircle, ArrowRight, Clock, Car, Shield } from 'lucide-react';
+import { MapPin, Calendar, Wrench, CheckCircle, ArrowRight, Clock, Car, Shield, Layers, Play } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useContent } from '../../admin-portal';
 
@@ -13,6 +13,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string; style?: 
   Car,
   Shield,
   ArrowRight,
+  Layers,
+  Play,
 };
 
 // Optimized animation variants with proper typing
