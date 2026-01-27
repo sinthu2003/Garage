@@ -115,11 +115,6 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
     handleUpdate('notFound.quickLinks', newLinks);
   };
 
-  const deleteQuickLink = (index: number) => {
-    const newLinks = quickLinks.filter((_: unknown, i: number) => i !== index);
-    handleUpdate('notFound.quickLinks', newLinks);
-  };
-
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Page Tabs */}
@@ -631,13 +626,7 @@ export const PagesEditor: React.FC<PagesEditorProps> = ({ onPageChange }) => {
                             placeholder="/page or #section"
                             className={`w-32 sm:w-40 ${inputClass}`}
                           />
-                          {/* Delete button */}
-                          <button
-                            onClick={() => deleteQuickLink(index)}
-                            className="p-2 rounded-lg text-destructive hover:bg-destructive/10 flex-shrink-0"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+            
                         </div>
                       ))}
 

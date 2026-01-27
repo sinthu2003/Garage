@@ -5,7 +5,6 @@ import {
   Type,
   ChevronRight,
   ChevronDown,
-  Trash2,
   GripVertical,
   Palette,
   MapPin,
@@ -14,7 +13,6 @@ import {
   CheckCircle,
   Play,
   Hash,
-  Plus,
 } from 'lucide-react';
 import { useHowItWorksContent } from '../../hooks/useContentHooks';
 import { useContent } from '../../context/ContentContext';
@@ -110,15 +108,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = () => {
     handleUpdate('steps', newSteps);
   };
 
-  const deleteStep = (index: number) => {
-    const newSteps = steps.filter((_: HowItWorksStep, i: number) => i !== index);
-    // Renumber remaining steps
-    const renumbered = newSteps.map((s: HowItWorksStep, idx: number) => ({
-      ...s,
-      number: (idx + 1).toString().padStart(2, '0'),
-    }));
-    handleUpdate('steps', renumbered);
-  };
+  
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -228,16 +218,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = () => {
               {steps.length}
             </span>
           </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addNewStep();
-            }}
-            className="p-1.5 sm:p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors"
-            title="Add Step"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
+          
         </div>
 
         <AnimatePresence>
@@ -303,16 +284,7 @@ export const HowItWorksEditor: React.FC<HowItWorksEditorProps> = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                          {/* Delete button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteStep(index);
-                            }}
-                            className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          
                           <motion.div animate={{ rotate: expandedItems.has(index) ? 180 : 0 }}>
                             <ChevronDown className="w-4 h-4 text-muted-foreground" />
                           </motion.div>

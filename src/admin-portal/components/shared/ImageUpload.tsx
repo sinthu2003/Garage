@@ -8,10 +8,24 @@ import {
 import { mediaApi } from '../../../services/api';
 
 // ============================================
-// GLOBAL CACHE
+// GLOBAL CACHE - FIXED TO TRACK URL + FOLDER
 // ============================================
-const globalProcessedUrls = new Set<string>();
+// Track URL + folder combinations to allow same file in different folders
+const globalProcessedUrls = new Map<string, Set<string>>(); // url -> Set of folders
 const globalUploadsInProgress = new Set<string>();
+
+// Helper functions for cache management
+const hasBeenProcessed = (url: string, folder: string): boolean => {
+  const folders = globalProcessedUrls.get(url);
+  return folders ? folders.has(folder) : false;
+};
+
+const markAsProcessed = (url: string, folder: string): void => {
+  if (!globalProcessedUrls.has(url)) {
+    globalProcessedUrls.set(url, new Set());
+  }
+  globalProcessedUrls.get(url)!.add(folder);
+};
 
 // ============================================
 // LOCAL STORAGE UTILITY
@@ -118,7 +132,7 @@ const detectFolderFromLabel = (label?: string): string => {
 };
 
 // ============================================
-// S3 CHECK AND UPLOAD UTILITY
+// S3 CHECK AND UPLOAD UTILITY - FIXED
 // ============================================
 const isS3Url = (url: string): boolean => {
   if (!url) return false;
@@ -128,12 +142,14 @@ const isS3Url = (url: string): boolean => {
 const uploadToS3 = async (file: File, folder?: string): Promise<string> => {
   try {
     console.log('=== Uploading to S3 ===');
-    console.log('File:', file.name, 'Size:', formatFileSize(file.size));
+    console.log('File:', file.name, 'Size:', formatFileSize(file.size), 'Folder:', folder);
     const result = await mediaApi.upload(file, folder);
     console.log('S3 Upload successful:', result.url);
     
-    // Mark result as processed immediately
-    globalProcessedUrls.add(result.url);
+    // ✅ FIXED: Mark as processed with folder
+    if (folder) {
+      markAsProcessed(result.url, folder);
+    }
     
     return result.url;
   } catch (error) {
@@ -163,6 +179,13 @@ const ensureImageInS3 = async (
 ): Promise<string> => {
   if (isS3Url(url)) return url;
   if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+  
+  // ✅ FIXED: Check if already processed for THIS specific folder
+  if (hasBeenProcessed(url, folder)) {
+    console.log(`[S3] Already processed for folder "${folder}", skipping:`, url);
+    return url;
+  }
+  
   if (globalUploadsInProgress.has(url)) return url;
 
   const isValidUrl = url.startsWith('http://') || url.startsWith('https://');
@@ -201,13 +224,15 @@ const ensureImageInS3 = async (
     progressCallback?.('Uploading to S3...');
     const s3Url = await uploadToS3(file, folder);
 
-    globalProcessedUrls.add(url);
-    globalProcessedUrls.add(s3Url);
+    // ✅ FIXED: Mark both URLs as processed for this folder
+    markAsProcessed(url, folder);
+    markAsProcessed(s3Url, folder);
 
     return s3Url;
   } catch (error) {
     console.error('[S3] Auto-upload failed:', error);
-    globalProcessedUrls.add(url);
+    // ✅ FIXED: Still mark as processed to avoid retry loops
+    markAsProcessed(url, folder);
     return url;
   } finally {
     globalUploadsInProgress.delete(url);
@@ -507,7 +532,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setImageInfo(null);
   };
 
-  // Improved auto-upload logic using Global Sets
+  // ✅ FIXED: Auto-upload with folder-aware caching
   useEffect(() => {
     if (autoUploadTimeoutRef.current) {
       window.clearTimeout(autoUploadTimeoutRef.current);
@@ -516,10 +541,18 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     // Safety checks
     if (!uploadToCloud || !autoUploadExternalUrls || !value || !value.trim()) return;
     if (isS3Url(value)) return;
-    if (globalProcessedUrls.has(value)) return;
-    if (globalUploadsInProgress.has(value)) return;
     if (uploadStatus === 'uploading' || uploadStatus === 'compressing') return;
     if (value.startsWith('data:') || value.startsWith('blob:')) return;
+
+    const cloudFolder = cloudFolderProp || detectFolderFromLabel(label);
+    
+    // ✅ FIXED: Check if already processed for THIS folder
+    if (hasBeenProcessed(value, cloudFolder)) {
+      console.log(`[AutoUpload] Already processed for folder "${cloudFolder}", skipping:`, value);
+      return;
+    }
+    
+    if (globalUploadsInProgress.has(value)) return;
 
     const isExternalUrl = value.startsWith('http://') || value.startsWith('https://');
     const isFilePath = value.startsWith('file://') || value.startsWith('/');
@@ -527,7 +560,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     if (!isExternalUrl && !isFilePath) return;
 
     autoUploadTimeoutRef.current = window.setTimeout(() => {
-      handleAutoUploadToS3(value);
+      handleAutoUploadToS3(value, cloudFolder);
     }, 1000);
 
     return () => {
@@ -535,27 +568,31 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         window.clearTimeout(autoUploadTimeoutRef.current);
       }
     };
-  }, [value, uploadToCloud, autoUploadExternalUrls, uploadStatus]);
+  }, [value, uploadToCloud, autoUploadExternalUrls, uploadStatus, cloudFolderProp, label]);
 
-  const handleAutoUploadToS3 = async (urlToUpload: string) => {
+  const handleAutoUploadToS3 = async (urlToUpload: string, folder: string) => {
     if (!urlToUpload || isS3Url(urlToUpload)) return;
-    if (globalProcessedUrls.has(urlToUpload) || globalUploadsInProgress.has(urlToUpload)) return;
+    
+    // ✅ FIXED: Check folder-specific cache
+    if (hasBeenProcessed(urlToUpload, folder) || globalUploadsInProgress.has(urlToUpload)) {
+      console.log(`[AutoUpload] Skipping, already processed for "${folder}":`, urlToUpload);
+      return;
+    }
 
     setUploadError(null);
     setUploadStatus('uploading');
 
     try {
-      const cloudFolder = cloudFolderProp || detectFolderFromLabel(label);
-      
       const s3Url = await ensureImageInS3(
         urlToUpload, 
-        cloudFolder,
+        folder,
         (message) => setCompressionProgress(message)
       );
 
       if (s3Url !== urlToUpload && isS3Url(s3Url)) {
-        globalProcessedUrls.add(urlToUpload);
-        globalProcessedUrls.add(s3Url);
+        // ✅ FIXED: Mark both URLs as processed for this folder
+        markAsProcessed(urlToUpload, folder);
+        markAsProcessed(s3Url, folder);
         
         onChange(s3Url);
         setUploadStatus('success');
@@ -564,14 +601,16 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           setUploadStatus('idle');
         }, 3000);
       } else {
-        globalProcessedUrls.add(urlToUpload);
+        // ✅ FIXED: Still mark as processed
+        markAsProcessed(urlToUpload, folder);
         setUploadStatus('idle');
       }
       
       setCompressionProgress('');
     } catch (err) {
       console.error('[AutoUpload] Failed:', err);
-      globalProcessedUrls.add(urlToUpload);
+      // ✅ FIXED: Mark as processed even on error
+      markAsProcessed(urlToUpload, folder);
       setUploadError(err instanceof Error ? err.message : 'Auto-upload failed');
       setUploadStatus('error');
       setCompressionProgress('');
@@ -628,7 +667,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           );
           
           finalUrl = await uploadToS3(compressedFile, cloudFolder);
-          globalProcessedUrls.add(finalUrl);
+          // ✅ FIXED: Mark as processed for this folder
+          markAsProcessed(finalUrl, cloudFolder);
           
         } else if (saveToStorage) {
           const base64 = await blobToBase64(compressed.blob);

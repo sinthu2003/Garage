@@ -1214,7 +1214,7 @@ export const AdminPage: React.FC = () => {
                   style={{ minWidth: previewVisible && !isMobile ? `${editorPanelWidth}%` : undefined }}
                 >
                   {/* Mobile Preview Toggle */}
-                  {isMobile && (
+                  {/* {isMobile && (
                     <div className="p-3 border-b border-border">
                       <button
                         onClick={() => setPreviewVisible(true)}
@@ -1224,7 +1224,7 @@ export const AdminPage: React.FC = () => {
                         Preview Changes
                       </button>
                     </div>
-                  )}
+                  )} */}
 
                   {/* Editor Content */}
                   <div className="flex-1 overflow-y-auto p-4 custom-scrollbar w-full">
