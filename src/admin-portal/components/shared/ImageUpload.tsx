@@ -3,9 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Upload, X, Image as ImageIcon, Link, Trash2, Eye, EyeOff, Check,
   AlertCircle, Loader2, Copy, ExternalLink, FolderOpen, RefreshCw,
-  Clipboard, Info, Download, Maximize2, HardDrive, Cloud,
+  Download, Maximize2, Cloud,
 } from 'lucide-react';
 import { mediaApi } from '../../../services/api';
+
+// ============================================
+// GLOBAL CACHE
+// ============================================
+const globalProcessedUrls = new Set<string>();
+const globalUploadsInProgress = new Set<string>();
 
 // ============================================
 // LOCAL STORAGE UTILITY
@@ -21,6 +27,15 @@ interface StoredImage {
   timestamp: number;
 }
 
+const getFromLocalStorage = (): StoredImage[] => {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
 const saveToLocalStorage = (imageData: { url: string; name?: string; size?: number }): string => {
   try {
     const stored = getFromLocalStorage();
@@ -35,38 +50,10 @@ const saveToLocalStorage = (imageData: { url: string; name?: string; size?: numb
     stored.unshift(newImage);
     if (stored.length > MAX_STORAGE_ITEMS) stored.pop();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-    console.log('Image saved to localStorage:', id);
     return id;
   } catch (error) {
     console.error('Failed to save to localStorage:', error);
     return '';
-  }
-};
-
-const getFromLocalStorage = (): StoredImage[] => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-};
-
-const removeFromLocalStorage = (id: string): void => {
-  try {
-    const stored = getFromLocalStorage();
-    const filtered = stored.filter((img) => img.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-  } catch (error) {
-    console.error('Failed to remove from localStorage:', error);
-  }
-};
-
-const clearLocalStorage = (): void => {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.error('Failed to clear localStorage:', error);
   }
 };
 
@@ -134,17 +121,20 @@ const detectFolderFromLabel = (label?: string): string => {
 // S3 CHECK AND UPLOAD UTILITY
 // ============================================
 const isS3Url = (url: string): boolean => {
-  return url.includes('amazonaws.com') || url.includes('s3.') || url.includes('.s3-');
+  if (!url) return false;
+  return url.includes('amazonaws.com') || url.includes('s3.') || url.includes('.s3-') || url.includes('digitaloceanspaces') || url.includes('storage.googleapis');
 };
 
 const uploadToS3 = async (file: File, folder?: string): Promise<string> => {
   try {
     console.log('=== Uploading to S3 ===');
-    console.log('File:', file.name, 'Type:', file.type, 'Size:', formatFileSize(file.size));
-    console.log('Folder:', folder || 'general');
+    console.log('File:', file.name, 'Size:', formatFileSize(file.size));
     const result = await mediaApi.upload(file, folder);
     console.log('S3 Upload successful:', result.url);
-    console.log('========================');
+    
+    // Mark result as processed immediately
+    globalProcessedUrls.add(result.url);
+    
     return result.url;
   } catch (error) {
     console.error('S3 Upload failed:', error);
@@ -166,57 +156,30 @@ const extractFilenameFromUrl = (url: string): string => {
   }
 };
 
-// ✅ CRITICAL FIX: Track uploads in progress globally
-const uploadsInProgress = new Set<string>();
-
 const ensureImageInS3 = async (
   url: string, 
   folder: string,
   progressCallback?: (message: string) => void
 ): Promise<string> => {
-  // Already S3
-  if (isS3Url(url)) {
-    console.log('[S3] Already in S3:', url);
-    return url;
-  }
-
-  // Data URL
-  if (url.startsWith('data:')) {
-    console.log('[S3] Data URL detected, skipping');
-    return url;
-  }
-
-  // ✅ FIX: Check if this URL is currently being uploaded
-  if (uploadsInProgress.has(url)) {
-    console.log('[S3] Upload already in progress for:', url);
-    return url; // Return original URL, don't trigger duplicate
-  }
+  if (isS3Url(url)) return url;
+  if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+  if (globalUploadsInProgress.has(url)) return url;
 
   const isValidUrl = url.startsWith('http://') || url.startsWith('https://');
   const isFilePath = url.startsWith('file://') || url.startsWith('/') || 
-                     url.startsWith('./') || url.startsWith('../') || 
-                     url.match(/^[A-Za-z]:[\\/]/);
+                     url.startsWith('./') || url.startsWith('../');
   
-  if (!isValidUrl && !isFilePath) {
-    console.log('[S3] Not a valid URL or file path:', url);
-    return url;
-  }
+  if (!isValidUrl && !isFilePath) return url;
 
   try {
-    // ✅ Mark this URL as being uploaded
-    uploadsInProgress.add(url);
+    globalUploadsInProgress.add(url);
     
     let fetchUrl = url;
-    
     if (isFilePath) {
       if (url.startsWith('/') && !url.startsWith('//')) {
         fetchUrl = `${window.location.origin}${url}`;
       } else if (url.startsWith('./') || url.startsWith('../')) {
         fetchUrl = new URL(url, window.location.href).href;
-      } else if (url.startsWith('file://')) {
-        fetchUrl = url;
-      } else if (url.match(/^[A-Za-z]:[\\/]/)) {
-        fetchUrl = `file:///${url.replace(/\\/g, '/')}`;
       }
       progressCallback?.('Reading local file...');
     } else {
@@ -224,60 +187,30 @@ const ensureImageInS3 = async (
     }
     
     const response = await fetch(fetchUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
 
     const blob = await response.blob();
-    
-    if (!blob.type.startsWith('image/')) {
-      throw new Error('Not a valid image');
-    }
+    if (!blob.type.startsWith('image/')) throw new Error('Not a valid image');
 
     const originalName = extractFilenameFromUrl(url);
     const extension = blob.type.split('/')[1] || 'jpg';
-    
-    let fileName: string;
-    if (originalName) {
-      fileName = `${originalName}.${extension}`;
-    } else if (isFilePath) {
-      fileName = `uploaded-${Date.now()}.${extension}`;
-    } else {
-      fileName = `external-${Date.now()}.${extension}`;
-    }
+    const fileName = originalName ? `${originalName}.${extension}` : `external-${Date.now()}.${extension}`;
     
     const file = new File([blob], fileName, { type: blob.type });
 
     progressCallback?.('Uploading to S3...');
-
     const s3Url = await uploadToS3(file, folder);
 
-    console.log('[S3] ✅ Auto-uploaded:', {
-      original: url,
-      fileName,
-      type: isFilePath ? 'local file' : 'external URL',
-      s3: s3Url,
-      folder
-    });
+    globalProcessedUrls.add(url);
+    globalProcessedUrls.add(s3Url);
 
     return s3Url;
   } catch (error) {
     console.error('[S3] Auto-upload failed:', error);
+    globalProcessedUrls.add(url);
     return url;
   } finally {
-    // ✅ Always remove from in-progress set
-    uploadsInProgress.delete(url);
-  }
-};
-
-const deleteFromS3 = async (url: string): Promise<void> => {
-  try {
-    const key = url.includes('amazonaws.com') ? url.split('.com/')[1] : url;
-    await mediaApi.delete(key);
-    console.log('Deleted from S3:', key);
-  } catch (error) {
-    console.error('Failed to delete from S3:', error);
-    throw error;
+    globalUploadsInProgress.delete(url);
   }
 };
 
@@ -335,13 +268,8 @@ const compressImage = async (
         return;
       }
       
-      // ✅ CRITICAL FIX: Detect formats that support transparency
-      const supportsTransparency = file.type === 'image/png' || 
-                                   file.type === 'image/webp' || 
-                                   file.type === 'image/avif' ||
-                                   file.type === 'image/gif';
+      const supportsTransparency = ['image/png', 'image/webp', 'image/avif', 'image/gif'].includes(file.type);
       
-      // ✅ FIX: Preserve transparency for PNG/AVIF/WebP/GIF
       if (supportsTransparency) {
         ctx.clearRect(0, 0, width, height);
       } else {
@@ -351,33 +279,13 @@ const compressImage = async (
       
       ctx.drawImage(img, 0, 0, width, height);
 
-      // ✅ CRITICAL FIX: Preserve original format for transparency-supporting formats
-      let outputFormat: string;
-      let formatName: string;
-      
-      if (file.type === 'image/avif') {
-        // Keep AVIF as AVIF (best compression with transparency)
-        outputFormat = 'image/avif';
-        formatName = 'avif';
-      } else if (file.type === 'image/png') {
-        // Keep PNG as PNG (transparency)
-        outputFormat = 'image/png';
-        formatName = 'png';
-      } else if (file.type === 'image/webp') {
-        // Keep WebP as WebP
+      let outputFormat = file.type;
+      let formatName = file.type.split('/')[1] || 'jpeg';
+
+      if (!supportsTransparency && opts.convertToWebP) {
         outputFormat = 'image/webp';
         formatName = 'webp';
-      } else if (file.type === 'image/gif') {
-        // Convert GIF to PNG to preserve transparency
-        outputFormat = 'image/png';
-        formatName = 'png';
-      } else {
-        // For JPEG and others, use compression options
-        outputFormat = opts.convertToWebP ? 'image/webp' : 'image/jpeg';
-        formatName = opts.convertToWebP ? 'webp' : 'jpeg';
       }
-
-      console.log(`[ImageUpload] 🎨 Processing: ${file.name} (${file.type}) → ${outputFormat}`);
 
       const compress = (quality: number): Promise<Blob> => {
         return new Promise((res, rej) => {
@@ -393,19 +301,13 @@ const compressImage = async (
       };
 
       const compressToSize = async (): Promise<Blob> => {
-        // ✅ For transparency formats, skip quality-based compression
-        if (supportsTransparency) {
-          console.log(`[ImageUpload] ✨ ${formatName.toUpperCase()} detected - preserving transparency`);
-          return await compress(1.0);
-        }
+        if (supportsTransparency) return await compress(1.0);
         
-        // For JPEG/WebP without transparency, use quality-based compression
         let quality = opts.quality;
         let blob = await compress(quality);
         let iterations = 0;
-        const maxIterations = 10;
         
-        while (blob.size > opts.maxSizeMB * 1024 * 1024 && iterations < maxIterations) {
+        while (blob.size > opts.maxSizeMB * 1024 * 1024 && iterations < 10) {
           quality -= 0.1;
           if (quality < 0.1) quality = 0.1;
           blob = await compress(quality);
@@ -418,12 +320,6 @@ const compressImage = async (
       compressToSize()
         .then((blob) => {
           const url = URL.createObjectURL(blob);
-          const savings = originalSize > blob.size 
-            ? Math.round((1 - blob.size / originalSize) * 100) 
-            : 0;
-          
-          console.log(`[ImageUpload] ✅ Compressed: ${formatFileSize(originalSize)} → ${formatFileSize(blob.size)} (${savings}% saved)`);
-          
           resolve({
             blob,
             url,
@@ -517,7 +413,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   onAltChange,
   placeholder = 'Enter image URL or upload a file',
   label,
-  helperText,
   showPreviewDefault = false,
   maxSizeMB = 2,
   maxWidthOrHeight = 1920,
@@ -533,7 +428,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   uploadToCloud = true,
   cloudFolder: cloudFolderProp,
   onUpload,
-  showAltInput = false,
   showImageInfo = true,
   disabled = false,
   error,
@@ -550,12 +444,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   const [imageInfo, setImageInfo] = useState<ImageInfo | null>(null);
   const [compressionProgress, setCompressionProgress] = useState<string>('');
   const [showFullscreen, setShowFullscreen] = useState(false);
-  const [processedUrls, setProcessedUrls] = useState<Set<string>>(new Set());
-  const [, setCompressionResult] = useState<{
-    originalSize: number;
-    compressedSize: number;
-    savings: number;
-  } | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoUploadTimeoutRef = useRef<number | null>(null);
@@ -618,51 +507,24 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setImageInfo(null);
   };
 
-  // ✅ CRITICAL FIX: Improved auto-upload with proper duplicate prevention
+  // Improved auto-upload logic using Global Sets
   useEffect(() => {
     if (autoUploadTimeoutRef.current) {
       window.clearTimeout(autoUploadTimeoutRef.current);
     }
 
-    if (!uploadToCloud || !autoUploadExternalUrls || !value || !value.trim()) {
-      return;
-    }
-    
-    // Already S3
-    if (isS3Url(value)) {
-      return;
-    }
-    
-    // ✅ FIX: Check if already processed
-    if (processedUrls.has(value)) {
-      console.log('[AutoUpload] Already processed:', value);
-      return;
-    }
-    
-    // ✅ FIX: Check if upload in progress globally
-    if (uploadsInProgress.has(value)) {
-      console.log('[AutoUpload] Upload in progress:', value);
-      return;
-    }
-    
-    // ✅ FIX: Check component-level upload status
-    if (uploadStatus === 'uploading' || uploadStatus === 'compressing') {
-      return;
-    }
-    
-    // Data URL
-    if (value.startsWith('data:')) {
-      return;
-    }
+    // Safety checks
+    if (!uploadToCloud || !autoUploadExternalUrls || !value || !value.trim()) return;
+    if (isS3Url(value)) return;
+    if (globalProcessedUrls.has(value)) return;
+    if (globalUploadsInProgress.has(value)) return;
+    if (uploadStatus === 'uploading' || uploadStatus === 'compressing') return;
+    if (value.startsWith('data:') || value.startsWith('blob:')) return;
 
     const isExternalUrl = value.startsWith('http://') || value.startsWith('https://');
-    const isFilePath = value.startsWith('file://') || value.startsWith('/') || 
-                       value.startsWith('./') || value.startsWith('../') || 
-                       value.match(/^[A-Za-z]:[\\/]/);
+    const isFilePath = value.startsWith('file://') || value.startsWith('/');
     
-    if (!isExternalUrl && !isFilePath) {
-      return;
-    }
+    if (!isExternalUrl && !isFilePath) return;
 
     autoUploadTimeoutRef.current = window.setTimeout(() => {
       handleAutoUploadToS3(value);
@@ -673,21 +535,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         window.clearTimeout(autoUploadTimeoutRef.current);
       }
     };
-  }, [value, uploadToCloud, autoUploadExternalUrls, processedUrls, uploadStatus]);
+  }, [value, uploadToCloud, autoUploadExternalUrls, uploadStatus]);
 
   const handleAutoUploadToS3 = async (urlToUpload: string) => {
-    if (!urlToUpload || !urlToUpload.trim() || isS3Url(urlToUpload)) {
-      return;
-    }
-    
-    // ✅ Check all duplicate conditions
-    if (processedUrls.has(urlToUpload) || uploadsInProgress.has(urlToUpload)) {
-      return;
-    }
-    
-    if (uploadStatus === 'uploading' || uploadStatus === 'compressing') {
-      return;
-    }
+    if (!urlToUpload || isS3Url(urlToUpload)) return;
+    if (globalProcessedUrls.has(urlToUpload) || globalUploadsInProgress.has(urlToUpload)) return;
 
     setUploadError(null);
     setUploadStatus('uploading');
@@ -702,34 +554,26 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       );
 
       if (s3Url !== urlToUpload && isS3Url(s3Url)) {
-        // ✅ Mark as processed BEFORE calling onChange
-        setProcessedUrls(prev => new Set(prev).add(urlToUpload));
+        globalProcessedUrls.add(urlToUpload);
+        globalProcessedUrls.add(s3Url);
         
         onChange(s3Url);
         setUploadStatus('success');
         
-        console.log('[AutoUpload] ✅ Success:', {
-          original: urlToUpload,
-          s3: s3Url,
-          folder: cloudFolder
-        });
-
         setTimeout(() => {
           setUploadStatus('idle');
         }, 3000);
       } else {
+        globalProcessedUrls.add(urlToUpload);
         setUploadStatus('idle');
       }
       
       setCompressionProgress('');
     } catch (err) {
       console.error('[AutoUpload] Failed:', err);
-      if (err instanceof TypeError && err.message.includes('fetch')) {
-        console.log('[AutoUpload] CORS issue - keeping original');
-      } else {
-        setUploadError(err instanceof Error ? err.message : 'Auto-upload failed');
-        setUploadStatus('error');
-      }
+      globalProcessedUrls.add(urlToUpload);
+      setUploadError(err instanceof Error ? err.message : 'Auto-upload failed');
+      setUploadStatus('error');
       setCompressionProgress('');
     }
   };
@@ -782,7 +626,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             file.name.replace(/\.[^/.]+$/, `.${compressed.format}`),
             { type: `image/${compressed.format}` }
           );
+          
           finalUrl = await uploadToS3(compressedFile, cloudFolder);
+          globalProcessedUrls.add(finalUrl);
+          
         } else if (saveToStorage) {
           const base64 = await blobToBase64(compressed.blob);
           saveToLocalStorage({
@@ -798,17 +645,9 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         setUploadStatus('success');
         setCompressionProgress('');
 
-        const savings = Math.round((1 - compressed.compressedSize / originalSize) * 100);
-        setCompressionResult({
-          originalSize,
-          compressedSize: compressed.compressedSize,
-          savings: savings > 0 ? savings : 0,
-        });
-
         setTimeout(() => {
           setUploadStatus('idle');
-          setCompressionResult(null);
-        }, 5000);
+        }, 3000);
       } catch (err) {
         console.error('Image processing error:', err);
         setUploadError(err instanceof Error ? err.message : 'Processing failed');
@@ -857,17 +696,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setImageError(false);
     setUploadError(null);
     setImageInfo(null);
-    setCompressionResult(null);
     setShowPreview(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, [onChange, onAltChange]);
 
   const handleCopyUrl = async () => {
     if (value) await navigator.clipboard.writeText(value);
-  };
-
-  const handleOpenExternal = () => {
-    if (value) window.open(value, '_blank');
   };
 
   const handleDownload = () => {
@@ -884,7 +718,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
   return (
     <div ref={containerRef} className={`space-y-2 ${className}`} tabIndex={0}>
-      {/* Label */}
       {label && (
         <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
           <ImageIcon className="w-4 h-4" />
@@ -934,18 +767,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
                 <RefreshCw className="w-3 h-3" />
                 Auto S3
-              </span>
-            )}
-            {saveToStorage && !uploadToCloud && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <HardDrive className="w-3 h-3" />
-                Auto-save
-              </span>
-            )}
-            {enablePaste && (
-              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Clipboard className="w-3 h-3" />
-                Ctrl+V
               </span>
             )}
           </div>
@@ -1058,7 +879,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 onError={() => setImageError(true)}
               />
 
-              {/* Overlay Controls */}
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-2">
                 <button
                   type="button"
@@ -1104,22 +924,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
                 </button>
               </div>
 
-              {/* Image Info Badge */}
-              {showImageInfo && imageInfo && (
-                <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-lg text-white text-xs flex items-center gap-2">
-                  <span>{imageInfo.width} × {imageInfo.height}</span>
-                  <span>•</span>
-                  <span>{formatFileSize(imageInfo.size)}</span>
-                  {imageInfo.format && (
-                    <>
-                      <span>•</span>
-                      <span className="uppercase">{imageInfo.format}</span>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* Cloud indicator */}
               {value && isS3Url(value) && (
                 <div className="absolute top-2 right-2 px-2 py-1 bg-blue-500/80 backdrop-blur-sm rounded-lg text-white text-xs flex items-center gap-1">
                   <Cloud className="w-3 h-3" />
@@ -1212,7 +1016,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             </button>
             <button
               type="button"
-              onClick={handleOpenExternal}
+              onClick={() => value && window.open(value, '_blank')}
               className="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white"
               title="Open in new tab"
             >
@@ -1233,29 +1037,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         </motion.div>
       )}
 
-      {/* Alt Text Input */}
-      {showAltInput && (
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground">Alt Text</label>
-          <input
-            type="text"
-            value={altText}
-            onChange={(e) => onAltChange?.(e.target.value)}
-            placeholder="Describe the image for accessibility"
-            disabled={disabled}
-            className={inputClass}
-          />
-        </div>
-      )}
-
-      {/* Helper Text */}
-      {helperText && (
-        <p className="text-xs text-muted-foreground flex items-center gap-1">
-          <Info className="w-3 h-3" />
-          {helperText}
-        </p>
-      )}
-
       {/* Compression/Upload progress */}
       {compressionProgress && (
         <p className="text-xs text-blue-500 flex items-center gap-1">
@@ -1269,14 +1050,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         <p className="text-xs text-destructive flex items-center gap-1">
           <AlertCircle className="w-3 h-3" />
           {error || uploadError}
-        </p>
-      )}
-
-      {/* Image Load Error */}
-      {imageError && hasImage && (
-        <p className="text-xs text-destructive flex items-center gap-1">
-          <AlertCircle className="w-3 h-3" />
-          Failed to load image. Check the URL is correct.
         </p>
       )}
 
@@ -1330,10 +1103,7 @@ export {
   formatFileSize,
   saveToLocalStorage,
   getFromLocalStorage,
-  removeFromLocalStorage,
-  clearLocalStorage,
   uploadToS3,
-  deleteFromS3,
   detectFolderFromLabel,
   isS3Url,
   ensureImageInS3,

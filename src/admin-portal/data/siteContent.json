@@ -84,25 +84,18 @@
     },
     "backgroundImages": [
       {
-        "url": "https://images.unsplash.com/photo-1625047509248-ec889cbff17f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+        "url": "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/hero/external-1769502098880-1769502098978-gk6k8n.jpeg",
         "alt": "Professional Car Service Garage"
       },
       {
-        "url": "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+        "url": "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/hero/external-1769502105489-1769502105566-731otc.jpeg",
         "alt": "Car Engine Repair"
       },
       {
-        "url": "https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
+        "url": "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/hero/external-1769502109155-1769502109251-fj6v7l.jpeg",
         "alt": "Auto Mechanic Working"
-      },
-      {
-        "url": "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-        "alt": "Car Maintenance Service"
-      },
-      {
-        "url": "https://images.unsplash.com/photo-1632823469850-2f77dd9c7f93?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-        "alt": "Premium Car Detailing"
       }
+      
     ],
     "sliderSettings": {
       "duration": 5,
@@ -1830,11 +1823,11 @@
         "icon": "Settings",
         "price": 2999,
         "originalPrice": 4500,
-        "image": "../assets/PeriodicService.jpg",
+        "image": "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/services/periodicservice-1769502542977-0vto8d.jpeg",
         "gallery": [
-          "../assets/PeriodicService.jpg",
-          "../assets/PeriodicService1.jpg",
-          "../assets/PeriodicService2.jpg"
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/periodicservice-1769502553992-80v71d.jpeg",
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/periodicservice1-1769502561340-15gxpx.jpeg",
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/periodicservice2-1769502567988-1hgkaz.jpeg"
         ],
         "features": [
           "Engine oil replacement",
@@ -1893,11 +1886,11 @@
         "icon": "Snowflake",
         "price": 1499,
         "originalPrice": 2200,
-        "image": "../assets/ACService.jpg",
+        "image": "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/services/acservice-1769502838981-csgp53.jpeg",
         "gallery": [
-          "../assets/ACService.jpg",
-          "../assets/ACService1.jpg",
-          "../assets/ACService2.jpg"
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/acservice-1769502888018-2lmv9t.jpeg",
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/acservice1-1769502769252-qwqgoo.jpeg",
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/acservice2-1769502769221-fdchqx.jpeg"
         ],
         "features": [
           "AC gas top-up",
@@ -1955,11 +1948,11 @@
         "icon": "Paintbrush",
         "price": 3999,
         "originalPrice": 6000,
-        "image": "../assets/Denting.jpg",
+        "image": "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/services/denting-1769503256949-4l8r8t.jpeg",
         "gallery": [
-          "../assets/Denting.jpg",
-          "../assets/Denting1.jpg",
-          "../assets/Denting2.jpg"
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/denting-1769503269082-ddk8f0.jpeg",
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/denting1-1769503232942-6kkr6d.jpeg",
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/denting2-1769503232980-ky02uv.jpeg"
         ],
         "features": [
           "Dent removal",
@@ -2023,9 +2016,9 @@
         "originalPrice": 800,
         "image": "../assets/CarInspection.jpg",
         "gallery": [
-          "../assets/CarInspection.jpg",
-          "../assets/CarInspection1.jpg",
-          "../assets/CarInspection2.jpg"
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/carinspection-1769503598041-sopveg.jpeg",
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/carinspection1-1769503598029-8yuz56.jpeg",
+          "https://addax-cms-assets.s3.ap-south-1.amazonaws.com/addax-cms/gallery/carinspection2-1769503533673-4p0ee7.jpeg"
         ],
         "features": [
           "150+ point check",

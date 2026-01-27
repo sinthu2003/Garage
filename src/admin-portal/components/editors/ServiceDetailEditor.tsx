@@ -64,7 +64,7 @@ export const ServiceDetailEditor: React.FC<ServiceDetailEditorProps> = ({
 
   // ==================== DEBOUNCE SETUP ====================
   // This editor saves DIRECTLY to live website, so we need our own debounce
-  const DEBOUNCE_DELAY = 2000; // 2 seconds
+  const DEBOUNCE_DELAY = 5000; // 2 seconds
   const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // ✅ LOCAL STATE for the service being edited - allows immediate UI updates for preview
