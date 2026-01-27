@@ -15,7 +15,6 @@ import {
   CheckCircle,
   AlertCircle,
   Wrench,
-  RefreshCw
 } from 'lucide-react';
 import { useContent } from '../../admin-portal';
 import { bookingApi, getErrorMessage } from '../../services/api';
@@ -165,8 +164,8 @@ export const BookingWidget = () => {
   const [carModels, setCarModels] = useState<Record<string, CarModel[]>>({});
   const [isLoadingBrands, setIsLoadingBrands] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [lastFetchTime, setLastFetchTime] = useState<string>('');
-  const [dataSource, setDataSource] = useState<'s3' | 'mongodb' | null>(null);
+  const [, setLastFetchTime] = useState<string>('');
+  const [, setDataSource] = useState<'s3' | 'mongodb' | null>(null);
 
   // Fetch car brands and models with dual API strategy
   const fetchCarData = useCallback(async (force = false) => {
@@ -237,12 +236,23 @@ export const BookingWidget = () => {
     }
   }, [bookingContent.brands, bookingContent.carModels, brands.length]);
 
-  // Fetch on mount - always fetch fresh data
+  // Fetch on mount - only if data is not already available
   useEffect(() => {
-    console.log('[BookingWidget] 🚀 Component mounted, fetching car data...');
+    // ✅ Check if we already have data from ContentContext
+    if (bookingContent.brands && bookingContent.brands.length > 0) {
+      console.log('[BookingWidget] ✅ Using data from ContentContext (no API call needed)');
+      setBrands(bookingContent.brands);
+      setCarModels(bookingContent.carModels || {});
+      setIsLoadingBrands(false);
+      fetchAttempted.current = true;
+      return;
+    }
+    
+    // Only fetch if we don't have data
+    console.log('[BookingWidget] 🚀 No data in context, fetching from API...');
     fetchCarData();
-  }, []); // Empty dependency array - only fetch once on mount
-
+  }, [bookingContent.brands, bookingContent.carModels]);
+  
   // ============================================
   // OTHER STATE
   // ============================================
@@ -426,7 +436,6 @@ export const BookingWidget = () => {
           <div className="p-6 sm:p-8 flex flex-col items-center justify-center min-h-[300px]">
             <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">Loading car brands...</p>
-            <p className="text-xs text-muted-foreground mt-2">Trying S3, fallback to MongoDB if needed</p>
           </div>
         </div>
       </motion.div>
@@ -449,14 +458,7 @@ export const BookingWidget = () => {
           <div className="p-6 sm:p-8 flex flex-col items-center justify-center min-h-[300px]">
             <AlertCircle className="w-8 h-8 text-destructive mb-4" />
             <p className="text-muted-foreground mb-2 font-semibold">Failed to load car data</p>
-            <p className="text-xs text-muted-foreground mb-4">{fetchError}</p>
-            <button
-              onClick={() => fetchCarData(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Retry
-            </button>
+            <p className="text-xs text-muted-foreground">{fetchError}</p>
           </div>
         </div>
       </motion.div>
@@ -553,12 +555,6 @@ export const BookingWidget = () => {
                   <p className="text-sm text-muted-foreground mt-1">
                     {bookingContent.subtitle || 'Get instant quotes for your car'}
                   </p>
-                  {/* Data source indicator */}
-                  {dataSource && (
-                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                      {dataSource === 's3' ? '☁️ S3' : '🗄️ MongoDB'} • {lastFetchTime}
-                    </p>
-                  )}
                 </div>
 
                 {/* Targeted Service Display */}
@@ -747,19 +743,9 @@ export const BookingWidget = () => {
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-foreground">{bookingContent.labels?.brand || 'Select Brand'}</h3>
                     <p className="text-xs text-muted-foreground">
-                      {brands.length} brands • {Object.keys(carModels).length} with models
-                      {dataSource && <span className="ml-2">• {dataSource === 's3' ? '☁️ S3' : '🗄️ MongoDB'}</span>}
-                      {lastFetchTime && <span className="ml-2 text-primary">• {lastFetchTime}</span>}
+                      {brands.length} brands available
                     </p>
                   </div>
-                  <button
-                    onClick={() => fetchCarData(true)}
-                    disabled={isLoadingBrands}
-                    className="p-2 hover:bg-secondary rounded-xl transition-colors"
-                    title="Refresh data"
-                  >
-                    <RefreshCw className={`w-4 h-4 text-muted-foreground ${isLoadingBrands ? 'animate-spin' : ''}`} />
-                  </button>
                 </div>
 
                 {/* Search */}
@@ -804,7 +790,6 @@ export const BookingWidget = () => {
                       <span className="text-xs font-semibold text-foreground text-center leading-tight">
                         {brand.name}
                       </span>
-                      {/* Debug: Show model count */}
                       <span className="text-[10px] text-muted-foreground mt-0.5">
                         {(carModels[brand.id] || []).length} models
                       </span>
@@ -913,7 +898,6 @@ export const BookingWidget = () => {
                   <div className="text-center py-10">
                     <Car className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                     <p className="text-muted-foreground font-medium">No models found for {selectedBrand.name}</p>
-                    <p className="text-sm text-muted-foreground/80 mt-2">Try refreshing or contact support</p>
                   </div>
                 )}
               </motion.div>

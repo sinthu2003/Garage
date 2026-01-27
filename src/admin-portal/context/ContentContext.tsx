@@ -5,6 +5,9 @@
  * * [FIX] Uses refs to prevent duplicate API calls and infinite loops
  * [FIX] Admin Init: Loads fresh data from backend immediately (no local defaults)
  * [FIX] Reset: Uses backend response strictly (no local merging)
+ * [FIX] Removed duplicate API calls in resetContent()
+ * [FIX] Simplified useServices() to prevent confusion
+ * [FIX] Simplified useBookingData() to use content directly
  * * @file src/context/ContentContext.tsx
  */
 
@@ -483,47 +486,31 @@ export const ContentProvider: React.FC<ContentProviderProps> = ({
   // ----------------------------------------
   // [FIX] Car Brands CRUD - using refs for guards
   // ----------------------------------------
-const loadCarBrands = useCallback(async (includeModels = true) => {
-  if (carBrandsLoadingRef.current || carBrandsLoadedRef.current) {
-    return;
-  }
+  const loadCarBrands = useCallback(async (includeModels = true) => {
+    if (carBrandsLoadingRef.current || carBrandsLoadedRef.current) {
+      return;
+    }
 
-  carBrandsLoadingRef.current = true;
-  setCarBrandsLoading(true);
+    carBrandsLoadingRef.current = true;
+    setCarBrandsLoading(true);
 
-  try {
-    const brands = await carDataApi.getAllBrands({ includeModels, includeInactive: true });
-    
-    // 🔍 DEBUG: Check what API returns
-    console.log('====================================');
-    console.log('🔍 RAW brands from API:', brands);
-    console.log('🔍 First brand (raw):', brands[0]);
-    console.log('🔍 First brand logo (raw):', brands[0]?.logo);
-    console.log('🔍 Mitsubishi brand (raw):', brands.find(b => b.name === 'Mitsubishi'));
-    console.log('====================================');
-    
-    const resolvedBrands = resolveContentImages(brands);
-    
-    // 🔍 DEBUG: Check what resolveContentImages does
-    console.log('====================================');
-    console.log('🔍 RESOLVED brands:', resolvedBrands);
-    console.log('🔍 First brand (resolved):', resolvedBrands[0]);
-    console.log('🔍 First brand logo (resolved):', resolvedBrands[0]?.logo);
-    console.log('🔍 Mitsubishi brand (resolved):', resolvedBrands.find(b => b.name === 'Mitsubishi'));
-    console.log('====================================');
-    
-    console.log('[loadCarBrands] ✅ Car brands loaded:', resolvedBrands.length, 'items');
-    setCarBrands(resolvedBrands);
-    carBrandsLoadedRef.current = true;
-  } catch (err) {
-    console.error('[loadCarBrands] ❌ Failed to load car brands:', err);
-    setError(getErrorMessage(err));
-    carBrandsLoadedRef.current = false;
-  } finally {
-    carBrandsLoadingRef.current = false;
-    setCarBrandsLoading(false);
-  }
-}, []);
+    try {
+      const brands = await carDataApi.getAllBrands({ includeModels, includeInactive: true });
+      const resolvedBrands = resolveContentImages(brands);
+      
+      console.log('[loadCarBrands] ✅ Car brands loaded:', resolvedBrands.length, 'items');
+      setCarBrands(resolvedBrands);
+      carBrandsLoadedRef.current = true;
+    } catch (err) {
+      console.error('[loadCarBrands] ❌ Failed to load car brands:', err);
+      setError(getErrorMessage(err));
+      carBrandsLoadedRef.current = false;
+    } finally {
+      carBrandsLoadingRef.current = false;
+      setCarBrandsLoading(false);
+    }
+  }, []);
+
   const createBrandFn = useCallback(async (data: CreateBrandData): Promise<CarBrand> => {
     const newBrand = await carDataApi.createBrand(data);
     // [FIX] Add new brand at BEGINNING of array (most recent first)
@@ -531,24 +518,23 @@ const loadCarBrands = useCallback(async (includeModels = true) => {
     return newBrand;
   }, []);
 
-
- const updateBrandFn = useCallback(async (id: string, data: UpdateBrandData): Promise<CarBrand> => {
-  const updated = await carDataApi.updateBrand(id, data);
-  const resolvedBrand = resolveContentImages(updated);
-  
-  // ✅ FIX: Properly merge - preserve models array but update all other fields
-  setCarBrands(prev => prev.map(b => {
-    if (b._id === id) {
-      return {
-        ...resolvedBrand,           // New data from API (has updated logo)
-        models: b.models || [],     // Keep existing models array
-      };
-    }
-    return b;
-  }));
-  
-  return resolvedBrand;
-}, []);
+  const updateBrandFn = useCallback(async (id: string, data: UpdateBrandData): Promise<CarBrand> => {
+    const updated = await carDataApi.updateBrand(id, data);
+    const resolvedBrand = resolveContentImages(updated);
+    
+    // ✅ FIX: Properly merge - preserve models array but update all other fields
+    setCarBrands(prev => prev.map(b => {
+      if (b._id === id) {
+        return {
+          ...resolvedBrand,           // New data from API (has updated logo)
+          models: b.models || [],     // Keep existing models array
+        };
+      }
+      return b;
+    }));
+    
+    return resolvedBrand;
+  }, []);
 
   const deleteBrandFn = useCallback(async (id: string): Promise<void> => {
     await carDataApi.deleteBrand(id);
@@ -572,7 +558,6 @@ const loadCarBrands = useCallback(async (includeModels = true) => {
     }));
     return newModel;
   }, []);
-
 
   const updateModelFn = useCallback(async (id: string, data: UpdateModelData): Promise<CarModel> => {
     const updated = await carDataApi.updateModel(id, data);
@@ -761,11 +746,11 @@ const loadCarBrands = useCallback(async (includeModels = true) => {
         
         // [FIX] Use Backend response directly. Do NOT merge with local defaultContent.
         if (result.content) {
-             newContent = resolveContentImages(result.content);
+          newContent = resolveContentImages(result.content);
         } else {
-             // Fallback only if backend specifically fails to return content
-             console.warn("Backend reset returned no content, using local defaults.");
-             newContent = resolveContentImages(defaultContent as SiteContent);
+          // Fallback only if backend specifically fails to return content
+          console.warn("Backend reset returned no content, using local defaults.");
+          newContent = resolveContentImages(defaultContent as SiteContent);
         }
       } else {
         newContent = resolveContentImages(defaultContent as SiteContent);
@@ -779,14 +764,13 @@ const loadCarBrands = useCallback(async (includeModels = true) => {
       setLoadedSections(new Set());
 
       // [FIX] Reset services and car brands loaded state
+      // NOTE: Don't call loadServices() or loadCarBrands() here
+      // The reset API already returns complete content including services/brands
+      // Only reset the state flags so admin can reload them manually if needed
       servicesLoadedRef.current = false;
       carBrandsLoadedRef.current = false;
       setServices([]);
       setCarBrands([]);
-      
-      // [FIX] Force reload of critical data lists from backend
-      loadServices();
-      loadCarBrands();
 
       setHistory([{ content: deepClone(newContent), timestamp: Date.now(), action: 'reset' }]);
       setHistoryIndex(0);
@@ -808,7 +792,7 @@ const loadCarBrands = useCallback(async (includeModels = true) => {
     } finally {
       setIsLoading(false);
     }
-  }, [enableApi, loadServices, loadCarBrands]);
+  }, [enableApi]);
 
   // ----------------------------------------
   // Apply Changes
@@ -1059,9 +1043,14 @@ export const useBrand = () => {
   return content.global.brand;
 };
 
+/**
+ * [FIX] Simplified useServices hook
+ * Always returns services from content for consistency
+ * Admin panel should use loadServices() + services state directly from context
+ */
 export const useServices = () => {
-  const { services, content } = useContent();
-  return services.length > 0 ? services : content.services.items;
+  const { content } = useContent();
+  return content.services.items;
 };
 
 export const useService = (idOrSlug: string | number) => {
@@ -1085,35 +1074,13 @@ export const useFAQs = () => {
   return content.faq.items;
 };
 
+/**
+ * [FIX] Simplified useBookingData hook
+ * Booking widget data (including brands and models) is already loaded from public content API
+ * No need for separate carBrands API call
+ */
 export const useBookingData = () => {
-  const { content, carBrands } = useContent();
-
-  if (carBrands.length > 0) {
-    const brands = carBrands.map(b => ({
-      id: b._id,
-      name: b.name,
-      logo: b.logo,
-      urlName: b.urlName,
-    }));
-
-    const carModels: Record<string, { name: string; type: string; image: string }[]> = {};
-    carBrands.forEach(brand => {
-      if (brand.models) {
-        carModels[brand._id] = brand.models.map(m => ({
-          name: m.name,
-          type: m.type,
-          image: m.image,
-        }));
-      }
-    });
-
-    return {
-      ...content.bookingWidget,
-      brands,
-      carModels,
-    };
-  }
-
+  const { content } = useContent();
   return content.bookingWidget;
 };
 

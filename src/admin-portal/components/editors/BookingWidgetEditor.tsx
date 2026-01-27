@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Type, MapPin, Car, Fuel, ChevronRight, ChevronDown, Star, Phone,
@@ -11,7 +11,7 @@ import { SectionLoader } from '../shared/SectionLoader';
 
 interface BookingWidgetEditorProps { isDarkMode: boolean; }
 interface Brand { id: string; name: string; logo: string; urlName: string; }
-interface CarModel { name: string; type: string; image: string; }
+interface CarModel { id?: string; name: string; type: string; image: string; }
 interface FuelType { id: string; name: string; icon: string; color: string; }
 
 export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDarkMode }) => {
@@ -23,6 +23,8 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     createModel: createModelApi, updateModel: updateModelApi, deleteModel: deleteModelApi,
   } = useContent();
 
+  // --- 1. HOOKS (Must come before any return statements) ---
+  
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['header', 'labels', 'cities', 'brands', 'fuelTypes', 'cta', 'trustFooter'])
   );
@@ -31,8 +33,22 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
   const [brandSearch, setBrandSearch] = useState('');
   const [modelSearch, setModelSearch] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Local state for debounced editing
   const [localBrands, setLocalBrands] = useState<Brand[]>([]);
   const [localModels, setLocalModels] = useState<Record<string, CarModel[]>>({});
+
+  // Refs for debouncing
+  const debounceTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const DEBOUNCE_DELAY = 1500;
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      debounceTimersRef.current.forEach(timer => clearTimeout(timer));
+      debounceTimersRef.current.clear();
+    };
+  }, []);
 
   const useNewApi = apiBrands && apiBrands.length > 0;
   const generateId = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
@@ -53,6 +69,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
       apiBrands.forEach((brand: any) => {
         const brandId = brand._id || brand.id;
         models[brandId] = (brand.models || []).map((m: any) => ({
+          id: m._id || m.id,
           name: m.name, type: m.type || 'Sedan', image: m.image || '',
         }));
       });
@@ -69,22 +86,30 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     { id: 'electric', name: 'Electric', icon: '⚡', color: '#8B5CF6' },
   ];
 
-  // Sync local brands/models state with API data
+  // Sync local brands/models state
   useEffect(() => {
     if (useNewApi && apiBrands) {
       const transformedBrands = apiBrands.map((b: any) => ({
         id: b._id || b.id, name: b.name, logo: b.logo || '',
         urlName: b.urlName || b.name?.toLowerCase().replace(/\s+/g, '-') || '',
       }));
-      setLocalBrands(transformedBrands);
+      
+      if (debounceTimersRef.current.size === 0) {
+        setLocalBrands(transformedBrands);
+      }
+
       const transformedModels: Record<string, CarModel[]> = {};
       apiBrands.forEach((brand: any) => {
         const brandId = brand._id || brand.id;
         transformedModels[brandId] = (brand.models || []).map((m: any) => ({
+          id: m._id || m.id,
           name: m.name, type: m.type || 'Sedan', image: m.image || '',
         }));
       });
-      setLocalModels(transformedModels);
+      
+      if (debounceTimersRef.current.size === 0) {
+        setLocalModels(transformedModels);
+      }
     } else {
       setLocalBrands(content.brands || []);
       setLocalModels(content.carModels || {});
@@ -103,9 +128,103 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     );
   }, [displayBrands, brandSearch, displayModels]);
 
+  // Simple update function
+  const handleUpdate = (path: string, value: unknown) => {
+    updateField('bookingWidget', path, value);
+  };
+
+  // --- Callbacks (Moved BEFORE the loading check) ---
+
+  // Update Brand - Debounced
+  const updateBrand = useCallback((index: number, field: keyof Brand, value: string) => {
+    const brandId = displayBrands[index]?.id;
+    if (!brandId) return;
+
+    // 1. Immediate Local Update (UI)
+    setLocalBrands(prev => {
+      const newBrands = [...prev];
+      newBrands[index] = { ...newBrands[index], [field]: value };
+      if (field === 'name') newBrands[index].urlName = generateId(value);
+      return newBrands;
+    });
+
+    // 2. Debounce API Call
+    const timerKey = `brand-${brandId}-${field}`;
+    const existingTimer = debounceTimersRef.current.get(timerKey);
+    if (existingTimer) clearTimeout(existingTimer);
+
+    const timer = setTimeout(async () => {
+      if (useNewApi && updateBrandApi) {
+        try {
+          const updateData: any = { [field]: value };
+          if (field === 'name') updateData.urlName = generateId(value);
+          await updateBrandApi(brandId, updateData);
+        } catch (error) {
+          console.error('Failed to update brand:', error);
+        }
+      } else {
+        const newBrands = [...brands];
+        newBrands[index] = { ...newBrands[index], [field]: value };
+        if (field === 'name') {
+           newBrands[index].id = generateId(value);
+           newBrands[index].urlName = generateId(value);
+        }
+        handleUpdate('brands', newBrands);
+      }
+      debounceTimersRef.current.delete(timerKey);
+    }, DEBOUNCE_DELAY);
+
+    debounceTimersRef.current.set(timerKey, timer);
+  }, [displayBrands, useNewApi, updateBrandApi, brands, handleUpdate]);
+
+  // Update Model - Debounced
+  const updateModel = useCallback((brandId: string, modelIndex: number, field: keyof CarModel, value: string) => {
+    setLocalModels(prev => {
+      const newModels = { ...prev };
+      if (newModels[brandId]) {
+        newModels[brandId] = [...newModels[brandId]];
+        newModels[brandId][modelIndex] = { 
+          ...newModels[brandId][modelIndex], 
+          [field]: value 
+        };
+      }
+      return newModels;
+    });
+
+    const timerKey = `model-${brandId}-${modelIndex}-${field}`;
+    const existingTimer = debounceTimersRef.current.get(timerKey);
+    if (existingTimer) clearTimeout(existingTimer);
+
+    const timer = setTimeout(async () => {
+        if (useNewApi && updateModelApi) {
+            const actualModel = displayModels[brandId]?.[modelIndex];
+            const modelId = actualModel?.id;
+            
+            if (!modelId) return;
+            
+            try {
+                await updateModelApi(modelId, { [field]: value });
+            } catch (error) {
+                console.error('Failed to update model:', error);
+            }
+        } else {
+            const brandModels = [...(carModels[brandId] || [])];
+            brandModels[modelIndex] = { ...brandModels[modelIndex], [field]: value };
+            handleUpdate('carModels', { ...carModels, [brandId]: brandModels });
+        }
+        debounceTimersRef.current.delete(timerKey);
+    }, DEBOUNCE_DELAY);
+
+    debounceTimersRef.current.set(timerKey, timer);
+  }, [displayModels, useNewApi, updateModelApi, carModels, handleUpdate]);
+
+  // --- 2. CONDITIONAL RENDER (Must come AFTER all hooks) ---
+
   if (content.isLoading || carBrandsLoading) {
     return <SectionLoader section="Booking Widget" />;
   }
+
+  // --- 3. HELPER FUNCTIONS (Non-hooks) ---
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -126,16 +245,6 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     setExpandedModels(newExpanded);
   };
 
-  // Simple update function - debouncing handled by ContentContext
-  const handleUpdate = (path: string, value: unknown) => {
-    updateField('bookingWidget', path, value);
-  };
-
-  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20 ${isDarkMode ? 'bg-secondary/20' : 'bg-background'}`;
-  const labelClass = `text-sm font-medium text-muted-foreground`;
-  const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
-  const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
-
   const getFilteredModels = (brandId: string) => {
     const models = displayModels[brandId] || [];
     const search = modelSearch[brandId]?.toLowerCase().trim();
@@ -145,6 +254,51 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
 
   const setModelSearchForBrand = (brandId: string, value: string) => {
     setModelSearch(prev => ({ ...prev, [brandId]: value }));
+  };
+
+  const updateBrandImmediate = async (index: number, field: keyof Brand, value: string) => {
+     const brandId = displayBrands[index]?.id;
+     if (!brandId) return;
+
+     setLocalBrands(prev => {
+        const newBrands = [...prev];
+        newBrands[index] = { ...newBrands[index], [field]: value };
+        return newBrands;
+     });
+
+     if (useNewApi && updateBrandApi) {
+        try {
+           await updateBrandApi(brandId, { [field]: value });
+        } catch(e) { console.error(e); }
+     } else {
+        const newBrands = [...brands];
+        newBrands[index] = { ...newBrands[index], [field]: value };
+        handleUpdate('brands', newBrands);
+     }
+  };
+
+  const updateModelImmediate = async (brandId: string, modelIndex: number, field: keyof CarModel, value: string) => {
+    setLocalModels(prev => {
+        const newModels = { ...prev };
+        if (newModels[brandId]) {
+          newModels[brandId] = [...newModels[brandId]];
+          newModels[brandId][modelIndex] = { ...newModels[brandId][modelIndex], [field]: value };
+        }
+        return newModels;
+    });
+
+    if (useNewApi && updateModelApi) {
+        const actualModel = displayModels[brandId]?.[modelIndex];
+        const modelId = actualModel?.id;
+        if(modelId) {
+            try { await updateModelApi(modelId, { [field]: value }); } 
+            catch(e) { console.error(e); }
+        }
+    } else {
+        const brandModels = [...(carModels[brandId] || [])];
+        brandModels[modelIndex] = { ...brandModels[modelIndex], [field]: value };
+        handleUpdate('carModels', { ...carModels, [brandId]: brandModels });
+    }
   };
 
   const addBrand = async () => {
@@ -162,39 +316,6 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
       const newBrand: Brand = { id: `brand-${Date.now()}`, name: uniqueName, logo: '/images/placeholder-brand.png', urlName: uniqueUrlName };
       handleUpdate('brands', [newBrand, ...brands]);
       setExpandedBrands(new Set([0]));
-    }
-  };
-
-  const updateBrand = async (index: number, field: keyof Brand, value: string) => {
-    const brandId = displayBrands[index]?.id;
-    if (!brandId) return;
-    
-    // Update local state immediately for UI
-    setLocalBrands(prev => {
-      const newBrands = [...prev];
-      newBrands[index] = { ...newBrands[index], [field]: value };
-      if (field === 'name') newBrands[index].urlName = generateId(value);
-      return newBrands;
-    });
-    
-    if (useNewApi && updateBrandApi) {
-      // API updates happen immediately for brands (they have their own API)
-      try {
-        const updateData: any = { [field]: value };
-        if (field === 'name') updateData.urlName = generateId(value);
-        await updateBrandApi(brandId, updateData);
-      } catch (error) {
-        console.error('Failed to update brand:', error);
-      }
-    } else {
-      // Legacy: update through content context
-      const newBrands = [...brands];
-      newBrands[index] = { ...newBrands[index], [field]: value };
-      if (field === 'name') {
-        newBrands[index].id = generateId(value);
-        newBrands[index].urlName = generateId(value);
-      }
-      handleUpdate('brands', newBrands);
     }
   };
 
@@ -235,48 +356,11 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
     }
   };
 
-  const updateModel = async (brandId: string, modelIndex: number, field: keyof CarModel, value: string) => {
-    // Update local state immediately for UI
-    setLocalModels(prev => {
-      const newModels = { ...prev };
-      if (newModels[brandId]) {
-        newModels[brandId] = [...newModels[brandId]];
-        newModels[brandId][modelIndex] = { 
-          ...newModels[brandId][modelIndex], 
-          [field]: value 
-        };
-      }
-      return newModels;
-    });
-    
-    if (useNewApi && updateModelApi) {
-      const brand = apiBrands?.find((b: any) => (b._id || b.id) === brandId);
-      const actualModel = displayModels[brandId]?.[modelIndex];
-      if (!actualModel) return;
-      
-      const modelData = brand?.models?.find((m: any) => 
-        m.name === actualModel.name && m.type === actualModel.type
-      );
-      const modelId = modelData?._id;
-      if (!modelId) return;
-      
-      // API updates happen immediately for models (they have their own API)
-      try {
-        await updateModelApi(modelId, { [field]: value });
-      } catch (error) {
-        console.error('Failed to update model:', error);
-      }
-    } else {
-      const brandModels = [...(carModels[brandId] || [])];
-      brandModels[modelIndex] = { ...brandModels[modelIndex], [field]: value };
-      handleUpdate('carModels', { ...carModels, [brandId]: brandModels });
-    }
-  };
-
   const deleteModel = async (brandId: string, modelIndex: number) => {
     if (useNewApi && deleteModelApi) {
-      const brand = apiBrands?.find((b: any) => (b._id || b.id) === brandId);
-      const modelId = brand?.models?.[modelIndex]?._id;
+      const model = displayModels[brandId]?.[modelIndex];
+      const modelId = model?.id;
+      
       if (modelId) {
         setIsSaving(true);
         try { await deleteModelApi(modelId); }
@@ -307,6 +391,10 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
   };
 
   const carTypeOptions = ['Hatchback', 'Sedan', 'SUV', 'MPV', 'Sports', 'Electric', 'Luxury', 'Van', 'Mini SUV'];
+  const inputClass = `w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-sm transition-all border-border text-foreground placeholder-muted-foreground focus:border-primary border focus:outline-none focus:ring-2 focus:ring-primary/20 ${isDarkMode ? 'bg-secondary/20' : 'bg-background'}`;
+  const labelClass = `text-sm font-medium text-muted-foreground`;
+  const sectionClass = `rounded-xl border overflow-hidden border-border bg-card`;
+  const sectionHeaderClass = `w-full flex items-center justify-between p-3 sm:p-4 text-left transition-colors hover:bg-secondary/50`;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -472,7 +560,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                             <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                               <ImageUpload
                                 value={brand.logo || ''}
-                                onChange={(url) => updateBrand(originalIndex, 'logo', url)}
+                                onChange={(url) => updateBrandImmediate(originalIndex, 'logo', url)}
                                 label="Brand Logo"
                                 cloudFolder={brandLogoFolder}
                                 helperText={`S3: ${brandLogoFolder}/`}
@@ -533,7 +621,7 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                                               <div className="p-2 sm:p-3 space-y-3">
                                                 <ImageUpload
                                                   value={model.image || ''}
-                                                  onChange={(url) => updateModel(brand.id, mIdx, 'image', url)}
+                                                  onChange={(url) => updateModelImmediate(brand.id, mIdx, 'image', url)}
                                                   label="Model Image"
                                                   cloudFolder={modelImageFolder}
                                                   helperText={`S3: ${modelImageFolder}/`}
@@ -546,11 +634,16 @@ export const BookingWidgetEditor: React.FC<BookingWidgetEditorProps> = ({ isDark
                                                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                                                   <div className="space-y-1">
                                                     <label className="text-[10px] sm:text-xs text-muted-foreground">Model Name</label>
-                                                    <input type="text" value={model.name} onChange={(e) => updateModel(brand.id, mIdx, 'name', e.target.value)} className="text-xs p-2 w-full rounded border border-border bg-background" />
+                                                    <input 
+                                                      type="text" 
+                                                      value={model.name} 
+                                                      onChange={(e) => updateModel(brand.id, mIdx, 'name', e.target.value)} 
+                                                      className="text-xs p-2 w-full rounded border border-border bg-background" 
+                                                    />
                                                   </div>
                                                   <div className="space-y-1">
                                                     <label className="text-[10px] sm:text-xs text-muted-foreground">Type</label>
-                                                    <select value={model.type} onChange={(e) => updateModel(brand.id, mIdx, 'type', e.target.value)} className="text-xs p-2 w-full rounded border border-border bg-background">
+                                                    <select value={model.type} onChange={(e) => updateModelImmediate(brand.id, mIdx, 'type', e.target.value)} className="text-xs p-2 w-full rounded border border-border bg-background">
                                                       {carTypeOptions.map(type => <option key={type} value={type}>{type}</option>)}
                                                     </select>
                                                   </div>
