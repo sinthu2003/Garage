@@ -495,11 +495,11 @@ export default function AdminLogin() {
           {/* Footer Links */}
           <div className="mt-8 pt-6 border-t border-border">
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
+              <a href="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</a>
               <span>•</span>
-              <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
+              <a href="/terms-of-service" className="hover:text-foreground transition-colors">Terms of Service</a>
               <span>•</span>
-              <a href="#" className="hover:text-foreground transition-colors">Contact Support</a>
+              <a href="/contact" className="hover:text-foreground transition-colors">Contact Support</a>
             </div>
           </div>
         </div>
