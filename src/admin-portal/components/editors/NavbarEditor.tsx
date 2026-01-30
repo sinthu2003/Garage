@@ -272,7 +272,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = () => {
                     </div>
 
                     {/* isRoute checkbox */}
-                    <div className="mt-3 flex items-center gap-2">
+                    {/* <div className="mt-3 flex items-center gap-2">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
@@ -284,7 +284,7 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = () => {
                           Page route (navigates to new page instead of scrolling)
                         </span>
                       </label>
-                    </div>
+                    </div> */}
                   </div>
                 ))}
 
@@ -301,13 +301,13 @@ export const NavbarEditor: React.FC<NavbarEditorProps> = () => {
                   </div>
                 )}
 
-                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                {/* <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
                   <p className="text-xs text-blue-600 dark:text-blue-400">
                     💡 <strong>Tip:</strong> Use <code className="px-1 py-0.5 rounded bg-blue-500/20">#section-id</code> for
                     same-page scrolling or <code className="px-1 py-0.5 rounded bg-blue-500/20">/page-path</code> for
                     page navigation. Enable "Page route" for links that go to different pages.
                   </p>
-                </div>
+                </div> */}
               </div>
             </motion.div>
           )}

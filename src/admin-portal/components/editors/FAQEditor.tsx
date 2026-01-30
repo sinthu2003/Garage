@@ -7,7 +7,6 @@ import {
   Mail,
   ChevronRight,
   ChevronDown,
-  Trash2,
   GripVertical,
   MapPin,
   Type,
@@ -236,7 +235,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                             Contact #{index + 1}
                           </span>
                         </div>
-                        <button
+                        {/* <button
                           onClick={() => {
                             const newCards = content.contactCards?.filter((_: FAQContactCard, i: number) => i !== index);
                             handleUpdate('contactCards', newCards);
@@ -244,7 +243,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                           className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="w-4 h-4" />
-                        </button>
+                        </button> */}
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -368,7 +367,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                           Schedule #{index + 1}
                         </span>
                       </div>
-                      <button
+                      {/* <button
                         onClick={() => {
                           const newHours = content.businessHours?.filter((_: BusinessHour, i: number) => i !== index);
                           handleUpdate('businessHours', newHours);
@@ -376,7 +375,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                         className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </button>
+                      </button> */}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -480,7 +479,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                         </span>
                       </div>
                       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                        <button
+                        {/* <button
                           onClick={(e) => {
                             e.stopPropagation();
                             const newItems = content.items?.filter((_: FAQItem, i: number) => i !== index);
@@ -489,7 +488,7 @@ export const FAQEditor: React.FC<FAQEditorProps> = ({ onPageChange }) => {
                           className="p-1.5 sm:p-2 rounded-lg text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="w-4 h-4" />
-                        </button>
+                        </button> */}
                         <motion.div animate={{ rotate: expandedFAQs.has(index) ? 180 : 0 }}>
                           <ChevronDown className="w-4 h-4 text-muted-foreground" />
                         </motion.div>

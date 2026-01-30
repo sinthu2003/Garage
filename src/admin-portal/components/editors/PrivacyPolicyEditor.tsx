@@ -266,9 +266,11 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                                 key={index}
                                                 className="rounded-xl border border-border bg-secondary/30 overflow-hidden"
                                             >
-                                                <button
+                                                <div
+                                                    role="button"
+                                                    tabIndex={0}
                                                     onClick={() => toggleItem(index)}
-                                                    className="w-full flex items-center justify-between p-3 text-left hover:bg-secondary/50"
+                                                    className="w-full flex items-center justify-between p-3 text-left hover:bg-secondary/50 cursor-pointer"
                                                 >
                                                     <div className="flex items-center gap-3 min-w-0">
                                                         <GripVertical className="w-4 h-4 text-muted-foreground hidden sm:block" />
@@ -294,7 +296,7 @@ export const PrivacyPolicyEditor: React.FC<PrivacyPolicyEditorProps> = ({ onPage
                                                             <ChevronDown className="w-4 h-4 text-muted-foreground" />
                                                         </motion.div>
                                                     </div>
-                                                </button>
+                                                </div>
 
                                                 <AnimatePresence>
                                                     {expandedItems.has(index) && (
