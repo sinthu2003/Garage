@@ -279,9 +279,9 @@ export const ServiceDetailPage = () => {
   const isInView = useInView(sectionRef, { once: true });
 
   // Get content from context - images are already resolved by ContentContext
-  const { content } = useContent();
-  const services = content.services.items;
-  const globalContent = content.global;
+  const { content, isLoading } = useContent(); // Added isLoading
+  const services = content?.services?.items || []; // Added optional chaining and fallback
+  const globalContent = content?.global || {}; // Added optional chaining
 
   // Get service from state or find by slug
   const service = location.state?.service || services.find((s: { title: string; }) =>
@@ -290,38 +290,44 @@ export const ServiceDetailPage = () => {
 
   // Get extended data - prefer from service.process/faqs/includes if available, else use fallback
   const getExtendedData = (): ExtendedServiceData => {
-    if (!service) return defaultExtendedData;
+  if (!service) return defaultExtendedData;
 
-    const fallbackData = serviceExtendedData[service.title] || defaultExtendedData;
+  // 1. Try to get data from the Database (API) first
+  // 2. If the database arrays are empty, then use the local hardcoded fallback
+  const fallbackData = serviceExtendedData[service.title] || defaultExtendedData;
 
-    return {
-      duration: service.duration || fallbackData.duration,
-      warranty: service.warranty || fallbackData.warranty,
-      includes: service.includes || fallbackData.includes,
-      process: service.process?.map((p: { title: string; description: string }, idx: number) => ({
-        step: idx + 1,
-        title: p.title,
-        description: p.description
-      })) || fallbackData.process,
-      faqs: service.faqs || fallbackData.faqs
-    };
+  return {
+    duration: service.duration || fallbackData.duration,
+    warranty: service.warranty || fallbackData.warranty,
+    includes: (service.includes && service.includes.length > 0) 
+      ? service.includes 
+      : fallbackData.includes,
+    process: (service.process && service.process.length > 0)
+      ? service.process.map((p: any, idx: number) => ({
+          step: idx + 1,
+          title: p.title,
+          description: p.description
+        }))
+      : fallbackData.process,
+    faqs: (service.faqs && service.faqs.length > 0) 
+      ? service.faqs 
+      : fallbackData.faqs
   };
+};
 
   const extendedData = getExtendedData();
 
-  // Get images from siteContent.json gallery array (already resolved by ContentContext)
-  // Falls back to main image if no gallery exists
   const getServiceImages = (): string[] => {
-    if (!service) return [];
+  if (!service) return [];
 
-    // Check if gallery exists and has images
-    if (service.gallery && Array.isArray(service.gallery) && service.gallery.length > 0) {
-      return service.gallery;
-    }
+  // Use the gallery from the Database if it exists
+  if (service.gallery && Array.isArray(service.gallery) && service.gallery.length > 0) {
+    return service.gallery;
+  }
 
-    // Fallback to main image only
-    return service.image ? [service.image] : [];
-  };
+  // Fallback to the main service image
+  return service.image ? [service.image] : [];
+};
 
   const images = getServiceImages();
 
@@ -346,6 +352,14 @@ export const ServiceDetailPage = () => {
   const prevImage = () => {
     setActiveImage((prev) => (prev - 1 + images.length) % images.length);
   };
+
+  if (isLoading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+  );
+}
 
   if (!service) {
     return (
@@ -568,14 +582,14 @@ export const ServiceDetailPage = () => {
               {/* Quick Contact */}
               <div className="flex gap-3">
                 <a
-                  href={`tel:${globalContent.brand.phone}`}
+                  href={`tel:${globalContent?.brand?.phone || ''}`}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-secondary rounded-xl text-foreground font-medium hover:bg-secondary/80 transition-colors"
                 >
                   <Phone className="w-4 h-4" />
                   Call Now
                 </a>
                 <a
-                  href={`https://wa.me/${globalContent.brand.phone.replace(/\D/g, '')}`}
+                  href={`https://wa.me/${(globalContent?.brand?.phone || '').replace(/\D/g, '')}`}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl font-medium hover:bg-green-600 transition-colors"
                 >
                   <MessageCircle className="w-4 h-4" />
