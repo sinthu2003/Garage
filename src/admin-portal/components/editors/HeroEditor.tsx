@@ -357,7 +357,7 @@ export const HeroEditor: React.FC<HeroEditorProps> = ({ }) => {
                         onChange={(e) => handleUpdate('sliderSettings.showIndicators', e.target.checked)}
                         className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20"
                       />
-                      <span className="text-sm text-muted-foreground">Show Indicators</span>
+                      <span className="text-sm text-muted-foreground">Hide Indicators</span>
                     </label>
                   </div>
                 </div>

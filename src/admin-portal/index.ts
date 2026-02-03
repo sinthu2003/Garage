@@ -128,4 +128,3 @@ export type {
 } from './types/content.types';
 
 // Default content data
-export { default as defaultSiteContent } from './data/siteContent.json';

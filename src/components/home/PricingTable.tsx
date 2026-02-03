@@ -1,16 +1,25 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ArrowRight, TrendingDown, BadgePercent } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useContent } from '../../admin-portal';
+import { usePricingContent } from '../../admin-portal/hooks/useContentHooks';
 
 export const PricingTable = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
 
-  // Get content from context
-  const { content } = useContent();
-  const pricingContent = content.pricing;
+  // Get shared context and section-specific data
+  const { loadSection } = useContent();
+  const { items, isLoading, ...pricingContent } = usePricingContent();
+
+  // ✅ FIX: Force the pricing section to load if it's missing on refresh
+  useEffect(() => {
+    if ((!items || items.length === 0) && !isLoading) {
+      loadSection('pricing');
+    }
+  }, [items, isLoading, loadSection]);
 
   // Handle Book Now click
   const handleBookNow = () => {
@@ -25,11 +34,22 @@ export const PricingTable = () => {
   };
 
   const calculateSaving = (market: number, ours: number) => {
+    if (!market) return 0;
     return Math.round(((market - ours) / market) * 100);
   };
 
-  const totalMarket = pricingContent.items.reduce((acc, item) => acc + item.market, 0);
-  const totalOurs = pricingContent.items.reduce((acc, item) => acc + item.ours, 0);
+  // ✅ Guard against empty pricingContent before calculations
+  if (isLoading || !pricingContent.headline || !items) {
+    return (
+      <div className="py-24 flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        <p className="mt-4 text-muted-foreground animate-pulse">Loading pricing plans...</p>
+      </div>
+    );
+  }
+
+  const totalMarket = items.reduce((acc, item) => acc + item.market, 0);
+  const totalOurs = items.reduce((acc, item) => acc + item.ours, 0);
 
   return (
     <section id="pricing" className="py-12 sm:py-16 lg:py-24 bg-background relative overflow-hidden">
@@ -72,6 +92,7 @@ export const PricingTable = () => {
               transition={{ delay: 0.2 }}
             >
               <img
+                key={pricingContent.featureImage.image} // ✅ Ensures re-render on image URL update
                 src={pricingContent.featureImage.image}
                 alt="Car Service Workshop"
                 className="w-full h-full object-cover"
@@ -128,7 +149,7 @@ export const PricingTable = () => {
             transition={{ duration: 0.6 }}
             className="space-y-2 sm:space-y-3"
           >
-            {pricingContent.items.map((item, index) => (
+            {items.map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -141,25 +162,16 @@ export const PricingTable = () => {
               >
                 <div className="flex items-center gap-3 sm:gap-4">
                   {/* Service Image */}
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl overflow-hidden flex-shrink-0">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl overflow-hidden flex-shrink-0 bg-background/50">
                     {item.image ? (
                       <img
+                        key={item.image} // ✅ Forces re-render when the image URL resolves
                         src={item.image}
                         alt={item.service}
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.onerror = null;
-                          target.style.display = 'none';
-                          target.parentElement!.innerHTML = `
-                            <div class="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                              <span class="text-xl">🔧</span>
-                            </div>
-                          `;
-                        }}
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                      <div className="w-full h-full flex items-center justify-center">
                         <span className="text-xl">🔧</span>
                       </div>
                     )}

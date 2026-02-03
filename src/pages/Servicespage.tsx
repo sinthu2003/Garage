@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -63,13 +63,17 @@ export const ServicesPage = () => {
   const navigate = useNavigate();
 
   // Get content from context - images are already resolved by ContentContext
-  const { content } = useContent();
-  const services = content.services.items;
-  const globalContent = content.global;
-  const pagesContent = content.pages?.services;
+  const { content, isLoading } = useContent();
+  const services = content?.services?.items || []; 
+  const globalContent = content?.global || {}; 
+  const pagesContent = content?.pages?.services || {}; // ✅ Added optional chaining and fallback
 
   // Use categories from CMS or fallback to defaults
-  const categories = pagesContent?.categories || defaultCategories;
+  const categories = useMemo(() => {
+  return (pagesContent && pagesContent.categories && pagesContent.categories.length > 0)
+    ? pagesContent.categories
+    : defaultCategories;
+}, [pagesContent]);
 
   // Filter services based on category and search
   const filteredServices = services.filter(service => {
@@ -82,7 +86,7 @@ export const ServicesPage = () => {
   });
 
   const handleServiceClick = (service: typeof services[0]) => {
-    const serviceSlug = service.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+    const serviceSlug = (service.title || '').toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
     navigate(`/services/${serviceSlug}`, { state: { service } });
   };
 
@@ -90,6 +94,16 @@ export const ServicesPage = () => {
     e.stopPropagation();
     navigate('/', { state: { scrollToBooking: true, selectedService: service } });
   };
+
+  if (isLoading) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <p className="mt-4 text-muted-foreground animate-pulse">Loading services...</p>
+    </div>
+  );
+}
+
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
@@ -236,7 +250,7 @@ export const ServicesPage = () => {
                     <div className="p-5 sm:p-6">
                       {/* Features */}
                       <ul className="space-y-2 mb-5">
-                        {service.features.slice(0, 4).map((feature, i) => (
+                        {(service.features || []).slice(0, 4).map((feature, i) => ( // Added fallback empty array
                           <li key={i} className="flex items-center gap-2 text-sm text-foreground">
                             <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
                               <Check size={12} className="text-green-600 dark:text-green-400" strokeWidth={3} />
@@ -331,7 +345,7 @@ export const ServicesPage = () => {
               
               {/* Secondary CTA Button - Now using CMS content */}
               <motion.a
-                href={`tel:${pagesContent?.cta?.phone || globalContent.brand.phone}`}
+                href={`tel:${pagesContent?.cta?.phone || globalContent?.brand?.phone || ''}`}
                 className="px-8 py-4 bg-white text-foreground rounded-full font-semibold border border-border hover:border-primary/30 transition-colors flex items-center justify-center gap-2"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}

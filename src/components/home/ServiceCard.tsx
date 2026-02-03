@@ -3,8 +3,9 @@ import { motion, useInView } from 'framer-motion';
 import { ArrowUpRight, Check, Clock, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// Service type definition
+// Updated Service type to match your Database Schema
 interface Service {
+  _id?: string; // MongoDB ID
   id: string;
   title: string;
   description: string;
@@ -16,7 +17,7 @@ interface Service {
   category?: string;
   duration?: string;
   warranty?: string;
-  gallery?: string[]; // 👈 Add this optional property
+  gallery?: string[];
 }
 
 interface ServiceCardProps {
@@ -24,7 +25,7 @@ interface ServiceCardProps {
   index: number;
 }
 
-// Memoized feature item to prevent re-renders
+// Memoized feature item to prevent re-renders during list updates
 const FeatureItem = memo(({ feature }: { feature: string }) => (
   <li className="flex items-center gap-2 text-xs sm:text-sm text-foreground">
     <div className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
@@ -41,23 +42,23 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
   const isInView = useInView(cardRef, { once: true, amount: 0.15 });
   const navigate = useNavigate();
 
-  // Use image from service data (from siteContent.json)
+  // Data strictly from the service object provided by ContentContext API
   const imageUrl = service.image;
 
-  // Create URL-friendly slug from service title
-  const serviceSlug = service.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+  // Create URL-friendly slug
+  const serviceSlug = service.title?.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and') || 'service';
 
   const handleCardClick = () => {
     navigate(`/services/${serviceSlug}`, { state: { service } });
   };
 
- const handleBookNow = (e: React.MouseEvent) => {
+  const handleBookNow = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigate('/', { state: { scrollToBooking: true, selectedService: service } });
   };
 
-  // Pre-calculate discount
-  const discountPercent = service.originalPrice && service.price 
+  // Safe discount calculation
+  const discountPercent = service.originalPrice > service.price 
     ? Math.round(((service.originalPrice - service.price) / service.originalPrice) * 100)
     : null;
 
@@ -80,13 +81,14 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
       }}
     >
       {/* Image Section */}
-      <div className="relative h-40 sm:h-48 overflow-hidden">
+      <div className="relative h-40 sm:h-48 overflow-hidden bg-muted">
         <motion.div
           className="w-full h-full"
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
         >
           <img 
+            key={imageUrl} // ✅ Force re-load if API updates the URL
             src={imageUrl}
             alt={service.title}
             loading="lazy"
@@ -96,7 +98,6 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.onerror = null;
-              // Fallback to a placeholder gradient
               target.style.display = 'none';
               target.parentElement!.innerHTML = `
                 <div class="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
@@ -148,9 +149,9 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
           {service.description}
         </p>
 
-        {/* Features */}
+        {/* Features List */}
         <ul className="space-y-1.5 mb-4">
-          {service.features.slice(0, 3).map((feature, i) => (
+          {service.features?.slice(0, 3).map((feature, i) => (
             <FeatureItem key={i} feature={feature} />
           ))}
         </ul>
@@ -158,7 +159,7 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
         {/* Pricing Footer */}
         <div className="flex items-end justify-between pt-3 border-t border-border">
           <div>
-            {service.originalPrice && service.originalPrice > service.price && (
+            {service.originalPrice > service.price && (
               <span className="text-xs text-muted-foreground line-through block">
                 ₹{service.originalPrice?.toLocaleString()}
               </span>
@@ -173,13 +174,11 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
             </div>
           </div>
           
-          {/* Book Now Button */}
           <motion.button 
             onClick={handleBookNow}
             className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-xs sm:text-sm font-semibold flex items-center gap-1.5 hover:opacity-90"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             Book Now
             <ArrowUpRight size={14} />
@@ -187,7 +186,7 @@ export const ServiceCard = memo(({ service, index }: ServiceCardProps) => {
         </div>
       </div>
 
-      {/* View Details Hint */}
+      {/* Hover Overlay */}
       <div className="absolute inset-0 flex items-center justify-center bg-primary/0 group-hover:bg-primary/5 transition-colors pointer-events-none">
         <motion.span 
           className="px-4 py-2 bg-foreground text-background rounded-full text-sm font-semibold opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300"

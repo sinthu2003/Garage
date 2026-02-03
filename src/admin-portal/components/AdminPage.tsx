@@ -378,7 +378,8 @@ export const AdminPage: React.FC = () => {
       await applyChanges();
       showNotification('success', 'Changes applied successfully!');
       setPreviewKey((k) => k + 1);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[handleApplyChanges] ❌ Error applying changes:', error);
       showNotification('error', 'Failed to apply changes. Please try again.');
     } finally {
       setIsApplying(false);
@@ -400,11 +401,17 @@ export const AdminPage: React.FC = () => {
   };
 
   // Handle reset
-  const handleReset = () => {
-    resetContent();
-    setShowResetConfirm(false);
-    showNotification('success', 'Content reset to defaults!');
-    setPreviewKey((k) => k + 1);
+  const handleReset = async () => {
+    console.log('[handleReset] 🔴 RESET BUTTON CLICKED');
+    try {
+      await resetContent();
+      setShowResetConfirm(false);
+      showNotification('success', 'Content reset to previous saved version!');
+      console.log('[handleReset] ✅ Reset completed');
+    } catch (err) {
+      console.error('[handleReset] ❌ Reset failed:', err);
+      showNotification('error', 'Failed to reset content');
+    }
   };
 
   // Handle editor selection
@@ -523,8 +530,8 @@ export const AdminPage: React.FC = () => {
     // ✅ FIXED: Pass ALL required callbacks to ServiceDetailEditor
     if (activeEditor === 'serviceDetail') {
       return (
-        <ServiceDetailEditor 
-          isDarkMode={isDarkMode} 
+        <ServiceDetailEditor
+          isDarkMode={isDarkMode}
           onEditingIndexChange={handleServiceEditingIndexChange}
           onLocalServiceChange={handleLocalServiceChange}
           showNotification={showNotification}
@@ -1411,16 +1418,18 @@ export const AdminPage: React.FC = () => {
                 </div>
               </div>
               <p className="mb-6 text-muted-foreground">
-                All content changes will be permanently lost and reset to their default values.
+                All content changes will be permanently lost and reset to their previous saved values.
               </p>
               <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={() => setShowResetConfirm(false)}
                   className="flex-1 py-3 rounded-xl font-medium bg-secondary text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={handleReset}
                   className="flex-1 py-3 rounded-xl font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
                 >
