@@ -5,10 +5,10 @@
  * 
  * Central export file for all API services.
  * This file contains all API calls organized by domain:
- * - Auth API (login, logout, refresh)
+ * - Auth API (login, logout, refresh, forgot password)
  * - Content API (get, update, apply, discard)
- * - Services API (CRUD for services) [NEW]
- * - Car Data API (CRUD for brands/models) [NEW]
+ * - Services API (CRUD for services)
+ * - Car Data API (CRUD for brands/models)
  * - Booking API (submit booking, contact form)
  * - Media API (upload, list, delete images)
  * 
@@ -151,6 +151,49 @@ export const authApi = {
    */
   getCurrentUser: (): AuthUser | null => {
     return tokenStorage.getUser();
+  },
+
+  // ============================================
+  // FORGOT PASSWORD METHODS
+  // ============================================
+
+  /**
+   * Send OTP to email for password reset
+   * @param email - User's email address
+   */
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      '/auth/forgot-password',
+      { email }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Verify OTP for password reset
+   * @param email - User's email address
+   * @param otp - 6-digit OTP code
+   */
+  verifyOtp: async (email: string, otp: string): Promise<{ message: string; resetToken: string }> => {
+    const response = await apiClient.post<ApiResponse<{ message: string; resetToken: string }>>(
+      '/auth/verify-otp',
+      { email, otp }
+    );
+    return response.data.data;
+  },
+
+  /**
+   * Reset password with verified OTP
+   * @param email - User's email address
+   * @param otp - 6-digit OTP code
+   * @param newPassword - New password
+   */
+  resetPassword: async (email: string, otp: string, newPassword: string): Promise<{ message: string }> => {
+    const response = await apiClient.post<ApiResponse<{ message: string }>>(
+      '/auth/reset-password',
+      { email, otp, newPassword }
+    );
+    return response.data.data;
   },
 };
 
@@ -1202,14 +1245,17 @@ export const mediaApi = {
  * 
  * // Auth
  * await api.auth.login({ email, password });
+ * await api.auth.forgotPassword(email);
+ * await api.auth.verifyOtp(email, otp);
+ * await api.auth.resetPassword(email, otp, newPassword);
  * 
  * // Content
  * const content = await api.content.getPublicContent();
  * 
- * // Services [NEW]
+ * // Services
  * const services = await api.services.getAll();
  * 
- * // Car Data [NEW]
+ * // Car Data
  * const brands = await api.carData.getAllBrands({ includeModels: true });
  * 
  * // Booking
