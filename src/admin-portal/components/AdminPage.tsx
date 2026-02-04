@@ -386,10 +386,20 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  // Handle logout
-  const handleLogout = () => {
-    logout();
-    navigate('/admin/login');
+  // ✅ FIXED: Handle logout with proper error handling
+  const handleLogout = async () => {
+    console.log('🔴 Logout clicked');
+    setShowUserMenu(false); // Close menu first
+    
+    try {
+      await logout();
+      console.log('✅ Logout successful');
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+    } finally {
+      // Always navigate to login, even if logout API fails
+      navigate('/admin/login', { replace: true });
+    }
   };
 
   // Handle Discard Changes
@@ -768,7 +778,12 @@ export const AdminPage: React.FC = () => {
                   View Website
                 </button>
                 <button
-                  onClick={handleLogout}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setMobileSidebarOpen(false);
+                    handleLogout();
+                  }}
                   className="w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
@@ -937,7 +952,11 @@ export const AdminPage: React.FC = () => {
                 View Site
               </button>
               <button
-                onClick={handleLogout}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleLogout();
+                }}
                 className="w-full flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs text-destructive hover:bg-destructive/10 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -963,7 +982,11 @@ export const AdminPage: React.FC = () => {
                 <Home className="w-4 h-4" />
               </button>
               <button
-                onClick={handleLogout}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleLogout();
+                }}
                 className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
                 title="Logout"
               >
@@ -981,7 +1004,7 @@ export const AdminPage: React.FC = () => {
         {/* ============================================ */}
         {/* UNIFIED HEADER - STABLE FOR ALL SCREENS */}
         {/* ============================================ */}
-        <header className={`flex-shrink-0 flex items-center justify-between h-14 px-4 border-b ${themeClass('bg-card/80 border-border backdrop-blur-xl', 'bg-white/80 border-gray-200 backdrop-blur-xl')} z-20`}>
+        <header className={`flex-shrink-0 flex items-center justify-between h-14 px-4 border-b ${themeClass('bg-card/80 border-border backdrop-blur-xl', 'bg-white/80 border-gray-200 backdrop-blur-xl')} z-30`}>
           <div className="flex items-center gap-3">
             {/* Mobile Menu Button */}
             <button
@@ -1105,7 +1128,7 @@ export const AdminPage: React.FC = () => {
               </>
             )}
 
-            {/* User Menu */}
+            {/* ✅ FIXED: User Menu with higher z-index */}
             <div className="relative ml-2" ref={userMenuRef}>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
@@ -1124,7 +1147,7 @@ export const AdminPage: React.FC = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    className={`absolute right-0 top-full mt-2 w-56 rounded-xl ${themeClass('bg-card border-border', 'bg-white border-gray-200')} border shadow-xl z-50 overflow-hidden`}
+                    className={`absolute right-0 top-full mt-2 w-56 rounded-xl ${themeClass('bg-card border-border', 'bg-white border-gray-200')} border shadow-xl z-[100] overflow-hidden`}
                   >
                     <div className="p-3 border-b border-border bg-secondary/30">
                       <p className="font-semibold text-foreground text-sm">{user?.name}</p>
@@ -1132,14 +1155,23 @@ export const AdminPage: React.FC = () => {
                     </div>
                     <div className="p-1.5">
                       <button
-                        onClick={() => navigate('/')}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShowUserMenu(false);
+                          navigate('/');
+                        }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary transition-colors"
                       >
                         <Home className="w-4 h-4 text-muted-foreground" />
                         View Website
                       </button>
                       <button
-                        onClick={handleLogout}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleLogout();
+                        }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
@@ -1220,19 +1252,6 @@ export const AdminPage: React.FC = () => {
                   className={`flex flex-col overflow-hidden border-r flex-shrink-0 ${themeClass('border-border bg-card/30', 'border-gray-200 bg-gray-50/50')}`}
                   style={{ minWidth: previewVisible && !isMobile ? `${editorPanelWidth}%` : undefined }}
                 >
-                  {/* Mobile Preview Toggle */}
-                  {/* {isMobile && (
-                    <div className="p-3 border-b border-border">
-                      <button
-                        onClick={() => setPreviewVisible(true)}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground font-medium"
-                      >
-                        <Eye className="w-4 h-4" />
-                        Preview Changes
-                      </button>
-                    </div>
-                  )} */}
-
                   {/* Editor Content */}
                   <div className="flex-1 overflow-y-auto p-4 custom-scrollbar w-full">
                     {renderEditorComponent()}
@@ -1398,7 +1417,7 @@ export const AdminPage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setShowResetConfirm(false)}
           >
             <motion.div
@@ -1450,7 +1469,7 @@ export const AdminPage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             onClick={() => setShowDiscardConfirm(false)}
           >
             <motion.div
@@ -1500,7 +1519,7 @@ export const AdminPage: React.FC = () => {
             initial={{ opacity: 0, y: 50, x: '-50%' }}
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, y: 50, x: '-50%' }}
-            className={`fixed bottom-6 left-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl ${notification.type === 'success'
+            className={`fixed bottom-6 left-1/2 z-[300] flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl ${notification.type === 'success'
               ? 'bg-green-500 text-white'
               : 'bg-destructive text-destructive-foreground'
               }`}
